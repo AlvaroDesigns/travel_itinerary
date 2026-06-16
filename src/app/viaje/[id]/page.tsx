@@ -84,6 +84,7 @@ export default function ViajeDetalle({ params }: PageProps) {
   const [hotelAddress, setHotelAddress] = useState('');
   const [hotelCheckIn, setHotelCheckIn] = useState('');
   const [hotelCheckOut, setHotelCheckOut] = useState('');
+  const [hotelDescription, setHotelDescription] = useState('');
 
   const [excursionTitle, setExcursionTitle] = useState('');
   const [excursionDesc, setExcursionDesc] = useState('');
@@ -263,6 +264,7 @@ export default function ViajeDetalle({ params }: PageProps) {
     setHotelAddress('');
     setHotelCheckIn('');
     setHotelCheckOut('');
+    setHotelDescription('');
     setExcursionTitle('');
     setExcursionDesc('');
     setExcursionDur('');
@@ -299,6 +301,7 @@ export default function ViajeDetalle({ params }: PageProps) {
       setHotelAddress(h.address);
       setHotelCheckIn(h.checkIn);
       setHotelCheckOut(h.checkOut);
+      setHotelDescription(h.description || '');
     } else if (act.type === 'excursion') {
       const e = act as ExcursionActivity;
       setExcursionTitle(e.title);
@@ -355,6 +358,7 @@ export default function ViajeDetalle({ params }: PageProps) {
         address: hotelAddress || 'Dirección',
         checkIn: hotelCheckIn || '15:00',
         checkOut: hotelCheckOut || '12:00',
+        description: hotelDescription || '',
       };
     } else if (actType === 'excursion') {
       activityData = {
@@ -687,6 +691,12 @@ export default function ViajeDetalle({ params }: PageProps) {
                                           <span>Cómo llegar</span>
                                         </a>
                                       </div>
+                                      {/* Custom hotel description/notes */}
+                                      {(act as HotelActivity).description && (
+                                        <p className="text-sm text-slate-500 mt-2.5 max-w-lg leading-relaxed font-sans italic bg-indigo-50/30 p-2.5 rounded-xl border border-indigo-100/50 border-dashed break-words">
+                                          {renderDescriptionWithLinks((act as HotelActivity).description || '')}
+                                        </p>
+                                      )}
                                     </div>
                                   )}
 
@@ -1144,7 +1154,6 @@ export default function ViajeDetalle({ params }: PageProps) {
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.75rem_0.75rem] bg-[right_0.75rem_center] bg-no-repeat pr-8"
                   value={actType}
                   onChange={(e) => setActType(e.target.value as ActivityType)}
-                  disabled={!!editingActivity}
                 >
                   <option value="flight">Vuelo (Avión)</option>
                   <option value="transfer">Traslado (Taxi, Bus, Tren, Caminar)</option>
@@ -1351,6 +1360,16 @@ export default function ViajeDetalle({ params }: PageProps) {
                         onChange={(e) => setHotelCheckOut(e.target.value)}
                       />
                     </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Notas / Recomendaciones (Opcional)</label>
+                    <textarea
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm font-medium font-sans p-3 min-h-[70px]"
+                      placeholder="Ej. Código de reserva, desayuno incluido, o peticiones especiales..."
+                      rows={2}
+                      value={hotelDescription}
+                      onChange={(e) => setHotelDescription(e.target.value)}
+                    />
                   </div>
                 </div>
               )}

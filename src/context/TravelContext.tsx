@@ -36,6 +36,7 @@ export interface HotelActivity extends BaseActivity {
   address: string;
   checkIn: string;
   checkOut: string;
+  description?: string;
 }
 
 export interface ExcursionActivity extends BaseActivity {
