@@ -190,14 +190,15 @@ export async function initDb() {
       );
     `);
 
-    // 4. Seed Default User (hello@alvarodesigns.com / Itineray2026$)
+    // 4. Seed Default User (hello@alvarodesigns.com / Itinerary2026$)
     const userEmail = 'hello@alvarodesigns.com';
     const checkUser = await client.query('SELECT * FROM users WHERE email = $1', [userEmail]);
     
     let userId: number;
+    const correctPassword = 'Itinerary2026$'; // Corrected typo
     
     if (checkUser.rows.length === 0) {
-      const hashedPassword = await bcryptjs.hash('Itineray2026$', 10);
+      const hashedPassword = await bcryptjs.hash(correctPassword, 10);
       const insertUser = await client.query(
         'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id',
         [userEmail, hashedPassword]
@@ -206,6 +207,9 @@ export async function initDb() {
       console.log(`Seeded default user: ${userEmail}`);
     } else {
       userId = checkUser.rows[0].id;
+      // Force update password to correct spelling
+      const hashedPassword = await bcryptjs.hash(correctPassword, 10);
+      await client.query('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, userId]);
     }
 
     // 5. Seed default Vietnam trip for this user if they have 0 trips or have the old seed dates

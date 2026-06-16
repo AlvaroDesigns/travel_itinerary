@@ -2,19 +2,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Compass, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { Compass, Mail, Lock, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   // Handle autofill when user clicks on credentials badge
   const handleAutoFill = () => {
     setEmail('hello@alvarodesigns.com');
-    setPassword('Itineray2026$');
+    setPassword('Itinerary2026$');
     setError(null);
   };
 
@@ -113,14 +114,23 @@ export default function Login() {
                   <Lock className="w-4 h-4" />
                 </span>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••••••"
-                  className="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-800 bg-slate-950/70 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-sans text-sm h-11"
+                  className="w-full pl-11 pr-11 py-3 rounded-2xl border border-slate-800 bg-slate-950/70 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all font-sans text-sm h-11"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none cursor-pointer"
+                  disabled={isLoading}
+                  title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
