@@ -58,7 +58,7 @@ export default function Login() {
 
       {/* 3. Glassmorphic Card Container */}
       <div className="relative w-full max-w-md mx-4 z-10">
-        <div className="glassmorphic border border-white/10 shadow-2xl rounded-3xl p-8 backdrop-blur-2xl bg-slate-900/50">
+        <div className="bg-slate-900/75 border border-slate-800/80 shadow-2xl rounded-3xl p-8 backdrop-blur-xl font-sans">
           
           {/* Header & Logo */}
           <div className="flex flex-col items-center text-center mb-8">
