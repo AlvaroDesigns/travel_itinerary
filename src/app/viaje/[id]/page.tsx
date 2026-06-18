@@ -85,6 +85,9 @@ export default function ViajeDetalle({ params }: PageProps) {
   const [hotelCheckIn, setHotelCheckIn] = useState('');
   const [hotelCheckOut, setHotelCheckOut] = useState('');
   const [hotelDescription, setHotelDescription] = useState('');
+  const [hotelCheckInDate, setHotelCheckInDate] = useState('');
+  const [hotelCheckOutDate, setHotelCheckOutDate] = useState('');
+
 
   const [excursionTitle, setExcursionTitle] = useState('');
   const [excursionDesc, setExcursionDesc] = useState('');
@@ -162,6 +165,93 @@ export default function ViajeDetalle({ params }: PageProps) {
     return dates;
   }
 
+  // Helper to add days to a YYYY-MM-DD date string
+  function addDays(dateStr: string, daysStr: number) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-').map(Number);
+    const date = new Date(parts[0], parts[1] - 1, parts[2]);
+    date.setDate(date.getDate() + daysStr);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  // Helper to get number of nights between two dates
+  function getNights(inDate: string, outDate: string) {
+    if (!inDate || !outDate) return 0;
+    const startParts = inDate.split('-').map(Number);
+    const endParts = outDate.split('-').map(Number);
+    const start = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+    const end = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+    const diff = end.getTime() - start.getTime();
+    if (diff <= 0) return 0;
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  }
+
+  // Helper to format date simply (e.g. "27 Jun")
+  function formatDateSimple(dateStr: string) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length < 3) return dateStr;
+    const day = parseInt(parts[2], 10);
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const monthIdx = parseInt(parts[1], 10) - 1;
+    const month = months[monthIdx] || '';
+    return `${day} ${month}`;
+  }
+
+  // Helper to determine status and display styling for a hotel stay on a specific date
+  function getHotelStatus(act: Activity, dateStr: string) {
+    if (act.type !== 'hotel') return null;
+    const h = act as HotelActivity;
+    if (!h.checkoutDate || h.checkoutDate === h.date) {
+      return {
+        time: h.checkIn || h.time || '15:00',
+        badge: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-pink-100 text-pink-700 border border-pink-200">Hotel</span>,
+        label: 'Alojamiento en ' + h.hotelName,
+        showCheckInOut: true
+      };
+    }
+
+    if (dateStr === h.date) {
+      return {
+        time: h.checkIn || h.time || '15:00',
+        badge: <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-pink-600 text-white border border-pink-700 shadow-sm">Entrada Hotel (Check-in)</span>,
+        label: `Alojamiento en ${h.hotelName}`,
+        showCheckInOut: true
+      };
+    }
+
+    if (dateStr === h.checkoutDate) {
+      return {
+        time: h.checkOut || '12:00',
+        badge: <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-slate-600 text-white border border-slate-700 shadow-sm">Salida Hotel (Check-out)</span>,
+        label: `Alojamiento en ${h.hotelName}`,
+        showCheckInOut: true
+      };
+    }
+
+    // Intermediate day: calculate which night this is!
+    const startParts = h.date.split('-').map(Number);
+    const currentParts = dateStr.split('-').map(Number);
+    const start = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+    const current = new Date(currentParts[0], currentParts[1] - 1, currentParts[2]);
+    const diffTime = current.getTime() - start.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Total nights
+    const endParts = h.checkoutDate.split('-').map(Number);
+    const end = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+    const totalTime = end.getTime() - start.getTime();
+    const totalNights = Math.ceil(totalTime / (1000 * 60 * 60 * 24));
+
+    return {
+      time: 'Todo el día',
+      badge: <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-pink-100 text-pink-700 border border-pink-200">Hotel - Estancia (Noche {diffDays} de {totalNights})</span>,
+      label: `Alojamiento en ${h.hotelName}`,
+      showCheckInOut: false
+    };
+  }
+
+
   const tripDates = getDatesInRange(activeTrip.startDate, activeTrip.endDate);
 
   const formatDateLabel = (dateStr: string) => {
@@ -175,14 +265,46 @@ export default function ViajeDetalle({ params }: PageProps) {
   };
 
   // Calculations for current selected day
-  const dayActivities = activeTrip.activities.filter((act) => act.date === selectedDate);
+  const dayActivities = activeTrip.activities
+    .filter((act) => {
+      if (act.type === 'hotel') {
+        const h = act as HotelActivity;
+        if (h.checkoutDate) {
+          return selectedDate >= h.date && selectedDate <= h.checkoutDate;
+        }
+      }
+      return act.date === selectedDate;
+    })
+    .sort((a, b) => {
+      const getTimeForSorting = (act: Activity, dateStr: string) => {
+        if (act.type === 'hotel') {
+          const h = act as HotelActivity;
+          if (h.checkoutDate && h.checkoutDate !== h.date) {
+            if (dateStr === h.checkoutDate) {
+              return h.checkOut || '12:00';
+            }
+            if (dateStr === h.date) {
+              return h.checkIn || h.time || '14:00';
+            }
+            return '00:00';
+          }
+        }
+        return act.time;
+      };
+      const timeA = getTimeForSorting(a, selectedDate);
+      const timeB = getTimeForSorting(b, selectedDate);
+      return timeA.localeCompare(timeB);
+    });
 
   const getDayCostByCategory = (category: 'transport' | 'activities' | 'hotel' | 'food') => {
     return dayActivities
       .filter((act) => {
         if (category === 'transport') return act.type === 'flight' || act.type === 'transfer';
         if (category === 'activities') return act.type === 'excursion';
-        if (category === 'hotel') return act.type === 'hotel';
+        if (category === 'hotel') {
+          // Only add hotel cost on check-in day to avoid duplicate counting!
+          return act.type === 'hotel' && act.date === selectedDate;
+        }
         if (category === 'food') return act.type === 'food';
         return false;
       })
@@ -265,6 +387,10 @@ export default function ViajeDetalle({ params }: PageProps) {
     setHotelCheckIn('');
     setHotelCheckOut('');
     setHotelDescription('');
+    const defaultCheckIn = selectedDate;
+    const defaultCheckOut = addDays(selectedDate, 1) > activeTrip.endDate ? activeTrip.endDate : addDays(selectedDate, 1);
+    setHotelCheckInDate(defaultCheckIn);
+    setHotelCheckOutDate(defaultCheckOut);
     setExcursionTitle('');
     setExcursionDesc('');
     setExcursionDur('');
@@ -302,7 +428,10 @@ export default function ViajeDetalle({ params }: PageProps) {
       setHotelCheckIn(h.checkIn);
       setHotelCheckOut(h.checkOut);
       setHotelDescription(h.description || '');
-    } else if (act.type === 'excursion') {
+      setHotelCheckInDate(h.date);
+      setHotelCheckOutDate(h.checkoutDate || h.date);
+    }
+ else if (act.type === 'excursion') {
       const e = act as ExcursionActivity;
       setExcursionTitle(e.title);
       setExcursionDesc(e.description);
@@ -323,12 +452,23 @@ export default function ViajeDetalle({ params }: PageProps) {
       return;
     }
 
+    if (actType === 'hotel') {
+      if (!hotelCheckInDate || !hotelCheckOutDate) {
+        alert('Por favor, indica las fechas de entrada y salida.');
+        return;
+      }
+      if (hotelCheckOutDate < hotelCheckInDate) {
+        alert('La fecha de salida no puede ser anterior a la de entrada.');
+        return;
+      }
+    }
+
     const priceNum = parseFloat(actPrice);
     
     // Construct activity object
     let activityData: any = {
       type: actType,
-      date: selectedDate,
+      date: actType === 'hotel' ? hotelCheckInDate : selectedDate,
       time: actTime,
       price: isNaN(priceNum) ? 0 : priceNum,
     };
@@ -358,6 +498,7 @@ export default function ViajeDetalle({ params }: PageProps) {
         address: hotelAddress || 'Dirección',
         checkIn: hotelCheckIn || '15:00',
         checkOut: hotelCheckOut || '12:00',
+        checkoutDate: hotelCheckOutDate,
         description: hotelDescription || '',
       };
     } else if (actType === 'excursion') {
@@ -375,6 +516,7 @@ export default function ViajeDetalle({ params }: PageProps) {
         description: foodDesc || '',
       };
     }
+
 
     if (editingActivity) {
       updateActivity(activeTrip.id, {
@@ -567,6 +709,8 @@ export default function ViajeDetalle({ params }: PageProps) {
                   ) : (
                     <div className="relative border-l-2 border-slate-100 pl-5 sm:pl-6 ml-2.5 sm:ml-4 space-y-6 sm:space-y-8 py-2">
                       {dayActivities.map((act) => {
+                        const hotelStatus = getHotelStatus(act, selectedDate);
+
                         // Icon mapping
                         const iconMap = {
                           flight: <Plane className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" />,
@@ -610,9 +754,9 @@ export default function ViajeDetalle({ params }: PageProps) {
                                   <div className="flex items-center gap-2">
                                     <span className="text-sm font-bold text-slate-700 flex items-center gap-1 font-sans">
                                       <Clock className="w-3.5 h-3.5 text-slate-400" />
-                                      {act.time}
+                                      {hotelStatus ? hotelStatus.time : act.time}
                                     </span>
-                                    {badgeMap[act.type]}
+                                    {hotelStatus ? hotelStatus.badge : badgeMap[act.type]}
                                     {act.price > 0 && (
                                       <span className="text-xs font-semibold text-slate-500 bg-slate-100/80 px-2.5 py-0.5 rounded-full border border-slate-200">
                                         {formatCurrency(act.price)}
@@ -672,15 +816,31 @@ export default function ViajeDetalle({ params }: PageProps) {
                                   {act.type === 'hotel' && (
                                     <div>
                                       <h4 className="text-base font-bold text-slate-800 font-sans">
-                                        Alojamiento en {(act as HotelActivity).hotelName}
+                                        {hotelStatus ? hotelStatus.label : `Alojamiento en ${(act as HotelActivity).hotelName}`}
                                       </h4>
                                       <p className="text-sm text-slate-600 mt-1 flex items-center gap-1.5 font-sans">
                                         <MapPin className="w-4 h-4 text-slate-400" />
                                         <span>{(act as HotelActivity).address}</span>
                                       </p>
                                       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-xs font-medium font-sans">
-                                        <span className="text-slate-400">Check-in: <strong className="text-slate-600">{(act as HotelActivity).checkIn}</strong></span>
-                                        <span className="text-slate-400">Check-out: <strong className="text-slate-600">{(act as HotelActivity).checkOut}</strong></span>
+                                        {hotelStatus && hotelStatus.showCheckInOut ? (
+                                          <>
+                                            <span className="text-slate-400">
+                                              Check-in: <strong className="text-slate-600">{(act as HotelActivity).checkIn}</strong>
+                                              {(act as HotelActivity).checkoutDate && ` (${formatDateSimple(act.date)})`}
+                                            </span>
+                                            <span className="text-slate-400">
+                                              Check-out: <strong className="text-slate-600">{(act as HotelActivity).checkOut}</strong>
+                                              {(act as HotelActivity).checkoutDate && ` (${formatDateSimple((act as HotelActivity).checkoutDate || '')})`}
+                                            </span>
+                                          </>
+                                        ) : (
+                                          (act as HotelActivity).checkoutDate && (
+                                            <span className="text-slate-500 bg-pink-50/50 border border-pink-100 rounded-lg px-2.5 py-0.5 font-semibold">
+                                              Estancia del {formatDateSimple(act.date)} al {formatDateSimple((act as HotelActivity).checkoutDate || '')}
+                                            </span>
+                                          )
+                                        )}
                                         <a
                                           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((act as HotelActivity).address)}`}
                                           target="_blank"
@@ -1035,7 +1195,11 @@ export default function ViajeDetalle({ params }: PageProps) {
                               </div>
                             </div>
                             <div className="text-right font-sans">
-                              <span className="text-xs font-semibold text-slate-400">{h.date}</span>
+                              <span className="text-xs font-semibold text-slate-400">
+                                {h.checkoutDate && h.checkoutDate !== h.date
+                                  ? `${formatDateSimple(h.date)} - ${formatDateSimple(h.checkoutDate)}`
+                                  : formatDateSimple(h.date)}
+                              </span>
                               <p className="text-sm font-extrabold text-slate-700 mt-0.5">{formatCurrency(h.price)}</p>
                             </div>
                           </div>
@@ -1339,6 +1503,46 @@ export default function ViajeDetalle({ params }: PageProps) {
                       onChange={(e) => setHotelAddress(e.target.value)}
                     />
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha Entrada *</label>
+                      <input
+                        type="date"
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                        min={activeTrip.startDate}
+                        max={activeTrip.endDate}
+                        value={hotelCheckInDate}
+                        onChange={(e) => {
+                          const newInDate = e.target.value;
+                          setHotelCheckInDate(newInDate);
+                          if (hotelCheckOutDate <= newInDate) {
+                            setHotelCheckOutDate(addDays(newInDate, 1));
+                          }
+                        }}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha Salida *</label>
+                      <input
+                        type="date"
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                        min={hotelCheckInDate || activeTrip.startDate}
+                        max={activeTrip.endDate}
+                        value={hotelCheckOutDate}
+                        onChange={(e) => setHotelCheckOutDate(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  {hotelCheckInDate && hotelCheckOutDate && (
+                    <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3 flex items-center justify-between">
+                      <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Duración de la Estancia</span>
+                      <span className="text-sm font-extrabold text-indigo-900">
+                        {getNights(hotelCheckInDate, hotelCheckOutDate)} {getNights(hotelCheckInDate, hotelCheckOutDate) === 1 ? 'noche' : 'noches'}
+                      </span>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Check-in (Hora)</label>
