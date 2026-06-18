@@ -13,6 +13,17 @@ export interface BaseActivity {
   price: number;
 }
 
+export interface FlightLeg {
+  flightNumber: string;
+  airline: string;
+  origin: string;
+  destination: string;
+  departureTime: string; // HH:MM
+  departureDate?: string; // YYYY-MM-DD (defaults to activity date)
+  arrivalTime: string; // HH:MM
+  arrivalDate?: string; // YYYY-MM-DD
+}
+
 export interface FlightActivity extends BaseActivity {
   type: 'flight';
   flightNumber: string;
@@ -20,6 +31,7 @@ export interface FlightActivity extends BaseActivity {
   origin: string;
   destination: string;
   arrivalTime: string;
+  legs?: FlightLeg[];
 }
 
 export interface TransferActivity extends BaseActivity {
