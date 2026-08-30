@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useState, useEffect } from 'react';
 
 // Activity Types
 export type ActivityType = 'flight' | 'transfer' | 'hotel' | 'excursion' | 'food';
@@ -40,6 +40,7 @@ export interface TransferActivity extends BaseActivity {
   origin: string;
   destination: string;
   duration: string; // e.g. "30 - 45 min"
+  description?: string;
 }
 
 export interface HotelActivity extends BaseActivity {
@@ -152,13 +153,13 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     checkAuthAndLoadData();
   }, []);
 
-  const setActiveTripById = (id: string) => {
+  const setActiveTripById = useCallback((id: string) => {
     const trip = trips.find((t) => t.id === id) || null;
     setActiveTrip(trip);
     if (id) {
       localStorage.setItem('last_active_trip_id', id);
     }
-  };
+  }, [trips]);
 
   const addTrip = async (newTripData: Omit<Trip, 'id' | 'activities'>) => {
     try {

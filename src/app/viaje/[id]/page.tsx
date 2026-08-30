@@ -33,13 +33,14 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+type ActivityInput<T extends Activity = Activity> = T extends Activity ? Omit<T, 'id'> : never;
+
 export default function ViajeDetalle({ params }: PageProps) {
   // Unwrap params using React.use()
   const resolvedParams = use(params);
   const { id } = resolvedParams;
 
   const {
-    trips,
     activeTrip,
     setActiveTripById,
     updateTrip,
@@ -95,11 +96,6 @@ export default function ViajeDetalle({ params }: PageProps) {
   const [actPrice, setActPrice] = useState('');
 
   // Type-specific Form States
-  const [flightNo, setFlightNo] = useState('');
-  const [airline, setAirline] = useState('');
-  const [origin, setOrigin] = useState('');
-  const [destination, setDestination] = useState('');
-  const [arrivalTime, setArrivalTime] = useState('');
   const [flightLegs, setFlightLegs] = useState<FlightLeg[]>([]);
 
 
@@ -126,30 +122,29 @@ export default function ViajeDetalle({ params }: PageProps) {
   const [foodType, setFoodType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack'>('dinner');
   const [foodDesc, setFoodDesc] = useState('');
 
-  // Notes state
-  const [notesText, setNotesText] = useState('');
+  // Notes draft is keyed to the active trip, avoiding synchronous state updates in an effect.
+  const [noteDraft, setNoteDraft] = useState<{ tripId: string; value: string } | null>(null);
 
   // Sync active trip by URL param
   useEffect(() => {
     if (id) {
       setActiveTripById(id);
     }
-  }, [id, trips]);
+  }, [id, setActiveTripById]);
 
-  // Set default selected date and notes once trip loads
+  // Initialize the selected day after the active trip is synchronized.
   useEffect(() => {
-    if (activeTrip) {
-      setNotesText(activeTrip.notes || '');
-      if (!selectedDate || !getDatesInRange(activeTrip.startDate, activeTrip.endDate).includes(selectedDate)) {
-        const range = getDatesInRange(activeTrip.startDate, activeTrip.endDate);
-        if (range.includes(todayStr)) {
-          setSelectedDate(todayStr);
-        } else {
-          setSelectedDate(activeTrip.startDate);
-        }
+    if (!activeTrip) return;
+
+    const timer = window.setTimeout(() => {
+      const range = getDatesInRange(activeTrip.startDate, activeTrip.endDate);
+      if (!selectedDate || !range.includes(selectedDate)) {
+        setSelectedDate(range.includes(todayStr) ? todayStr : activeTrip.startDate);
       }
-    }
-  }, [activeTrip]);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [activeTrip, selectedDate, todayStr]);
 
   if (isLoading) {
     return (
@@ -275,7 +270,7 @@ export default function ViajeDetalle({ params }: PageProps) {
         return `${hours}h ${mins}m`;
       }
       return `${mins}m`;
-    } catch (e) {
+    } catch {
       return '';
     }
   }
@@ -288,7 +283,7 @@ export default function ViajeDetalle({ params }: PageProps) {
     if (!h.checkoutDate || h.checkoutDate === h.date) {
       return {
         time: h.checkIn || h.time || '15:00',
-        badge: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-ink-100 text-ink-700 border border-ink-200">Hotel</span>,
+        badge: <span className="border border-ink-900 bg-ink-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">Hotel</span>,
         label: 'Alojamiento en ' + h.hotelName,
         showCheckInOut: true
       };
@@ -297,7 +292,7 @@ export default function ViajeDetalle({ params }: PageProps) {
     if (dateStr === h.date) {
       return {
         time: h.checkIn || h.time || '15:00',
-        badge: <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-ink-900 text-white border border-ink-900 shadow-sm">Entrada Hotel (Check-in)</span>,
+        badge: <span className="border border-ink-900 bg-ink-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">Entrada Hotel (Check-in)</span>,
         label: `Alojamiento en ${h.hotelName}`,
         showCheckInOut: true
       };
@@ -306,7 +301,7 @@ export default function ViajeDetalle({ params }: PageProps) {
     if (dateStr === h.checkoutDate) {
       return {
         time: h.checkOut || '12:00',
-        badge: <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-ink-900 text-white border border-ink-900 shadow-sm">Salida Hotel (Check-out)</span>,
+        badge: <span className="border border-ink-900 bg-ink-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">Salida Hotel (Check-out)</span>,
         label: `Alojamiento en ${h.hotelName}`,
         showCheckInOut: true
       };
@@ -328,7 +323,7 @@ export default function ViajeDetalle({ params }: PageProps) {
 
     return {
       time: 'Todo el día',
-      badge: <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-ink-100 text-ink-700 border border-ink-200">Hotel - Estancia (Noche {diffDays} de {totalNights})</span>,
+      badge: <span className="border border-ink-200 bg-ink-50 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-ink-700">Hotel - Estancia (Noche {diffDays} de {totalNights})</span>,
       label: `Alojamiento en ${h.hotelName}`,
       showCheckInOut: false
     };
@@ -336,6 +331,7 @@ export default function ViajeDetalle({ params }: PageProps) {
 
 
   const tripDates = getDatesInRange(activeTrip.startDate, activeTrip.endDate);
+  const notesText = noteDraft?.tripId === activeTrip.id ? noteDraft.value : activeTrip.notes || '';
 
   const formatDateLabel = (dateStr: string) => {
     const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -454,11 +450,6 @@ export default function ViajeDetalle({ params }: PageProps) {
     setActType('flight');
     setActTime('09:00');
     setActPrice('');
-    setFlightNo('');
-    setAirline('');
-    setOrigin('');
-    setDestination('');
-    setArrivalTime('');
     setFlightLegs([
       {
         flightNumber: '',
@@ -503,11 +494,6 @@ export default function ViajeDetalle({ params }: PageProps) {
 
     if (act.type === 'flight') {
       const f = act as FlightActivity;
-      setFlightNo(f.flightNumber);
-      setAirline(f.airline);
-      setOrigin(f.origin);
-      setDestination(f.destination);
-      setArrivalTime(f.arrivalTime);
       if (f.legs && f.legs.length > 0) {
         setFlightLegs(f.legs);
       } else {
@@ -530,7 +516,7 @@ export default function ViajeDetalle({ params }: PageProps) {
       setTransOrigin(t.origin);
       setTransDest(t.destination);
       setTransDuration(t.duration);
-      setTransDescription((t as any).description || '');
+      setTransDescription(t.description || '');
     } else if (act.type === 'hotel') {
       const h = act as HotelActivity;
       setHotelName(h.hotelName);
@@ -592,23 +578,24 @@ export default function ViajeDetalle({ params }: PageProps) {
 
     const priceNum = parseFloat(actPrice);
     
-    // Construct activity object
-    let activityData: any = {
-      type: actType,
+    // Construct a fully typed activity for the selected activity kind.
+    const baseActivity = {
       date: actType === 'hotel' ? hotelCheckInDate : (actType === 'flight' && flightLegs[0] ? (flightLegs[0].departureDate || selectedDate) : selectedDate),
       time: computedTime,
       price: isNaN(priceNum) ? 0 : priceNum,
     };
+    let activityData: ActivityInput;
 
     if (actType === 'flight') {
       const firstLeg = flightLegs[0];
       const lastLeg = flightLegs[flightLegs.length - 1];
       const combinedFlightNo = flightLegs.length > 1
-        ? flightLegs.map(l => l.flightNumber).join(' + ')
+        ? flightLegs.map((leg) => leg.flightNumber).join(' + ')
         : firstLeg.flightNumber;
 
       activityData = {
-        ...activityData,
+        ...baseActivity,
+        type: 'flight',
         flightNumber: combinedFlightNo || 'S/N',
         airline: firstLeg.airline || 'Aerolínea',
         origin: firstLeg.origin || 'Origen',
@@ -618,7 +605,8 @@ export default function ViajeDetalle({ params }: PageProps) {
       };
     } else if (actType === 'transfer') {
       activityData = {
-        ...activityData,
+        ...baseActivity,
+        type: 'transfer',
         transportType: transType,
         origin: transOrigin || 'Origen',
         destination: transDest || 'Destino',
@@ -627,7 +615,8 @@ export default function ViajeDetalle({ params }: PageProps) {
       };
     } else if (actType === 'hotel') {
       activityData = {
-        ...activityData,
+        ...baseActivity,
+        type: 'hotel',
         hotelName: hotelName || 'Hotel',
         address: hotelAddress || 'Dirección',
         checkIn: hotelCheckIn || '15:00',
@@ -637,20 +626,21 @@ export default function ViajeDetalle({ params }: PageProps) {
       };
     } else if (actType === 'excursion') {
       activityData = {
-        ...activityData,
+        ...baseActivity,
+        type: 'excursion',
         title: excursionTitle || 'Excursión',
         description: excursionDesc || '',
         duration: excursionDur || '2 horas',
       };
-    } else if (actType === 'food') {
+    } else {
       activityData = {
-        ...activityData,
+        ...baseActivity,
+        type: 'food',
         restaurantName: foodRestName || 'Restaurante',
         mealType: foodType,
         description: foodDesc || '',
       };
     }
-
 
     if (editingActivity) {
       updateActivity(activeTrip.id, {
@@ -1003,9 +993,9 @@ export default function ViajeDetalle({ params }: PageProps) {
                                         Duración: {(act as TransferActivity).duration}
                                       </p>
                                       {/* Custom transfer description */}
-                                      {(act as any).description && (
+                                      {(act as TransferActivity).description && (
                                         <p className="text-sm text-ink-500 mt-2 max-w-lg leading-relaxed font-sans italic bg-ink-50/30 p-2.5 rounded-xl border border-ink-100/50 border-dashed break-words">
-                                          {renderDescriptionWithLinks((act as any).description)}
+                                          {renderDescriptionWithLinks((act as TransferActivity).description || '')}
                                         </p>
                                       )}
                                     </div>
@@ -1062,15 +1052,15 @@ export default function ViajeDetalle({ params }: PageProps) {
                                   {/* Excursion rendering */}
                                   {act.type === 'excursion' && (
                                     <div>
-                                      <h4 className="text-base font-bold text-slate-800 font-sans">
+                                      <h4 className="text-base font-bold text-ink-800 font-sans">
                                         {(act as ExcursionActivity).title}
                                       </h4>
                                       {(act as ExcursionActivity).description && (
-                                        <p className="text-sm text-slate-500 mt-1 max-w-lg leading-relaxed font-sans break-words">
+                                        <p className="text-sm text-ink-500 mt-1 max-w-lg leading-relaxed font-sans break-words">
                                           {renderDescriptionWithLinks((act as ExcursionActivity).description)}
                                         </p>
                                       )}
-                                      <p className="text-xs text-slate-400 mt-1.5 bg-white/60 px-2 py-1 rounded border border-slate-100/50 max-w-fit font-sans">
+                                      <p className="mt-1.5 max-w-fit border border-ink-200 bg-ink-50 px-2 py-1 text-xs text-ink-600 font-sans">
                                         Duración: {(act as ExcursionActivity).duration}
                                       </p>
                                     </div>
@@ -1079,11 +1069,11 @@ export default function ViajeDetalle({ params }: PageProps) {
                                   {/* Food rendering */}
                                   {act.type === 'food' && (
                                     <div>
-                                      <h4 className="text-base font-bold text-slate-800 font-sans">
+                                      <h4 className="text-base font-bold text-ink-800 font-sans">
                                         Comida: {(act as FoodActivity).restaurantName}
                                       </h4>
-                                      <div className="flex gap-2 items-center mt-1">
-                                        <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-50 border border-amber-200 text-amber-800 capitalize">
+                                      <div className="mt-2 flex items-center gap-2">
+                                        <span className="border border-ink-200 bg-ink-50 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-ink-700">
                                           {
                                             (act as FoodActivity).mealType === 'breakfast' ? 'Desayuno' :
                                             (act as FoodActivity).mealType === 'lunch' ? 'Almuerzo' :
@@ -1092,7 +1082,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                                         </span>
                                       </div>
                                       {(act as FoodActivity).description && (
-                                        <p className="text-sm text-slate-500 mt-1 max-w-lg leading-relaxed font-sans break-words">
+                                        <p className="text-sm text-ink-500 mt-2 max-w-lg leading-relaxed font-sans break-words">
                                           {renderDescriptionWithLinks((act as FoodActivity).description)}
                                         </p>
                                       )}
@@ -1102,16 +1092,16 @@ export default function ViajeDetalle({ params }: PageProps) {
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex flex-row md:flex-col items-center justify-end gap-2 border-t md:border-t-0 pt-2 md:pt-0 md:border-l border-slate-100 md:pl-4 min-w-[70px]">
+                                <div className="flex min-w-[70px] flex-row items-center justify-end gap-2 border-t border-ink-200 pt-3 md:flex-col md:border-t-0 md:border-l md:pl-4 md:pt-0">
                                   <button
-                                    className="text-slate-400 hover:text-indigo-600 hover:bg-slate-100 w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
+                                    className="flex h-8 w-8 cursor-pointer items-center justify-center border border-ink-200 text-ink-500 transition-colors hover:border-ink-900 hover:bg-ink-900 hover:text-white"
                                     onClick={() => handleOpenEdit(act)}
                                     title="Editar"
                                   >
-                                    <Edit2 className="w-4 h-4" />
+                                    <Edit2 className="h-4 w-4" />
                                   </button>
                                   <button
-                                    className="text-slate-400 hover:text-red-600 hover:bg-red-50 w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
+                                    className="flex h-8 w-8 cursor-pointer items-center justify-center border border-ink-200 text-ink-500 transition-colors hover:border-ink-900 hover:bg-ink-900 hover:text-white"
                                     onClick={() => {
                                       if (confirm('¿Estás seguro de que quieres eliminar esta actividad del itinerario?')) {
                                         deleteActivity(activeTrip.id, act.id);
@@ -1119,7 +1109,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                                     }}
                                     title="Eliminar"
                                   >
-                                    <Trash2 className="w-4 h-4" />
+                                    <Trash2 className="h-4 w-4" />
                                   </button>
                                 </div>
 
@@ -1139,9 +1129,9 @@ export default function ViajeDetalle({ params }: PageProps) {
               <div className="space-y-6">
                 
                 {/* Gastos del Día por Persona Summary */}
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                  <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2 font-sans">
-                    <TrendingUp className="w-5 h-5 text-indigo-500" />
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-ink-100">
+                  <h3 className="text-sm font-bold text-ink-700 mb-4 flex items-center gap-2 font-sans">
+                    <TrendingUp className="w-5 h-5 text-ink-500" />
                     Gastos del Día (Por Persona)
                   </h3>
                   
@@ -1149,65 +1139,65 @@ export default function ViajeDetalle({ params }: PageProps) {
                   <div className="space-y-3">
                     
                     {/* Transporte Box */}
-                    <div className="flex items-center justify-between p-3 rounded-xl border border-rose-100 bg-rose-50/35">
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-ink-100 bg-ink-50/35">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-rose-100/50">
-                          <Car className="w-4 h-4 text-rose-500" />
+                        <div className="p-2 rounded-lg bg-ink-100/50">
+                          <Car className="w-4 h-4 text-ink-500" />
                         </div>
                         <div>
-                          <span className="text-xs font-semibold text-rose-600 block">Transporte</span>
-                          <span className="text-[10px] text-slate-400">Vuelos y traslados</span>
+                          <span className="text-xs font-semibold text-ink-600 block">Transporte</span>
+                          <span className="text-[10px] text-ink-400">Vuelos y traslados</span>
                         </div>
                       </div>
-                      <span className="font-extrabold text-slate-700 font-sans">
+                      <span className="font-extrabold text-ink-700 font-sans">
                         {formatCurrency(getDayCostByCategory('transport'))}
                       </span>
                     </div>
 
                     {/* Actividades Box */}
-                    <div className="flex items-center justify-between p-3 rounded-xl border border-emerald-100 bg-emerald-50/35">
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-ink-100 bg-ink-50/35">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-emerald-100/50">
-                          <Map className="w-4 h-4 text-emerald-500" />
+                        <div className="p-2 rounded-lg bg-ink-100/50">
+                          <Map className="w-4 h-4 text-ink-500" />
                         </div>
                         <div>
-                          <span className="text-xs font-semibold text-emerald-600 block">Actividades</span>
-                          <span className="text-[10px] text-slate-400">Excursiones y visitas</span>
+                          <span className="text-xs font-semibold text-ink-600 block">Actividades</span>
+                          <span className="text-[10px] text-ink-400">Excursiones y visitas</span>
                         </div>
                       </div>
-                      <span className="font-extrabold text-slate-700 font-sans">
+                      <span className="font-extrabold text-ink-700 font-sans">
                         {formatCurrency(getDayCostByCategory('activities'))}
                       </span>
                     </div>
 
                     {/* Comida Box */}
-                    <div className="flex items-center justify-between p-3 rounded-xl border border-amber-100 bg-amber-50/35">
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-ink-100 bg-ink-50/35">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-amber-100/50">
-                          <Utensils className="w-4 h-4 text-amber-500" />
+                        <div className="p-2 rounded-lg bg-ink-100/50">
+                          <Utensils className="w-4 h-4 text-ink-500" />
                         </div>
                         <div>
-                          <span className="text-xs font-semibold text-amber-600 block">Comida</span>
-                          <span className="text-[10px] text-slate-400">Restaurantes y snacks</span>
+                          <span className="text-xs font-semibold text-ink-600 block">Comida</span>
+                          <span className="text-[10px] text-ink-400">Restaurantes y snacks</span>
                         </div>
                       </div>
-                      <span className="font-extrabold text-slate-700 font-sans">
+                      <span className="font-extrabold text-ink-700 font-sans">
                         {formatCurrency(getDayCostByCategory('food'))}
                       </span>
                     </div>
 
                     {/* Alojamiento Box */}
-                    <div className="flex items-center justify-between p-3 rounded-xl border border-pink-100 bg-pink-50/35">
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-ink-100 bg-ink-50/35">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-pink-100/50">
-                          <Bed className="w-4 h-4 text-pink-500" />
+                        <div className="p-2 rounded-lg bg-ink-100/50">
+                          <Bed className="w-4 h-4 text-ink-500" />
                         </div>
                         <div>
-                          <span className="text-xs font-semibold text-pink-600 block">Alojamiento</span>
-                          <span className="text-[10px] text-slate-400">Hoteles del día</span>
+                          <span className="text-xs font-semibold text-ink-600 block">Alojamiento</span>
+                          <span className="text-[10px] text-ink-400">Hoteles del día</span>
                         </div>
                       </div>
-                      <span className="font-extrabold text-slate-700 font-sans">
+                      <span className="font-extrabold text-ink-700 font-sans">
                         {formatCurrency(getDayCostByCategory('hotel'))}
                       </span>
                     </div>
@@ -1215,9 +1205,9 @@ export default function ViajeDetalle({ params }: PageProps) {
                   </div>
 
                   {/* Total Day Cost Indicator */}
-                  <div className="mt-5 pt-4 border-t border-slate-100 flex justify-between items-center">
-                    <span className="text-sm font-bold text-slate-800">Total del día</span>
-                    <span className="text-lg font-black text-indigo-600 font-sans">
+                  <div className="mt-5 pt-4 border-t border-ink-100 flex justify-between items-center">
+                    <span className="text-sm font-bold text-ink-800">Total del día</span>
+                    <span className="text-lg font-black text-ink-600 font-sans">
                       {formatCurrency(
                         getDayCostByCategory('transport') +
                         getDayCostByCategory('activities') +
@@ -1230,15 +1220,15 @@ export default function ViajeDetalle({ params }: PageProps) {
                 </div>
 
                 {/* Automatically calculated trip expenses */}
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                  <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2 font-sans">
-                    <Euro className="w-5 h-5 text-cyan-500" />
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-ink-100">
+                  <h3 className="text-sm font-bold text-ink-700 mb-3 flex items-center gap-2 font-sans">
+                    <Euro className="w-5 h-5 text-ink-500" />
                     Gastos Acumulados
                   </h3>
-                  <div className="rounded-xl bg-cyan-50 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-cyan-700">Total registrado</p>
-                    <p className="mt-1 text-2xl font-black text-slate-800">{formatCurrency(totalTripSpent)}</p>
-                    <p className="mt-2 text-xs leading-relaxed text-slate-500">Se calcula automáticamente con los importes de las actividades del itinerario.</p>
+                  <div className="rounded-xl bg-ink-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-ink-700">Total registrado</p>
+                    <p className="mt-1 text-2xl font-black text-ink-800">{formatCurrency(totalTripSpent)}</p>
+                    <p className="mt-2 text-xs leading-relaxed text-ink-500">Se calcula automáticamente con los importes de las actividades del itinerario.</p>
                   </div>
                 </div>
 
@@ -1249,32 +1239,32 @@ export default function ViajeDetalle({ params }: PageProps) {
 
           {/* TAB 2: DESCRIPCIÓN */}
           {activeTab === 'descripcion' && (
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-ink-100 space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-800 font-sans">Sobre este viaje</h2>
-                <p className="text-slate-600 mt-4 leading-relaxed text-base whitespace-pre-line font-sans">
+                <h2 className="text-2xl font-bold text-ink-800 font-sans">Sobre este viaje</h2>
+                <p className="text-ink-600 mt-4 leading-relaxed text-base whitespace-pre-line font-sans">
                   {activeTrip.description || 'Aún no se ha añadido una descripción para este viaje. ¡Edita tu viaje para añadir detalles del itinerario!'}
                 </p>
               </div>
 
-              <div className="border-t border-slate-100 pt-6">
-                <h3 className="text-lg font-bold text-slate-800 mb-4 font-sans">Métricas del Viaje</h3>
+              <div className="border-t border-ink-100 pt-6">
+                <h3 className="text-lg font-bold text-ink-800 mb-4 font-sans">Métricas del Viaje</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
-                    <span className="text-xs font-semibold text-slate-400 uppercase">Días Totales</span>
-                    <p className="text-2xl font-black text-slate-800 mt-1 font-sans">{tripDates.length}</p>
+                  <div className="bg-ink-50 p-4 rounded-xl border border-ink-100 text-center">
+                    <span className="text-xs font-semibold text-ink-400 uppercase">Días Totales</span>
+                    <p className="text-2xl font-black text-ink-800 mt-1 font-sans">{tripDates.length}</p>
                   </div>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
-                    <span className="text-xs font-semibold text-slate-400 uppercase">Actividades</span>
-                    <p className="text-2xl font-black text-slate-800 mt-1 font-sans">{activeTrip.activities.length}</p>
+                  <div className="bg-ink-50 p-4 rounded-xl border border-ink-100 text-center">
+                    <span className="text-xs font-semibold text-ink-400 uppercase">Actividades</span>
+                    <p className="text-2xl font-black text-ink-800 mt-1 font-sans">{activeTrip.activities.length}</p>
                   </div>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
-                    <span className="text-xs font-semibold text-slate-400 uppercase">Gasto Total</span>
-                    <p className="text-2xl font-black text-indigo-600 mt-1 font-sans">{formatCurrency(totalTripSpent)}</p>
+                  <div className="bg-ink-50 p-4 rounded-xl border border-ink-100 text-center">
+                    <span className="text-xs font-semibold text-ink-400 uppercase">Gasto Total</span>
+                    <p className="text-2xl font-black text-ink-600 mt-1 font-sans">{formatCurrency(totalTripSpent)}</p>
                   </div>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
-                    <span className="text-xs font-semibold text-slate-400 uppercase">Promedio Diario</span>
-                    <p className="text-2xl font-black text-cyan-600 mt-1 font-sans">
+                  <div className="bg-ink-50 p-4 rounded-xl border border-ink-100 text-center">
+                    <span className="text-xs font-semibold text-ink-400 uppercase">Promedio Diario</span>
+                    <p className="text-2xl font-black text-ink-600 mt-1 font-sans">
                       {formatCurrency(totalTripSpent / (tripDates.length || 1))}
                     </p>
                   </div>
@@ -1288,51 +1278,51 @@ export default function ViajeDetalle({ params }: PageProps) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
               {/* Left col: Cost Breakdown */}
-              <div className="md:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-6">
-                <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 font-sans">Desglose de Gastos</h3>
+              <div className="md:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-ink-100 space-y-6">
+                <h3 className="text-lg font-bold text-ink-800 border-b border-ink-100 pb-3 font-sans">Desglose de Gastos</h3>
                 <div className="space-y-4">
                   
                   {/* Transport */}
                   <div className="space-y-1 font-sans">
-                    <div className="flex justify-between text-xs font-semibold text-slate-500 mb-1">
+                    <div className="flex justify-between text-xs font-semibold text-ink-500 mb-1">
                       <span>Transporte</span>
                       <span>{formatCurrency(totalTransport)}</span>
                     </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="h-full bg-rose-500" style={{ width: `${totalTripSpent > 0 ? (totalTransport / totalTripSpent) * 100 : 0}%` }} />
+                    <div className="w-full bg-ink-100 h-1.5 rounded-full overflow-hidden">
+                      <div className="h-full bg-ink-500" style={{ width: `${totalTripSpent > 0 ? (totalTransport / totalTripSpent) * 100 : 0}%` }} />
                     </div>
                   </div>
 
                   {/* Accommodation */}
                   <div className="space-y-1 font-sans">
-                    <div className="flex justify-between text-xs font-semibold text-slate-500 mb-1">
+                    <div className="flex justify-between text-xs font-semibold text-ink-500 mb-1">
                       <span>Alojamiento</span>
                       <span>{formatCurrency(totalHotels)}</span>
                     </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="h-full bg-pink-500" style={{ width: `${totalTripSpent > 0 ? (totalHotels / totalTripSpent) * 100 : 0}%` }} />
+                    <div className="w-full bg-ink-100 h-1.5 rounded-full overflow-hidden">
+                      <div className="h-full bg-ink-500" style={{ width: `${totalTripSpent > 0 ? (totalHotels / totalTripSpent) * 100 : 0}%` }} />
                     </div>
                   </div>
 
                   {/* Excursions */}
                   <div className="space-y-1 font-sans">
-                    <div className="flex justify-between text-xs font-semibold text-slate-500 mb-1">
+                    <div className="flex justify-between text-xs font-semibold text-ink-500 mb-1">
                       <span>Actividades</span>
                       <span>{formatCurrency(totalActivities)}</span>
                     </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-500" style={{ width: `${totalTripSpent > 0 ? (totalActivities / totalTripSpent) * 100 : 0}%` }} />
+                    <div className="w-full bg-ink-100 h-1.5 rounded-full overflow-hidden">
+                      <div className="h-full bg-ink-500" style={{ width: `${totalTripSpent > 0 ? (totalActivities / totalTripSpent) * 100 : 0}%` }} />
                     </div>
                   </div>
 
                   {/* Food */}
                   <div className="space-y-1 font-sans">
-                    <div className="flex justify-between text-xs font-semibold text-slate-500 mb-1">
+                    <div className="flex justify-between text-xs font-semibold text-ink-500 mb-1">
                       <span>Comida</span>
                       <span>{formatCurrency(totalFood)}</span>
                     </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div className="h-full bg-amber-500" style={{ width: `${totalTripSpent > 0 ? (totalFood / totalTripSpent) * 100 : 0}%` }} />
+                    <div className="w-full bg-ink-100 h-1.5 rounded-full overflow-hidden">
+                      <div className="h-full bg-ink-500" style={{ width: `${totalTripSpent > 0 ? (totalFood / totalTripSpent) * 100 : 0}%` }} />
                     </div>
                   </div>
 
@@ -1340,17 +1330,17 @@ export default function ViajeDetalle({ params }: PageProps) {
               </div>
 
               {/* Right cols: List of all key elements (Flights & Accommodation summary) */}
-              <div className="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-6">
-                <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 font-sans">Vuelos y Hoteles Reservados</h3>
+              <div className="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-ink-100 space-y-6">
+                <h3 className="text-lg font-bold text-ink-800 border-b border-ink-100 pb-3 font-sans">Vuelos y Hoteles Reservados</h3>
                 
                 {/* Hotels list */}
                 <div>
-                  <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wide mb-3 flex items-center gap-1.5 font-sans">
-                    <Bed className="w-4 h-4 text-pink-500" />
+                  <h4 className="text-sm font-bold text-ink-400 uppercase tracking-wide mb-3 flex items-center gap-1.5 font-sans">
+                    <Bed className="w-4 h-4 text-ink-500" />
                     Hoteles / Alojamientos
                   </h4>
                   {activeTrip.activities.filter(a => a.type === 'hotel').length === 0 ? (
-                    <p className="text-xs text-slate-400 bg-slate-50 p-3 rounded-xl border border-slate-100 border-dashed font-sans">
+                    <p className="text-xs text-ink-400 bg-ink-50 p-3 rounded-xl border border-ink-100 border-dashed font-sans">
                       No hay hoteles reservados en el itinerario.
                     </p>
                   ) : (
@@ -1358,16 +1348,16 @@ export default function ViajeDetalle({ params }: PageProps) {
                       {activeTrip.activities.filter(a => a.type === 'hotel').map(a => {
                         const h = a as HotelActivity;
                         return (
-                          <div key={h.id} className="flex justify-between items-center p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                          <div key={h.id} className="flex justify-between items-center p-3 rounded-xl border border-ink-100 hover:bg-ink-50 transition-colors">
                             <div>
-                              <p className="text-sm font-bold text-slate-700 font-sans">{h.hotelName}</p>
+                              <p className="text-sm font-bold text-ink-700 font-sans">{h.hotelName}</p>
                               <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                <p className="text-xs text-slate-400 font-sans">{h.address}</p>
+                                <p className="text-xs text-ink-400 font-sans">{h.address}</p>
                                 <a
                                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(h.address)}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors inline-flex items-center gap-0.5 hover:underline"
+                                  className="text-[10px] font-bold text-ink-600 hover:text-ink-800 transition-colors inline-flex items-center gap-0.5 hover:underline"
                                   title="Cómo llegar"
                                 >
                                   <MapPin className="w-3 h-3" />
@@ -1376,12 +1366,12 @@ export default function ViajeDetalle({ params }: PageProps) {
                               </div>
                             </div>
                             <div className="text-right font-sans">
-                              <span className="text-xs font-semibold text-slate-400">
+                              <span className="text-xs font-semibold text-ink-400">
                                 {h.checkoutDate && h.checkoutDate !== h.date
                                   ? `${formatDateSimple(h.date)} - ${formatDateSimple(h.checkoutDate)}`
                                   : formatDateSimple(h.date)}
                               </span>
-                              <p className="text-sm font-extrabold text-slate-700 mt-0.5">{formatCurrency(h.price)}</p>
+                              <p className="text-sm font-extrabold text-ink-700 mt-0.5">{formatCurrency(h.price)}</p>
                             </div>
                           </div>
                         );
@@ -1391,13 +1381,13 @@ export default function ViajeDetalle({ params }: PageProps) {
                 </div>
 
                 {/* Flights list */}
-                <div className="pt-4 border-t border-slate-100">
-                  <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wide mb-3 flex items-center gap-1.5 font-sans">
-                    <Plane className="w-4 h-4 text-indigo-500" />
+                <div className="pt-4 border-t border-ink-100">
+                  <h4 className="text-sm font-bold text-ink-400 uppercase tracking-wide mb-3 flex items-center gap-1.5 font-sans">
+                    <Plane className="w-4 h-4 text-ink-500" />
                     Vuelos Registrados
                   </h4>
                   {activeTrip.activities.filter(a => a.type === 'flight').length === 0 ? (
-                    <p className="text-xs text-slate-400 bg-slate-50 p-3 rounded-xl border border-slate-100 border-dashed font-sans">
+                    <p className="text-xs text-ink-400 bg-ink-50 p-3 rounded-xl border border-ink-100 border-dashed font-sans">
                       No hay vuelos en el itinerario.
                     </p>
                   ) : (
@@ -1405,25 +1395,25 @@ export default function ViajeDetalle({ params }: PageProps) {
                       {activeTrip.activities.filter(a => a.type === 'flight').map(a => {
                         const f = a as FlightActivity;
                         return (
-                          <div key={f.id} className="flex justify-between items-center p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                          <div key={f.id} className="flex justify-between items-center p-3 rounded-xl border border-ink-100 hover:bg-ink-50 transition-colors">
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-slate-700 font-sans">{f.flightNumber}</span>
-                                <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded font-semibold border border-indigo-100">{f.airline}</span>
+                                <span className="text-sm font-bold text-ink-700 font-sans">{f.flightNumber}</span>
+                                <span className="text-xs text-ink-600 bg-ink-50 px-2 py-0.5 rounded font-semibold border border-ink-100">{f.airline}</span>
                                 {f.legs && f.legs.length > 1 && (
-                                  <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-bold border border-amber-150">
+                                  <span className="text-[10px] text-ink-700 bg-ink-50 px-2 py-0.5 rounded font-bold border border-ink-200">
                                     {f.legs.length - 1} {f.legs.length - 1 === 1 ? 'escala' : 'escalas'}
                                   </span>
                                 )}
                               </div>
-                              <p className="text-xs text-slate-400 mt-1 font-medium font-sans">
+                              <p className="text-xs text-ink-400 mt-1 font-medium font-sans">
                                 {f.origin} {' -> '} {f.destination}
                                 {f.legs && f.legs.length > 1 && ` (vía ${f.legs.slice(0, -1).map(l => l.destination).join(', ')})`}
                               </p>
                             </div>
                             <div className="text-right font-sans">
-                              <span className="text-xs font-semibold text-slate-400">{f.date} ({f.time})</span>
-                              <p className="text-sm font-extrabold text-slate-700 mt-0.5">{formatCurrency(f.price)}</p>
+                              <span className="text-xs font-semibold text-ink-400">{f.date} ({f.time})</span>
+                              <p className="text-sm font-extrabold text-ink-700 mt-0.5">{formatCurrency(f.price)}</p>
                             </div>
                           </div>
                         );
@@ -1439,14 +1429,14 @@ export default function ViajeDetalle({ params }: PageProps) {
 
           {/* TAB 4: NOTAS */}
           {activeTab === 'notas' && (
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-ink-100 space-y-4">
+              <div className="flex items-center justify-between border-b border-ink-100 pb-3">
                 <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-indigo-500" />
-                  <h3 className="text-lg font-bold text-slate-800 font-sans">Notas de Viaje</h3>
+                  <FileText className="w-5 h-5 text-ink-500" />
+                  <h3 className="text-lg font-bold text-ink-800 font-sans">Notas de Viaje</h3>
                 </div>
                 <button
-                  className="font-semibold shadow-md shadow-indigo-500/10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-9 px-4 flex items-center justify-center transition-all active:scale-95 cursor-pointer text-xs"
+                  className="font-semibold wanderlust-primary-button shadow-none bg-ink-900 hover:bg-ink-800 text-white rounded-xl h-9 px-4 flex items-center justify-center transition-all active:scale-95 cursor-pointer text-xs"
                   onClick={handleSaveNotes}
                 >
                   Guardar Notas
@@ -1455,12 +1445,12 @@ export default function ViajeDetalle({ params }: PageProps) {
 
               <textarea
                 placeholder="Escribe aquí cualquier detalle crucial de tu viaje: seguros médicos, alquileres de coches, teléfonos de emergencia, números de pasaporte..."
-                className="w-full min-h-[350px] p-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50/50 leading-relaxed font-sans text-sm resize-y"
+                className="w-full min-h-[350px] p-4 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50/50 leading-relaxed font-sans text-sm resize-y"
                 value={notesText}
-                onChange={(e) => setNotesText(e.target.value)}
+                onChange={(e) => setNoteDraft({ tripId: activeTrip.id, value: e.target.value })}
               />
-              <p className="text-[11px] text-slate-400 text-right italic font-medium font-sans">
-                * Haz clic en "Guardar Notas" para guardar tus cambios permanentemente en el navegador.
+              <p className="text-[11px] text-ink-400 text-right italic font-medium font-sans">
+                * Haz clic en &quot;Guardar Notas&quot; para guardar tus cambios permanentemente en el navegador.
               </p>
             </div>
           )}
@@ -1479,22 +1469,22 @@ export default function ViajeDetalle({ params }: PageProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <div 
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
+            className="absolute inset-0 bg-ink-900/60 backdrop-blur-sm transition-opacity"
             onClick={() => setIsOpen(false)}
           />
           
           {/* Modal Container */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-2xl w-full max-w-lg relative z-10 overflow-hidden transform transition-all duration-300 scale-100 opacity-100 max-h-[90vh] flex flex-col">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-2xl w-full max-w-lg relative z-10 overflow-hidden transform transition-all duration-300 scale-100 opacity-100 max-h-[90vh] flex flex-col">
             
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 font-sans">
-                <Plus className="text-indigo-500 w-6 h-6" />
+            <div className="flex items-center justify-between px-6 py-4 border-b border-ink-100">
+              <h2 className="text-xl font-bold text-ink-800 flex items-center gap-2 font-sans">
+                <Plus className="text-ink-500 w-6 h-6" />
                 {editingActivity ? 'Editar Actividad' : 'Añadir Actividad'}
               </h2>
               <button 
                 onClick={() => setIsOpen(false)}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors"
+                className="p-1 rounded-full text-ink-400 hover:text-ink-600 hover:bg-ink-50 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1505,11 +1495,11 @@ export default function ViajeDetalle({ params }: PageProps) {
               
               {/* Select Type */}
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
+                <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider block mb-1">
                   Tipo de Elemento
                 </label>
                 <select
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.75rem_0.75rem] bg-[right_0.75rem_center] bg-no-repeat pr-8"
+                  className="w-full px-3 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23454545%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.75rem_0.75rem] bg-[right_0.75rem_center] bg-no-repeat pr-8"
                   value={actType}
                   onChange={(e) => setActType(e.target.value as ActivityType)}
                 >
@@ -1524,22 +1514,22 @@ export default function ViajeDetalle({ params }: PageProps) {
               {/* Common Inputs: Time and Cost */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Hora *</label>
+                  <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Hora *</label>
                   <input
                     type="time"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10"
+                    className="w-full px-3 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10"
                     value={actTime}
                     onChange={(e) => setActTime(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Costo (en Euros, ej: 45 para 45 €) (Opcional)</label>
+                  <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Costo (en Euros, ej: 45 para 45 €) (Opcional)</label>
                   <div className="relative w-full">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold pointer-events-none">€</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400 text-sm font-semibold pointer-events-none">€</span>
                     <input
                       type="number"
-                      className="w-full pl-7 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                      className="w-full pl-7 pr-3 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 font-medium"
                       placeholder="Ej. 45"
                       value={actPrice}
                       onChange={(e) => setActPrice(e.target.value)}
@@ -1552,7 +1542,7 @@ export default function ViajeDetalle({ params }: PageProps) {
               
               {/* 1. VUELO */}
               {actType === 'flight' && (
-                <div className="space-y-4 pt-2 border-t border-slate-100">
+                <div className="space-y-4 pt-2 border-t border-ink-100">
                   <div className="space-y-4">
                     {flightLegs.map((leg, idx) => {
                       const layoverTime = idx > 0 ? calculateLayover(flightLegs[idx - 1], leg, selectedDate) : '';
@@ -1561,16 +1551,16 @@ export default function ViajeDetalle({ params }: PageProps) {
                         <div key={idx} className="space-y-3">
                           {/* Layover alert info between legs */}
                           {idx > 0 && layoverTime && (
-                            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 text-xs font-semibold flex items-center justify-between shadow-sm">
-                              <span>Conexión en <strong className="text-amber-900">{flightLegs[idx - 1].destination}</strong></span>
-                              <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full text-[10px] uppercase font-bold">Espera: {layoverTime}</span>
+                            <div className="bg-ink-50 border border-ink-200 text-ink-800 rounded-xl p-3 text-xs font-semibold flex items-center justify-between shadow-sm">
+                              <span>Conexión en <strong className="text-ink-900">{flightLegs[idx - 1].destination}</strong></span>
+                              <span className="bg-ink-100 text-ink-900 px-2 py-0.5 rounded-full text-[10px] uppercase font-bold">Espera: {layoverTime}</span>
                             </div>
                           )}
 
                           {/* Leg Segment Block */}
-                          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 relative">
-                            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                              <span className="text-xs font-extrabold text-indigo-600 uppercase tracking-widest">
+                          <div className="bg-ink-50 border border-ink-200 rounded-2xl p-4 space-y-3 relative">
+                            <div className="flex items-center justify-between border-b border-ink-200 pb-2">
+                              <span className="text-xs font-extrabold text-ink-600 uppercase tracking-widest">
                                 Trayecto {idx + 1} {flightLegs.length > 1 ? `(${leg.origin || '?' } → ${leg.destination || '?'})` : ''}
                               </span>
                               {flightLegs.length > 1 && (
@@ -1579,7 +1569,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                                   onClick={() => {
                                     setFlightLegs(flightLegs.filter((_, i) => i !== idx));
                                   }}
-                                  className="text-red-500 hover:text-red-750 hover:bg-red-50 px-2 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer border-0"
+                                  className="text-ink-500 hover:text-ink-700 hover:bg-ink-50 px-2 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer border-0"
                                 >
                                   Eliminar Trayecto
                                 </button>
@@ -1589,10 +1579,10 @@ export default function ViajeDetalle({ params }: PageProps) {
                             {/* Airports */}
                             <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-1">
-                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Aeropuerto Origen *</label>
+                                <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Aeropuerto Origen *</label>
                                 <input
                                   type="text"
-                                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-white text-sm h-10 font-medium"
+                                  className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-white text-sm h-10 font-medium"
                                   placeholder="Ej. MAD"
                                   value={leg.origin}
                                   onChange={(e) => {
@@ -1604,10 +1594,10 @@ export default function ViajeDetalle({ params }: PageProps) {
                                 />
                               </div>
                               <div className="space-y-1">
-                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Aeropuerto Destino *</label>
+                                <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Aeropuerto Destino *</label>
                                 <input
                                   type="text"
-                                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-white text-sm h-10 font-medium"
+                                  className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-white text-sm h-10 font-medium"
                                   placeholder="Ej. AUH"
                                   value={leg.destination}
                                   onChange={(e) => {
@@ -1626,10 +1616,10 @@ export default function ViajeDetalle({ params }: PageProps) {
                             {/* Flight details */}
                             <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-1">
-                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Código de Vuelo *</label>
+                                <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Código de Vuelo *</label>
                                 <input
                                   type="text"
-                                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-white text-sm h-10 font-medium"
+                                  className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-white text-sm h-10 font-medium"
                                   placeholder="Ej. EY116"
                                   value={leg.flightNumber}
                                   onChange={(e) => {
@@ -1641,10 +1631,10 @@ export default function ViajeDetalle({ params }: PageProps) {
                                 />
                               </div>
                               <div className="space-y-1">
-                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Aerolínea *</label>
+                                <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Aerolínea *</label>
                                 <input
                                   type="text"
-                                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-white text-sm h-10 font-medium"
+                                  className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-white text-sm h-10 font-medium"
                                   placeholder="Ej. Etihad Airways"
                                   value={leg.airline}
                                   onChange={(e) => {
@@ -1659,13 +1649,13 @@ export default function ViajeDetalle({ params }: PageProps) {
 
                             {/* Times */}
                             <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-1 bg-white p-2.5 rounded-xl border border-slate-100">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Salida</span>
+                              <div className="space-y-1 bg-white p-2.5 rounded-xl border border-ink-100">
+                                <span className="text-[10px] font-bold text-ink-400 uppercase tracking-wider block">Salida</span>
                                 <div className="space-y-1 mt-1">
-                                  <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Fecha *</label>
+                                  <label className="text-[9px] font-semibold text-ink-400 uppercase tracking-wider">Fecha *</label>
                                   <input
                                     type="date"
-                                    className="w-full px-2 py-1 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-300 text-slate-700 bg-white text-xs h-8"
+                                    className="w-full px-2 py-1 rounded-lg border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-white text-xs h-8"
                                     min={activeTrip.startDate}
                                     max={activeTrip.endDate}
                                     value={leg.departureDate || selectedDate}
@@ -1681,10 +1671,10 @@ export default function ViajeDetalle({ params }: PageProps) {
                                   />
                                 </div>
                                 <div className="space-y-1 mt-1">
-                                  <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Hora *</label>
+                                  <label className="text-[9px] font-semibold text-ink-400 uppercase tracking-wider">Hora *</label>
                                   <input
                                     type="time"
-                                    className="w-full px-2 py-1 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-300 text-slate-700 bg-white text-xs h-8"
+                                    className="w-full px-2 py-1 rounded-lg border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-white text-xs h-8"
                                     value={leg.departureTime}
                                     onChange={(e) => {
                                       const updated = [...flightLegs];
@@ -1696,13 +1686,13 @@ export default function ViajeDetalle({ params }: PageProps) {
                                 </div>
                               </div>
 
-                              <div className="space-y-1 bg-white p-2.5 rounded-xl border border-slate-100">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Llegada</span>
+                              <div className="space-y-1 bg-white p-2.5 rounded-xl border border-ink-100">
+                                <span className="text-[10px] font-bold text-ink-400 uppercase tracking-wider block">Llegada</span>
                                 <div className="space-y-1 mt-1">
-                                  <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Fecha *</label>
+                                  <label className="text-[9px] font-semibold text-ink-400 uppercase tracking-wider">Fecha *</label>
                                   <input
                                     type="date"
-                                    className="w-full px-2 py-1 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-300 text-slate-700 bg-white text-xs h-8"
+                                    className="w-full px-2 py-1 rounded-lg border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-white text-xs h-8"
                                     min={leg.departureDate || activeTrip.startDate}
                                     max={activeTrip.endDate}
                                     value={leg.arrivalDate || leg.departureDate || selectedDate}
@@ -1715,10 +1705,10 @@ export default function ViajeDetalle({ params }: PageProps) {
                                   />
                                 </div>
                                 <div className="space-y-1 mt-1">
-                                  <label className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Hora *</label>
+                                  <label className="text-[9px] font-semibold text-ink-400 uppercase tracking-wider">Hora *</label>
                                   <input
                                     type="time"
-                                    className="w-full px-2 py-1 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-300 text-slate-700 bg-white text-xs h-8"
+                                    className="w-full px-2 py-1 rounded-lg border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-white text-xs h-8"
                                     value={leg.arrivalTime}
                                     onChange={(e) => {
                                       const updated = [...flightLegs];
@@ -1754,7 +1744,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                         }
                       ]);
                     }}
-                    className="w-full flex items-center justify-center gap-1.5 h-10 border border-dashed border-indigo-300 hover:border-indigo-500 rounded-xl bg-indigo-50/25 hover:bg-indigo-50/50 text-indigo-700 hover:text-indigo-800 transition-colors text-xs font-bold cursor-pointer"
+                    className="w-full flex items-center justify-center gap-1.5 h-10 border border-dashed border-ink-300 hover:border-ink-500 rounded-xl bg-ink-50/25 hover:bg-ink-50/50 text-ink-700 hover:text-ink-800 transition-colors text-xs font-bold cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     Añadir Escala / Conexión
@@ -1764,15 +1754,15 @@ export default function ViajeDetalle({ params }: PageProps) {
 
               {/* 2. TRASLADO */}
               {actType === 'transfer' && (
-                <div className="space-y-4 pt-2 border-t border-slate-100">
+                <div className="space-y-4 pt-2 border-t border-ink-100">
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
+                    <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider block mb-1">
                       Medio de Transporte
                     </label>
                     <select
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.75rem_0.75rem] bg-[right_0.75rem_center] bg-no-repeat pr-8"
+                      className="w-full px-3 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23454545%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.75rem_0.75rem] bg-[right_0.75rem_center] bg-no-repeat pr-8"
                       value={transType}
-                      onChange={(e) => setTransType(e.target.value as any)}
+                      onChange={(e) => setTransType(e.target.value as TransferActivity['transportType'])}
                     >
                       <option value="taxi">Taxi / Coche</option>
                       <option value="bus">Autobús</option>
@@ -1784,20 +1774,20 @@ export default function ViajeDetalle({ params }: PageProps) {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Origen</label>
+                      <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Origen</label>
                       <input
                         type="text"
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                        className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 font-medium"
                         placeholder="Ej. Aeropuerto"
                         value={transOrigin}
                         onChange={(e) => setTransOrigin(e.target.value)}
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Destino</label>
+                      <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Destino</label>
                       <input
                         type="text"
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                        className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 font-medium"
                         placeholder="Ej. Hotel Canopi"
                         value={transDest}
                         onChange={(e) => setTransDest(e.target.value)}
@@ -1805,19 +1795,19 @@ export default function ViajeDetalle({ params }: PageProps) {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Duración Aprox. (ej: 30 - 45 min)</label>
+                    <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Duración Aprox. (ej: 30 - 45 min)</label>
                     <input
                       type="text"
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                      className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 font-medium"
                       placeholder="Ej. 30 - 45 min"
                       value={transDuration}
                       onChange={(e) => setTransDuration(e.target.value)}
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Notas / Recomendaciones (Opcional)</label>
+                    <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Notas / Recomendaciones (Opcional)</label>
                     <textarea
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm font-medium font-sans p-3 min-h-[70px]"
+                      className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm font-medium font-sans p-3 min-h-[70px]"
                       placeholder="Ej. Opción 1: Grab (Precio: 250.000-350.000 VND)"
                       rows={2}
                       value={transDescription}
@@ -1829,22 +1819,22 @@ export default function ViajeDetalle({ params }: PageProps) {
 
               {/* 3. HOTEL */}
               {actType === 'hotel' && (
-                <div className="space-y-4 pt-2 border-t border-slate-100">
+                <div className="space-y-4 pt-2 border-t border-ink-100">
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Nombre del Hotel / Alojamiento</label>
+                    <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Nombre del Hotel / Alojamiento</label>
                     <input
                       type="text"
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                      className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 font-medium"
                       placeholder="Ej. Canopi by Hilton"
                       value={hotelName}
                       onChange={(e) => setHotelName(e.target.value)}
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Dirección</label>
+                    <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Dirección</label>
                     <input
                       type="text"
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                      className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 font-medium"
                       placeholder="Ej. 12 Phan Chu Trinh, Hanoi"
                       value={hotelAddress}
                       onChange={(e) => setHotelAddress(e.target.value)}
@@ -1852,10 +1842,10 @@ export default function ViajeDetalle({ params }: PageProps) {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha Entrada *</label>
+                      <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Fecha Entrada *</label>
                       <input
                         type="date"
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                        className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 font-medium"
                         min={activeTrip.startDate}
                         max={activeTrip.endDate}
                         value={hotelCheckInDate}
@@ -1870,10 +1860,10 @@ export default function ViajeDetalle({ params }: PageProps) {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha Salida *</label>
+                      <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Fecha Salida *</label>
                       <input
                         type="date"
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                        className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 font-medium"
                         min={hotelCheckInDate || activeTrip.startDate}
                         max={activeTrip.endDate}
                         value={hotelCheckOutDate}
@@ -1883,29 +1873,29 @@ export default function ViajeDetalle({ params }: PageProps) {
                     </div>
                   </div>
                   {hotelCheckInDate && hotelCheckOutDate && (
-                    <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3 flex items-center justify-between">
-                      <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Duración de la Estancia</span>
-                      <span className="text-sm font-extrabold text-indigo-900">
+                    <div className="bg-ink-50/50 border border-ink-100 rounded-xl p-3 flex items-center justify-between">
+                      <span className="text-xs font-bold text-ink-700 uppercase tracking-wider">Duración de la Estancia</span>
+                      <span className="text-sm font-extrabold text-ink-900">
                         {getNights(hotelCheckInDate, hotelCheckOutDate)} {getNights(hotelCheckInDate, hotelCheckOutDate) === 1 ? 'noche' : 'noches'}
                       </span>
                     </div>
                   )}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Check-in (Hora)</label>
+                      <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Check-in (Hora)</label>
                       <input
                         type="text"
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                        className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 font-medium"
                         placeholder="Ej. 15:00"
                         value={hotelCheckIn}
                         onChange={(e) => setHotelCheckIn(e.target.value)}
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Check-out (Hora)</label>
+                      <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Check-out (Hora)</label>
                       <input
                         type="text"
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                        className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 font-medium"
                         placeholder="Ej. 12:00"
                         value={hotelCheckOut}
                         onChange={(e) => setHotelCheckOut(e.target.value)}
@@ -1913,9 +1903,9 @@ export default function ViajeDetalle({ params }: PageProps) {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Notas / Recomendaciones (Opcional)</label>
+                    <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Notas / Recomendaciones (Opcional)</label>
                     <textarea
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm font-medium font-sans p-3 min-h-[70px]"
+                      className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm font-medium font-sans p-3 min-h-[70px]"
                       placeholder="Ej. Código de reserva, desayuno incluido, o peticiones especiales..."
                       rows={2}
                       value={hotelDescription}
@@ -1927,31 +1917,31 @@ export default function ViajeDetalle({ params }: PageProps) {
 
               {/* 4. EXCURSION */}
               {actType === 'excursion' && (
-                <div className="space-y-4 pt-2 border-t border-slate-100">
+                <div className="space-y-4 pt-2 border-t border-ink-100">
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Título de la Actividad / Excursión</label>
+                    <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Título de la Actividad / Excursión</label>
                     <input
                       type="text"
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                      className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 font-medium"
                       placeholder="Ej. Kayak en Bahía de Halong"
                       value={excursionTitle}
                       onChange={(e) => setExcursionTitle(e.target.value)}
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Descripción</label>
+                    <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Descripción</label>
                     <textarea
                       placeholder="Detalles sobre el punto de encuentro, qué llevar, etc..."
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 h-20 resize-none text-sm font-sans"
+                      className="w-full px-3 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 h-20 resize-none text-sm font-sans"
                       value={excursionDesc}
                       onChange={(e) => setExcursionDesc(e.target.value)}
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Duración Aprox. (ej: 4 horas)</label>
+                    <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Duración Aprox. (ej: 4 horas)</label>
                     <input
                       type="text"
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                      className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 font-medium"
                       placeholder="Ej. 4 horas"
                       value={excursionDur}
                       onChange={(e) => setExcursionDur(e.target.value)}
@@ -1962,23 +1952,23 @@ export default function ViajeDetalle({ params }: PageProps) {
 
               {/* 5. FOOD */}
               {actType === 'food' && (
-                <div className="space-y-4 pt-2 border-t border-slate-100">
+                <div className="space-y-4 pt-2 border-t border-ink-100">
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Nombre del Establecimiento / Restaurante</label>
+                    <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Nombre del Establecimiento / Restaurante</label>
                     <input
                       type="text"
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 font-medium"
+                      className="w-full px-3.5 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 font-medium"
                       placeholder="Ej. Bun Cha Huong Lien"
                       value={foodRestName}
                       onChange={(e) => setFoodRestName(e.target.value)}
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Tipo de Comida</label>
+                    <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider block mb-1">Tipo de Comida</label>
                     <select
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.75rem_0.75rem] bg-[right_0.75rem_center] bg-no-repeat pr-8"
+                      className="w-full px-3 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 text-sm h-10 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23454545%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.75rem_0.75rem] bg-[right_0.75rem_center] bg-no-repeat pr-8"
                       value={foodType}
-                      onChange={(e) => setFoodType(e.target.value as any)}
+                      onChange={(e) => setFoodType(e.target.value as FoodActivity['mealType'])}
                     >
                       <option value="breakfast">Desayuno</option>
                       <option value="lunch">Almuerzo</option>
@@ -1987,10 +1977,10 @@ export default function ViajeDetalle({ params }: PageProps) {
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Descripción o Platos recomendados</label>
+                    <label className="text-xs font-semibold text-ink-500 uppercase tracking-wider">Descripción o Platos recomendados</label>
                     <textarea
                       placeholder="Ej. Probar el Bun Cha y los rollitos de primavera..."
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 h-20 resize-none text-sm font-sans"
+                      className="w-full px-3 py-2 rounded-xl border border-ink-200 focus:outline-none focus:border-ink-900 focus:ring-1 focus:ring-ink-900 text-ink-700 bg-ink-50 h-20 resize-none text-sm font-sans"
                       value={foodDesc}
                       onChange={(e) => setFoodDesc(e.target.value)}
                     />
@@ -2001,17 +1991,17 @@ export default function ViajeDetalle({ params }: PageProps) {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50/50">
+            <div className="px-6 py-4 border-t border-ink-100 flex items-center justify-end gap-2 bg-ink-50/50">
               <button 
                 type="button"
-                className="font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-800 rounded-xl h-10 px-4 text-sm transition-colors cursor-pointer bg-transparent border-0" 
+                className="font-semibold text-ink-600 hover:bg-ink-100 hover:text-ink-800 rounded-xl h-10 px-4 text-sm transition-colors cursor-pointer bg-transparent border-0"
                 onClick={() => setIsOpen(false)}
               >
                 Cancelar
               </button>
               <button 
                 type="button"
-                className="font-semibold shadow-md shadow-indigo-500/10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-5 h-10 text-sm transition-all active:scale-95 cursor-pointer" 
+                className="font-semibold wanderlust-primary-button shadow-none bg-ink-900 hover:bg-ink-800 text-white rounded-xl px-5 h-10 text-sm transition-all active:scale-95 cursor-pointer"
                 onClick={handleSubmitActivity}
               >
                 {editingActivity ? 'Guardar Cambios' : 'Añadir Actividad'}
