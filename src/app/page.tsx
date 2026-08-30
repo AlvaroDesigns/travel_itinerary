@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useTravel } from '@/context/TravelContext';
 import {
   Plus,
@@ -9,13 +10,21 @@ import {
   Calendar,
   Euro,
   Trash2,
-  Compass,
   ArrowRight,
-  Sparkles,
   X,
   Loader2,
   LogOut,
+  MapPin,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
+
+const HERO_SLIDES = [
+  { url: '/carousel-1.webp', place: 'Costa y montaña' },
+  { url: '/carousel-2.webp', place: 'Acantilados del Algarve' },
+  { url: '/carousel-3.webp', place: 'San Juan de Gaztelugatxe' },
+  { url: '/carousel-4.webp', place: 'Cala escondida' },
+];
 
 const PRESET_IMAGES = [
   {
@@ -42,18 +51,21 @@ const PRESET_IMAGES = [
 
 export default function Home() {
   const { trips, addTrip, deleteTrip, logout, user, isLoading } = useTravel();
-  
-  // Modal State
+
   const [isOpen, setIsOpen] = useState(false);
-
-  // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
+  const [heroIndex, setHeroIndex] = useState(0);
 
-  // Form State
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroIndex((current) => (current + 1) % HERO_SLIDES.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
   const [name, setName] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [budget, setBudget] = useState('');
   const [imageUrl, setImageUrl] = useState(PRESET_IMAGES[0].url);
   const [description, setDescription] = useState('');
   const [notes, setNotes] = useState('');
@@ -61,19 +73,23 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-950 gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/25 mb-2 animate-bounce">
-          <Compass className="w-7 h-7 text-white" />
-        </div>
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-white">
+        <Image
+          src="/wanderlust_icono_negro.png"
+          alt="Wanderlust"
+          width={56}
+          height={56}
+          priority
+          className="h-14 w-auto animate-pulse object-contain"
+        />
         <div className="flex items-center gap-2">
-          <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
-          <span className="text-xs font-extrabold text-slate-400 tracking-widest uppercase">Cargando tus aventuras...</span>
+          <Loader2 className="h-4 w-4 animate-spin text-ink-400" />
+          <span className="text-xs font-extrabold uppercase tracking-widest text-ink-400">Cargando tus aventuras…</span>
         </div>
       </div>
     );
   }
 
-  // Filtered trips
   const filteredTrips = trips.filter((trip) =>
     trip.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -92,7 +108,7 @@ export default function Home() {
       'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
       'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
     ];
-    
+
     const s = new Date(start);
     const e = new Date(end);
 
@@ -103,14 +119,14 @@ export default function Home() {
     const eYear = e.getFullYear();
 
     if (s.getMonth() === e.getMonth()) {
-      return `${sDay} -> ${eDay} ${sMonth} ${eYear}`;
+      return `${sDay} – ${eDay} ${sMonth} ${eYear}`;
     }
-    return `${sDay} ${sMonth} -> ${eDay} ${eMonth} ${eYear}`;
+    return `${sDay} ${sMonth} – ${eDay} ${eMonth} ${eYear}`;
   };
 
   const handleSubmit = () => {
-    if (!name || !startDate || !endDate || !budget) {
-      alert('Por favor, rellena todos los campos obligatorios.');
+    if (!name || !startDate || !endDate) {
+      alert('Indica el nombre del destino y las fechas del viaje.');
       return;
     }
 
@@ -120,51 +136,49 @@ export default function Home() {
       name,
       startDate,
       endDate,
-      budget: parseFloat(budget),
+      budget: 0,
       imageUrl: finalImage,
       description,
       notes,
     });
 
-    // Reset Form
     setName('');
     setStartDate('');
     setEndDate('');
-    setBudget('');
     setImageUrl(PRESET_IMAGES[0].url);
     setCustomImage('');
     setDescription('');
     setNotes('');
-    
+
     setIsOpen(false);
   };
 
   return (
     <div className="flex-1 pb-16">
       {/* Top Navigation Bar */}
-      <nav className="bg-slate-900 border-b border-slate-800 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-md shadow-indigo-500/10">
-              <Compass className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-black text-lg tracking-tight font-sans bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-indigo-200">
-              Wanderlust
-            </span>
-          </div>
+      <nav className="border-b border-ink-100 bg-white">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Image
+            src="/wanderlust_horizontal_negro.png"
+            alt="Wanderlust"
+            width={180}
+            height={44}
+            priority
+            className="h-9 w-auto object-contain"
+          />
 
           {user && (
             <div className="flex items-center gap-4">
-              <div className="hidden sm:flex flex-col text-right">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Conectado como</span>
-                <span className="text-xs font-bold text-indigo-300">{user.email}</span>
+              <div className="hidden flex-col text-right sm:flex">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">Conectado como</span>
+                <span className="text-xs font-bold text-ink-900">{user.email}</span>
               </div>
-              <div className="w-px h-6 bg-slate-800 hidden sm:block"></div>
+              <div className="hidden h-6 w-px bg-ink-200 sm:block" />
               <button
                 onClick={logout}
-                className="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 hover:text-red-400 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer active:scale-95"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 transition-all hover:border-ink-900 hover:text-ink-900 active:scale-95"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <LogOut className="h-3.5 w-3.5" />
                 <span>Salir</span>
               </button>
             </div>
@@ -172,67 +186,120 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Banner Superior / Hero Section */}
-      <section className="relative overflow-hidden bg-slate-900 py-12 md:py-24 text-white">
-        {/* Background Decorative Circles */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 h-80 w-80 rounded-full bg-indigo-600/30 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-80 w-80 rounded-full bg-cyan-600/30 blur-3xl"></div>
-        
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-2xl text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-sm font-medium mb-6 backdrop-blur-sm border border-indigo-500/30">
-              <Sparkles className="w-4 h-4" />
+      {/* Hero Carousel */}
+      <section className="relative h-[380px] w-full overflow-hidden bg-ink-900 md:h-[460px]">
+        {HERO_SLIDES.map((slide, idx) => (
+          <div
+            key={slide.url}
+            className={`absolute inset-0 transition-opacity duration-1000 ${idx === heroIndex ? 'opacity-100' : 'opacity-0'}`}
+            aria-hidden={idx !== heroIndex}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={slide.url}
+              alt={slide.place}
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/40 to-ink-900/20" />
+          </div>
+        ))}
+
+        {/* Overlay content */}
+        <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-end px-4 pb-14 sm:px-6 md:pb-20 lg:px-8">
+          <div className="max-w-2xl text-white">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
+              <MapPin className="h-3.5 w-3.5" />
               <span>Tu compañero de aventuras</span>
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-6xl bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent font-sans">
-              Wanderlust
+            <h1 className="text-4xl font-extrabold tracking-tight drop-shadow-sm sm:text-5xl md:text-6xl">
+              Planifica cada viaje<br className="hidden sm:block" /> con intención.
             </h1>
-            <p className="mt-4 text-sm sm:text-base md:text-lg leading-relaxed text-slate-300">
-              Planifica tus itinerarios paso a paso. Organiza tus vuelos, traslados, alojamiento y actividades diarias de forma visual e intuitiva.
+            <p className="mt-5 max-w-xl text-sm leading-relaxed text-ink-200 sm:text-base">
+              Organiza vuelos, traslados, alojamiento y actividades día a día en una interfaz limpia, minimalista y sin distracciones.
             </p>
           </div>
+        </div>
+
+        {/* Prev / Next controls */}
+        <button
+          type="button"
+          onClick={() => setHeroIndex((c) => (c - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)}
+          className="absolute left-4 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-ink-900/40 text-white backdrop-blur-sm transition-all hover:bg-ink-900/70"
+          title="Anterior"
+          aria-label="Imagen anterior"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setHeroIndex((c) => (c + 1) % HERO_SLIDES.length)}
+          className="absolute right-4 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-ink-900/40 text-white backdrop-blur-sm transition-all hover:bg-ink-900/70"
+          title="Siguiente"
+          aria-label="Imagen siguiente"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+
+        {/* Dots */}
+        <div className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+          {HERO_SLIDES.map((slide, idx) => (
+            <button
+              key={slide.url}
+              type="button"
+              onClick={() => setHeroIndex(idx)}
+              className={`h-1.5 rounded-full transition-all ${idx === heroIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/80'}`}
+              title={slide.place}
+              aria-label={`Ir a ${slide.place}`}
+            />
+          ))}
         </div>
       </section>
 
       {/* Main Content Area */}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-8 md:mt-12">
-        {/* Control Bar: Search & Add */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+      <main className="mx-auto mt-8 max-w-7xl px-4 sm:px-6 md:mt-10 lg:px-8">
+        {/* Control Bar */}
+        <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-ink-100 bg-white p-4 sm:flex-row">
           <div className="relative w-full sm:max-w-md">
             <input
               type="text"
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm h-10 text-slate-700 font-medium transition-all"
-              placeholder="Buscar un viaje..."
+              className="h-10 w-full rounded-xl border border-ink-200 bg-ink-50 pl-10 pr-4 text-sm font-medium text-ink-800 transition-all focus:border-ink-900 focus:outline-none focus:ring-1 focus:ring-ink-900"
+              placeholder="Buscar un viaje…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4.5 h-4.5 pointer-events-none" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
           </div>
-          
+
           <button
             id="btn-add-trip"
-            className="w-full sm:w-auto font-semibold shadow-lg shadow-indigo-500/20 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-10 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer text-sm"
+            className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-ink-900 px-4 text-sm font-semibold text-white transition-all hover:bg-ink-700 active:scale-95 sm:w-auto"
             onClick={() => setIsOpen(true)}
           >
-            <Plus className="w-5 h-5" />
-            Añadir Viaje
+            <Plus className="h-5 w-5" />
+            Añadir viaje
           </button>
         </div>
 
         {/* Trips Grid */}
         <div className="mt-8">
           {filteredTrips.length === 0 ? (
-            <div className="border border-dashed border-slate-300 bg-slate-50/50 rounded-2xl py-16 flex flex-col items-center justify-center text-center p-6 shadow-none">
-              <Compass className="w-16 h-16 text-slate-400 stroke-[1.5] mb-4 animate-spin-slow" />
-              <h3 className="text-xl font-bold text-slate-700 font-sans">No hay viajes planificados</h3>
-              <p className="text-slate-500 mt-2 max-w-sm">
-                {searchQuery 
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-ink-200 bg-ink-50/50 p-6 py-16 text-center">
+              <Image
+                src="/wanderlust_icono_negro.png"
+                alt=""
+                width={64}
+                height={64}
+                className="mb-4 h-16 w-auto object-contain opacity-70"
+              />
+              <h3 className="text-xl font-bold text-ink-900">No hay viajes planificados</h3>
+              <p className="mt-2 max-w-sm text-ink-500">
+                {searchQuery
                   ? 'No se encontraron viajes con ese nombre. Prueba con otra búsqueda.'
-                  : 'Aún no has agregado ningún viaje. ¡Haz clic en "Añadir Viaje" para comenzar tu aventura!'}
+                  : 'Aún no has agregado ningún viaje. Haz clic en "Añadir viaje" para comenzar tu aventura.'}
               </p>
               {!searchQuery && (
-                <button 
-                  className="mt-6 font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-10 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer text-sm shadow-md"
+                <button
+                  className="mt-6 flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-ink-900 px-4 text-sm font-semibold text-white transition-all hover:bg-ink-700 active:scale-95"
                   onClick={() => setIsOpen(true)}
                 >
                   Crear mi primer viaje
@@ -240,81 +307,76 @@ export default function Home() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredTrips.map((trip) => {
                 const totalDays = calculateDays(trip.startDate, trip.endDate);
                 return (
-                  <div 
-                    key={trip.id} 
-                    className="group border border-slate-100 hover:border-indigo-100 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between rounded-2xl bg-white shadow-sm"
+                  <div
+                    key={trip.id}
+                    className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-ink-100 bg-white transition-all duration-300 hover:border-ink-300 hover:shadow-lg"
                   >
-                    <div className="relative h-48 w-full overflow-hidden bg-slate-200">
+                    <div className="relative h-48 w-full overflow-hidden bg-ink-100">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={trip.imageUrl || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=800&q=80'}
                         alt={trip.name}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/10 to-transparent"></div>
-                      
-                      {/* Delete button top right */}
-                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <div className="absolute inset-0 bg-gradient-to-t from-ink-900/80 via-ink-900/10 to-transparent" />
+
+                      <div className="absolute right-3 top-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                         <button
-                          className="bg-white/95 border border-red-100 hover:bg-red-500 hover:text-white min-w-8 w-8 h-8 rounded-lg flex items-center justify-center text-red-500 transition-colors cursor-pointer"
+                          className="flex h-8 w-8 min-w-8 items-center justify-center rounded-lg border border-white/40 bg-white/95 text-ink-700 transition-colors hover:bg-ink-900 hover:text-white"
                           onClick={() => {
                             if (confirm(`¿Estás seguro de que quieres eliminar el viaje a "${trip.name}"? Se perderán todos sus itinerarios.`)) {
                               deleteTrip(trip.id);
                             }
                           }}
-                          title="Eliminar Viaje"
+                          title="Eliminar viaje"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
 
-                      {/* Header content overlay */}
-                      <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                        <div>
-                          <span className="text-xs font-semibold uppercase tracking-wider text-cyan-300 px-2.5 py-0.5 rounded-full bg-cyan-950/60 backdrop-blur-sm border border-cyan-500/20">
-                            {totalDays} {totalDays === 1 ? 'Día' : 'Días'}
-                          </span>
-                          <h2 className="text-xl font-bold text-white mt-1.5 drop-shadow-sm line-clamp-1 font-sans">
-                            {trip.name}
-                          </h2>
-                        </div>
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <span className="rounded-full border border-white/30 bg-ink-900/60 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
+                          {totalDays} {totalDays === 1 ? 'Día' : 'Días'}
+                        </span>
+                        <h2 className="mt-1.5 line-clamp-1 text-xl font-bold text-white drop-shadow-sm">
+                          {trip.name}
+                        </h2>
                       </div>
                     </div>
 
-                    <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div className="flex flex-1 flex-col justify-between p-5">
                       <div className="space-y-4">
-                        <div className="flex flex-col gap-1.5 text-sm text-slate-600">
+                        <div className="flex flex-col gap-1.5 text-sm text-ink-600">
                           <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-slate-400" />
+                            <Calendar className="h-4 w-4 text-ink-400" />
                             <span>{formatDateRange(trip.startDate, trip.endDate)}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Euro className="w-4 h-4 text-slate-400" />
-                            <span className="font-semibold text-slate-700">
-                              Presupuesto: {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(trip.budget)}
+                            <Euro className="h-4 w-4 text-ink-400" />
+                            <span className="font-semibold text-ink-800">
+                              Gastos registrados: {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(trip.activities.reduce((total, activity) => total + activity.price, 0))}
                             </span>
                           </div>
                         </div>
 
                         {trip.description && (
-                          <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed font-sans">
+                          <p className="line-clamp-2 text-xs leading-relaxed text-ink-500">
                             {trip.description}
                           </p>
                         )}
                       </div>
 
-                      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-end">
-                        <Link href={`/viaje/${trip.id}`} className="w-full">
-                          <button
-                            className="w-full font-semibold hover:bg-indigo-600 hover:text-white transition-all border border-indigo-100 rounded-xl bg-indigo-50 text-indigo-700 py-2 h-10 flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer text-sm font-sans"
-                          >
-                            Ver Itinerario
-                            <ArrowRight className="w-4 h-4" />
-                          </button>
+                      <div className="mt-6 border-t border-ink-100 pt-4">
+                        <Link
+                          href={`/viaje/${trip.id}`}
+                          className="wanderlust-primary-button flex h-10 w-full items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold transition-all hover:bg-zinc-800 active:scale-[0.98]"
+                        >
+                          Ver itinerario
+                          <ArrowRight className="h-4 w-4" />
                         </Link>
                       </div>
                     </div>
@@ -326,41 +388,34 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Custom Modal: Añadir Viaje */}
+      {/* Modal: Añadir Viaje */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
+          <div
+            className="absolute inset-0 bg-ink-900/60 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
           />
-          
-          {/* Modal Container */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-2xl w-full max-w-lg relative z-10 overflow-hidden transform transition-all duration-300 scale-100 opacity-100 max-h-[90vh] flex flex-col">
-            
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 font-sans">
-                <Compass className="text-indigo-500 w-6 h-6" />
-                Crear Nuevo Viaje
+
+          <div className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-ink-100 px-6 py-4">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-ink-900">
+                Crear nuevo viaje
               </h2>
-              <button 
+              <button
                 onClick={() => setIsOpen(false)}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors"
+                className="rounded-full p-1 text-ink-400 transition-colors hover:bg-ink-50 hover:text-ink-700"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Body */}
-            <div className="px-6 py-5 space-y-4 overflow-y-auto flex-1">
-              
+            <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Nombre del Destino *</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-ink-500">Nombre del destino *</label>
                 <input
                   type="text"
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm h-10 text-slate-700 font-medium transition-all"
-                  placeholder="Ej. París, Vietnam Mágico, Safari en Kenia..."
+                  className="h-10 w-full rounded-xl border border-ink-200 bg-ink-50 px-3.5 text-sm font-medium text-ink-800 transition-all focus:border-ink-900 focus:outline-none focus:ring-1 focus:ring-ink-900"
+                  placeholder="Ej. París, Vietnam Mágico, Safari en Kenia…"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -369,20 +424,20 @@ export default function Home() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha de Inicio *</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-ink-500">Fecha de inicio *</label>
                   <input
                     type="date"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10"
+                    className="h-10 w-full rounded-xl border border-ink-200 bg-ink-50 px-3 text-sm text-ink-800 focus:border-ink-900 focus:outline-none focus:ring-1 focus:ring-ink-900"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha de Fin *</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-ink-500">Fecha de fin *</label>
                   <input
                     type="date"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10"
+                    className="h-10 w-full rounded-xl border border-ink-200 bg-ink-50 px-3 text-sm text-ink-800 focus:border-ink-900 focus:outline-none focus:ring-1 focus:ring-ink-900"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     required
@@ -391,25 +446,10 @@ export default function Home() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Presupuesto (en Euros, ej: 2500 para 2.500 €) *</label>
-                <div className="relative w-full">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold pointer-events-none">€</span>
-                  <input
-                    type="number"
-                    className="w-full pl-8 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm h-10 text-slate-700 font-medium transition-all"
-                    placeholder="Ej. 2500"
-                    value={budget}
-                    onChange={(e) => setBudget(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
-                  Imagen de Portada (Preestablecida)
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-ink-500">
+                  Imagen de portada (preestablecida)
                 </label>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex flex-wrap gap-2">
                   {PRESET_IMAGES.map((img) => (
                     <button
                       key={img.name}
@@ -418,10 +458,10 @@ export default function Home() {
                         setImageUrl(img.url);
                         setCustomImage('');
                       }}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                      className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
                         imageUrl === img.url && customImage === ''
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20'
-                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                          ? 'border-ink-900 bg-ink-900 text-white'
+                          : 'border-ink-200 bg-ink-50 text-ink-600 hover:bg-ink-100'
                       }`}
                     >
                       {img.name}
@@ -431,58 +471,56 @@ export default function Home() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <label className="text-xs font-semibold uppercase tracking-wider text-ink-500">
                   O introduce una URL de imagen personalizada
                 </label>
                 <input
                   type="text"
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 text-slate-700 font-medium transition-all"
-                  placeholder="https://images.unsplash.com/..."
+                  className="h-10 w-full rounded-xl border border-ink-200 bg-ink-50 px-3.5 text-sm font-medium text-ink-800 transition-all focus:border-ink-900 focus:outline-none focus:ring-1 focus:ring-ink-900"
+                  placeholder="https://images.unsplash.com/…"
                   value={customImage}
                   onChange={(e) => setCustomImage(e.target.value)}
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Descripción Breve</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-ink-500">Descripción breve</label>
                 <input
                   type="text"
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 text-sm h-10 text-slate-700 font-medium transition-all"
-                  placeholder="Ej. Ruta de 12 días recorriendo el Sudeste Asiático..."
+                  className="h-10 w-full rounded-xl border border-ink-200 bg-ink-50 px-3.5 text-sm font-medium text-ink-800 transition-all focus:border-ink-900 focus:outline-none focus:ring-1 focus:ring-ink-900"
+                  placeholder="Ej. Ruta de 12 días recorriendo el Sudeste Asiático…"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Notas Generales</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-ink-500">Notas generales</label>
                 <textarea
-                  placeholder="Vacunas necesarias, visado, contactos de emergencia..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 bg-slate-50 h-20 resize-none text-sm font-sans"
+                  placeholder="Vacunas necesarias, visado, contactos de emergencia…"
+                  className="h-20 w-full resize-none rounded-xl border border-ink-200 bg-ink-50 px-3 py-2 text-sm text-ink-800 focus:border-ink-900 focus:outline-none focus:ring-1 focus:ring-ink-900"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50/50">
-              <button 
+            <div className="flex items-center justify-end gap-2 border-t border-ink-100 bg-ink-50/50 px-6 py-4">
+              <button
                 type="button"
-                className="font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-800 rounded-xl h-10 px-4 text-sm transition-colors cursor-pointer" 
+                className="h-10 cursor-pointer rounded-xl px-4 text-sm font-semibold text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-900"
                 onClick={() => setIsOpen(false)}
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 type="button"
-                className="font-semibold shadow-md shadow-indigo-500/10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-5 h-10 text-sm transition-all active:scale-95 cursor-pointer" 
+                className="h-10 cursor-pointer rounded-xl bg-ink-900 px-5 text-sm font-semibold text-white transition-all hover:bg-ink-700 active:scale-95"
                 onClick={handleSubmit}
               >
-                Crear Viaje
+                Crear viaje
               </button>
             </div>
-
           </div>
         </div>
       )}

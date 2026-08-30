@@ -10,9 +10,16 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   title: 'Wanderlust | Planificador de Itinerarios de Viaje',
-  description: 'Planifica tus viajes ideales. Gestiona tus vuelos, traslados, hoteles, comidas y excursiones día a día con una interfaz premium y moderna.',
+  description: 'Planifica tus viajes ideales. Gestiona tus vuelos, traslados, hoteles, comidas y excursiones día a día con una interfaz elegante y minimalista.',
   keywords: ['viajes', 'itinerario', 'planificador de viajes', 'vuelos', 'hoteles', 'vietnam', 'transporte', 'excursiones'],
-  authors: [{ name: 'Antigravity AI' }],
+  authors: [{ name: 'Wanderlust' }],
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/wanderlust_icono_negro.png', type: 'image/png' },
+    ],
+    apple: '/wanderlust_icono_negro.png',
+  },
 };
 
 export default function RootLayout({
@@ -22,10 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${outfit.variable} h-full antialiased`}>
-      <head>
-        <link rel="icon" href="/favicon.ico" />
-      </head>
-      <body className="min-h-full flex flex-col font-sans bg-slate-50 text-slate-900 transition-colors duration-200">
+      <body className="min-h-full flex flex-col font-sans bg-white text-ink-900 antialiased">
         <Providers>
           {children}
         </Providers>

@@ -4,16 +4,18 @@
 
 @theme {
   --font-sans: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
-  --color-primary-50: #eef2ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-200: #c7d2fe;
-  --color-primary-300: #a5b4fc;
-  --color-primary-400: #818cf8;
-  --color-primary-500: #6366f1;
-  --color-primary-600: #4f46e5;
-  --color-primary-700: #4338ca;
-  --color-primary-800: #3730a3;
-  --color-primary-900: #312e81;
+
+  /* Monochrome brand scale (ink black to paper white) */
+  --color-ink-50: #f6f6f6;
+  --color-ink-100: #ededed;
+  --color-ink-200: #dcdcdc;
+  --color-ink-300: #bfbfbf;
+  --color-ink-400: #8f8f8f;
+  --color-ink-500: #666666;
+  --color-ink-600: #454545;
+  --color-ink-700: #2b2b2b;
+  --color-ink-800: #1a1a1a;
+  --color-ink-900: #0a0a0a;
 }
 
 :root {
@@ -21,12 +23,12 @@
 }
 
 body {
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: #ffffff;
+  color: #0a0a0a;
   font-family: var(--font-geist-sans), sans-serif;
 }
 
-/* Custom styles for travel timeline and styling details */
+/* Hide scrollbars where needed */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
@@ -35,22 +37,29 @@ body {
   scrollbar-width: none;
 }
 
-/* Glassmorphism utility */
-.glassmorphic {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+/* Explicit interactive states: kept outside utility layers to prevent UI-library overrides. */
+.wanderlust-primary-button {
+  background-color: #000000 !important;
+  color: #ffffff !important;
 }
 
-.dark .glassmorphic {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.wanderlust-selected-day {
+  background-color: #000000 !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
 }
 
-/* Premium Gradient backgrounds */
-.bg-gradient-travel {
-  background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+.wanderlust-active-tab {
+  border-bottom-color: #000000 !important;
+  color: #000000 !important;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-3px); }
+  40%, 60% { transform: translateX(3px); }
+}
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }

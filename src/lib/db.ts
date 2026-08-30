@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import bcryptjs from 'bcryptjs';
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_CbMmd3Q4pgEF@ep-steep-rice-ahb1b2de-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+const connectionString = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_CbMmd3Q4pgEF@ep-steep-rice-ahb1b2de-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=verify-full&channel_binding=require';
 
 // Standard pattern to prevent hot-reload from establishing too many connection pools in development
 const globalForDb = global as unknown as { pool: Pool | undefined };
@@ -190,7 +190,45 @@ export async function initDb() {
       );
     `);
 
-    // 4. Seed Default User (hello@alvarodesigns.com / Itinerary2026$)
+    // 4. Create per-trip notification settings
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS trip_notification_settings (
+        trip_id VARCHAR(255) PRIMARY KEY REFERENCES trips(id) ON DELETE CASCADE,
+        recipient_email VARCHAR(255) NOT NULL,
+        reminder_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+        reminder_interval_days INTEGER NOT NULL DEFAULT 7 CHECK (reminder_interval_days BETWEEN 1 AND 365),
+        countdown_mode VARCHAR(20) NOT NULL DEFAULT 'exact' CHECK (countdown_mode IN ('exact', 'surprise')),
+        last_reminder_sent_at TIMESTAMP WITH TIME ZONE,
+        instructions_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+        instructions_text TEXT NOT NULL DEFAULT '',
+        instructions_sent_at TIMESTAMP WITH TIME ZONE,
+        itinerary_access_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+        itinerary_access_hours INTEGER NOT NULL DEFAULT 6 CHECK (itinerary_access_hours BETWEEN 1 AND 720),
+        itinerary_access_sent_at TIMESTAMP WITH TIME ZONE,
+        public_access_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+        public_access_token VARCHAR(255),
+        public_show_expenses BOOLEAN NOT NULL DEFAULT FALSE,
+        public_itinerary_visibility VARCHAR(20) NOT NULL DEFAULT 'all' CHECK (public_itinerary_visibility IN ('all', 'day_before')),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Support databases initialized before public-link settings were introduced.
+    await client.query(`
+      ALTER TABLE trip_notification_settings
+        ADD COLUMN IF NOT EXISTS public_access_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS public_access_token VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS public_show_expenses BOOLEAN NOT NULL DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS public_itinerary_visibility VARCHAR(20) NOT NULL DEFAULT 'all';
+    `);
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS trip_notification_settings_public_access_token_key
+      ON trip_notification_settings (public_access_token)
+      WHERE public_access_token IS NOT NULL;
+    `);
+
+    // 5. Seed Default User (hello@alvarodesigns.com / Itinerary2026$)
     const userEmail = 'hello@alvarodesigns.com';
     const checkUser = await client.query('SELECT * FROM users WHERE email = $1', [userEmail]);
     

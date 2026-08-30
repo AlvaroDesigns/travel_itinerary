@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTravel, Activity, ActivityType, FlightActivity, FlightLeg, TransferActivity, HotelActivity, ExcursionActivity, FoodActivity } from '@/context/TravelContext';
+import { TripNotificationSettings } from '@/components/TripNotificationSettings';
 import {
   ArrowLeft,
   Calendar,
@@ -25,7 +27,6 @@ import {
   X,
   Loader2,
   LogOut,
-  Compass,
 } from 'lucide-react';
 
 interface PageProps {
@@ -51,6 +52,7 @@ export default function ViajeDetalle({ params }: PageProps) {
   } = useTravel();
   
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Today's date representation (YYYY-MM-DD)
   const today = new Date();
@@ -60,8 +62,28 @@ export default function ViajeDetalle({ params }: PageProps) {
   // Selected Day State (YYYY-MM-DD)
   const [selectedDate, setSelectedDate] = useState<string>('');
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState<string>('itinerario');
+  // Available tabs and active tab (kept in sync with the ?tab= URL query param)
+  const TABS = [
+    { id: 'itinerario', label: 'Itinerario' },
+    { id: 'descripcion', label: 'Descripción' },
+    { id: 'detalles', label: 'Detalles' },
+    { id: 'notas', label: 'Notas' },
+    { id: 'configuracion', label: 'Configuración' },
+  ];
+  const tabFromUrl = searchParams.get('tab');
+  const activeTab = TABS.some((tab) => tab.id === tabFromUrl) ? (tabFromUrl as string) : 'itinerario';
+
+  // Keep the active tab reflected in the URL without triggering a full reload
+  const handleTabChange = (tabId: string) => {
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    if (tabId === 'itinerario') {
+      params.delete('tab');
+    } else {
+      params.set('tab', tabId);
+    }
+    const query = params.toString();
+    router.replace(`/viaje/${id}${query ? `?${query}` : ''}`, { scroll: false });
+  };
 
   // Modal State
   const [isOpen, setIsOpen] = useState(false);
@@ -131,13 +153,17 @@ export default function ViajeDetalle({ params }: PageProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-950 gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/25 mb-2 animate-bounce">
-          <Compass className="w-7 h-7 text-white" />
-        </div>
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-white gap-4">
+        <Image
+          src="/wanderlust_icono_negro.png"
+          alt="Wanderlust"
+          width={56}
+          height={56}
+          className="h-14 w-auto animate-pulse object-contain"
+        />
         <div className="flex items-center gap-2">
-          <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
-          <span className="text-xs font-extrabold text-slate-400 tracking-widest uppercase">Cargando detalles de tu viaje...</span>
+          <Loader2 className="w-4 h-4 text-ink-400 animate-spin" />
+          <span className="text-xs font-extrabold text-ink-400 tracking-widest uppercase">Cargando detalles de tu viaje...</span>
         </div>
       </div>
     );
@@ -145,12 +171,12 @@ export default function ViajeDetalle({ params }: PageProps) {
 
   if (!activeTrip) {
     return (
-      <div className="flex flex-col items-center justify-center flex-1 py-32 text-slate-500">
-        <AlertTriangle className="w-12 h-12 text-amber-500 mb-4 animate-bounce" />
+      <div className="flex flex-col items-center justify-center flex-1 py-32 text-ink-500">
+        <AlertTriangle className="w-12 h-12 text-ink-400 mb-4 animate-bounce" />
         <h2 className="text-xl font-bold">Viaje no encontrado</h2>
-        <p className="mt-2 text-sm text-slate-400">El viaje que buscas no existe o fue eliminado.</p>
+        <p className="mt-2 text-sm text-ink-400">El viaje que buscas no existe o fue eliminado.</p>
         <Link href="/" className="mt-6">
-          <button className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2 px-4 font-semibold transition-all active:scale-95 cursor-pointer text-sm shadow-md">
+          <button className="bg-ink-900 hover:bg-ink-700 text-white rounded-xl py-2 px-4 font-semibold transition-all active:scale-95 cursor-pointer text-sm shadow-md">
             Volver a Mis Viajes
           </button>
         </Link>
@@ -250,7 +276,7 @@ export default function ViajeDetalle({ params }: PageProps) {
     if (!h.checkoutDate || h.checkoutDate === h.date) {
       return {
         time: h.checkIn || h.time || '15:00',
-        badge: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-pink-100 text-pink-700 border border-pink-200">Hotel</span>,
+        badge: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-ink-100 text-ink-700 border border-ink-200">Hotel</span>,
         label: 'Alojamiento en ' + h.hotelName,
         showCheckInOut: true
       };
@@ -259,7 +285,7 @@ export default function ViajeDetalle({ params }: PageProps) {
     if (dateStr === h.date) {
       return {
         time: h.checkIn || h.time || '15:00',
-        badge: <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-pink-600 text-white border border-pink-700 shadow-sm">Entrada Hotel (Check-in)</span>,
+        badge: <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-ink-900 text-white border border-ink-900 shadow-sm">Entrada Hotel (Check-in)</span>,
         label: `Alojamiento en ${h.hotelName}`,
         showCheckInOut: true
       };
@@ -268,7 +294,7 @@ export default function ViajeDetalle({ params }: PageProps) {
     if (dateStr === h.checkoutDate) {
       return {
         time: h.checkOut || '12:00',
-        badge: <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-slate-600 text-white border border-slate-700 shadow-sm">Salida Hotel (Check-out)</span>,
+        badge: <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-ink-900 text-white border border-ink-900 shadow-sm">Salida Hotel (Check-out)</span>,
         label: `Alojamiento en ${h.hotelName}`,
         showCheckInOut: true
       };
@@ -290,7 +316,7 @@ export default function ViajeDetalle({ params }: PageProps) {
 
     return {
       time: 'Todo el día',
-      badge: <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-pink-100 text-pink-700 border border-pink-200">Hotel - Estancia (Noche {diffDays} de {totalNights})</span>,
+      badge: <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-ink-100 text-ink-700 border border-ink-200">Hotel - Estancia (Noche {diffDays} de {totalNights})</span>,
       label: `Alojamiento en ${h.hotelName}`,
       showCheckInOut: false
     };
@@ -358,7 +384,6 @@ export default function ViajeDetalle({ params }: PageProps) {
 
   // Calculations for whole trip
   const totalTripSpent = activeTrip.activities.reduce((sum, act) => sum + act.price, 0);
-  const budgetProgress = Math.min((totalTripSpent / activeTrip.budget) * 100, 100);
 
   // Categories for the whole trip
   const getWholeTripCostByCategory = (category: 'transport' | 'activities' | 'hotel' | 'food') => {
@@ -400,7 +425,7 @@ export default function ViajeDetalle({ params }: PageProps) {
             href={part}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-indigo-600 hover:text-indigo-850 font-bold underline break-all font-sans"
+            className="text-ink-900 hover:text-ink-600 font-bold underline break-all font-sans"
             onClick={(e) => e.stopPropagation()}
           >
             {part}
@@ -637,45 +662,50 @@ export default function ViajeDetalle({ params }: PageProps) {
   };
 
   return (
-    <div className="flex-1 pb-16 bg-slate-50">
+    <div className="flex-1 pb-16 bg-ink-50">
+      {/* Top Navigation Bar */}
+      <nav className="border-b border-ink-100 bg-white">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/">
+            <Image src="/wanderlust_horizontal_negro.png" alt="Wanderlust" width={180} height={44} priority className="h-9 w-auto object-contain" />
+          </Link>
+          {user && (
+            <div className="flex items-center gap-4">
+              <div className="hidden flex-col text-right sm:flex">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">Conectado como</span>
+                <span className="text-xs font-bold text-ink-900">{user.email}</span>
+              </div>
+              <div className="hidden h-6 w-px bg-ink-200 sm:block" />
+              <button onClick={logout} className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 transition-all hover:border-ink-900 hover:text-ink-900 active:scale-95">
+                <LogOut className="h-3.5 w-3.5" /><span>Salir</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </nav>
+
       {/* Dynamic Header Banner */}
-      <div className="relative h-64 md:h-80 w-full overflow-hidden bg-slate-900">
+      <div className="relative h-64 md:h-80 w-full overflow-hidden bg-ink-900">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={activeTrip.imageUrl || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1200&q=80'}
           alt={activeTrip.name}
           className="h-full w-full object-cover opacity-60"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/20 to-transparent"></div>
         
         {/* Top bar over banner */}
         <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
           <Link href="/">
             <button
-              className="bg-white/95 text-slate-800 border border-slate-100 hover:bg-slate-100 shadow-lg min-w-10 w-10 h-10 flex items-center justify-center rounded-full cursor-pointer transition-all active:scale-95"
+              className="bg-white/95 text-ink-800 border border-ink-100 hover:bg-ink-100 shadow-lg min-w-10 w-10 h-10 flex items-center justify-center rounded-full cursor-pointer transition-all active:scale-95"
               title="Volver a mis viajes"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
           </Link>
           <div className="flex items-center gap-3">
-            {user && (
-              <div className="hidden sm:flex flex-col text-right">
-                <span className="text-[10px] text-white/70 font-semibold uppercase tracking-wider">Usuario</span>
-                <span className="text-xs font-bold text-indigo-300 drop-shadow-md">{user.email}</span>
-              </div>
-            )}
-            {user && <div className="w-px h-6 bg-white/20 hidden sm:block"></div>}
-            {user && (
-              <button
-                onClick={logout}
-                className="bg-slate-900/80 hover:bg-red-600/90 text-white border border-white/10 hover:border-transparent px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer backdrop-blur-md active:scale-95 flex items-center gap-1.5"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Salir</span>
-              </button>
-            )}
-            <span className="text-white text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-900/60 backdrop-blur-md border border-white/10">
+            <span className="text-white text-xs font-semibold px-3 py-1.5 rounded-full bg-ink-900/60 backdrop-blur-md border border-white/10">
               {tripDates.length} {tripDates.length === 1 ? 'Día' : 'Días'}
             </span>
           </div>
@@ -687,8 +717,8 @@ export default function ViajeDetalle({ params }: PageProps) {
             <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight drop-shadow-md font-sans">
               {activeTrip.name}
             </h1>
-            <div className="flex items-center gap-2 mt-2 text-slate-300 text-sm">
-              <Calendar className="w-4 h-4 text-cyan-400" />
+            <div className="flex items-center gap-2 mt-2 text-ink-300 text-sm">
+              <Calendar className="w-4 h-4 text-ink-300" />
               <span className="font-medium">
                 {formatDateLabel(activeTrip.startDate).day} {formatDateLabel(activeTrip.startDate).month}
                 {' -> '}
@@ -698,8 +728,8 @@ export default function ViajeDetalle({ params }: PageProps) {
           </div>
           
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-white min-w-[150px] md:min-w-[200px] text-left md:text-right self-start md:self-auto w-fit md:w-auto">
-            <p className="text-xs uppercase tracking-wider text-cyan-300 font-semibold">Presupuesto del Viaje</p>
-            <p className="text-2xl font-black mt-0.5">{formatCurrency(activeTrip.budget)}</p>
+            <p className="text-xs uppercase tracking-wider text-ink-300 font-semibold">Gastos del Viaje</p>
+            <p className="text-2xl font-black mt-0.5">{formatCurrency(totalTripSpent)}</p>
           </div>
         </div>
       </div>
@@ -708,20 +738,15 @@ export default function ViajeDetalle({ params }: PageProps) {
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-8">
         
         {/* Custom Tab Switcher */}
-        <div className="flex gap-6 border-b border-slate-200 mb-8">
-          {[
-            { id: 'itinerario', label: 'Itinerario' },
-            { id: 'descripcion', label: 'Descripción' },
-            { id: 'detalles', label: 'Detalles' },
-            { id: 'notas', label: 'Notas' }
-          ].map((tab) => (
+        <div className="mb-8 flex gap-6 overflow-x-auto border-b border-ink-200">
+          {TABS.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`pb-3 font-semibold text-sm transition-all border-b-2 -mb-[2px] ${
-                activeTab === tab.id 
-                  ? 'border-indigo-600 text-indigo-600 font-bold' 
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
+              onClick={() => handleTabChange(tab.id)}
+              className={`shrink-0 pb-3 font-semibold text-sm transition-all border-b-2 -mb-[2px] ${
+                activeTab === tab.id
+                  ? 'wanderlust-active-tab font-bold'
+                  : 'border-transparent text-ink-500 hover:text-ink-700'
               }`}
             >
               {tab.label}
@@ -740,8 +765,8 @@ export default function ViajeDetalle({ params }: PageProps) {
               <div className="lg:col-span-2 space-y-6">
                 
                 {/* Horizontal Day Selector */}
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                  <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3 px-1">
+                <div className="bg-white p-4 rounded-2xl shadow-sm border border-ink-100">
+                  <h3 className="text-sm font-semibold text-ink-500 uppercase tracking-wider mb-3 px-1">
                     Días del viaje
                   </h3>
                   <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide">
@@ -755,10 +780,10 @@ export default function ViajeDetalle({ params }: PageProps) {
                           onClick={() => setSelectedDate(date)}
                           className={`flex flex-col items-center justify-center min-w-[70px] h-[75px] rounded-xl border transition-all ${
                             active
-                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20'
+                              ? 'wanderlust-selected-day shadow-md'
                               : isToday
-                                ? 'bg-slate-50 text-indigo-750 border-indigo-300 hover:bg-indigo-100 font-bold'
-                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                                ? 'bg-ink-50 text-ink-900 border-ink-400 hover:bg-ink-100 font-bold'
+                                : 'bg-ink-50 text-ink-600 border-ink-200 hover:bg-ink-100'
                           }`}
                         >
                           <span className="text-[10px] font-semibold uppercase tracking-wider opacity-85">
@@ -773,17 +798,17 @@ export default function ViajeDetalle({ params }: PageProps) {
                 </div>
 
                 {/* Day Activities List */}
-                <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-ink-100">
+                  <div className="flex items-center justify-between border-b border-ink-100 pb-4 mb-6">
                     <div>
-                      <h2 className="text-xl font-bold text-slate-800 font-sans">Plan del Día</h2>
-                      <p className="text-xs text-slate-400 mt-0.5 font-sans">
+                      <h2 className="text-xl font-bold text-ink-800 font-sans">Plan del Día</h2>
+                      <p className="text-xs text-ink-400 mt-0.5 font-sans">
                         {dayActivities.length === 0 ? 'Sin actividades programadas' : `${dayActivities.length} actividades planificadas`}
                       </p>
                     </div>
                     <button
                       id="btn-add-activity"
-                      className="font-semibold shadow-md shadow-indigo-500/10 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl h-10 px-4 flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer text-sm font-sans"
+                      className="font-semibold shadow-md bg-ink-900 text-white hover:bg-ink-700 rounded-xl h-10 px-4 flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer text-sm font-sans"
                       onClick={handleOpenAdd}
                     >
                       <Plus className="w-4 h-4" />
@@ -794,54 +819,54 @@ export default function ViajeDetalle({ params }: PageProps) {
                   {/* Vertical Timeline */}
                   {dayActivities.length === 0 ? (
                     <div className="py-12 flex flex-col items-center justify-center text-center">
-                      <Clock className="w-12 h-12 text-slate-300 stroke-[1.5] mb-3" />
-                      <h4 className="font-bold text-slate-600 font-sans">No hay nada planeado para hoy</h4>
-                      <p className="text-slate-400 text-xs mt-1 max-w-xs leading-relaxed font-sans">
+                      <Clock className="w-12 h-12 text-ink-300 stroke-[1.5] mb-3" />
+                      <h4 className="font-bold text-ink-600 font-sans">No hay nada planeado para hoy</h4>
+                      <p className="text-ink-400 text-xs mt-1 max-w-xs leading-relaxed font-sans">
                         Añade vuelos, traslados, hoteles o excursiones para dar forma a tu itinerario diario.
                       </p>
                       <button
-                        className="mt-4 font-semibold border border-indigo-100 rounded-xl bg-indigo-50 text-indigo-700 h-9 px-3.5 hover:bg-indigo-100 flex items-center justify-center transition-all active:scale-95 cursor-pointer text-xs"
+                        className="mt-4 font-semibold border border-ink-200 rounded-xl bg-ink-50 text-ink-800 h-9 px-3.5 hover:bg-ink-100 flex items-center justify-center transition-all active:scale-95 cursor-pointer text-xs"
                         onClick={handleOpenAdd}
                       >
                         Añadir mi primer elemento
                       </button>
                     </div>
                   ) : (
-                    <div className="relative border-l-2 border-slate-100 pl-5 sm:pl-6 ml-2.5 sm:ml-4 space-y-6 sm:space-y-8 py-2">
+                    <div className="relative border-l-2 border-ink-100 pl-5 sm:pl-6 ml-2.5 sm:ml-4 space-y-6 sm:space-y-8 py-2">
                       {dayActivities.map((act) => {
                         const hotelStatus = getHotelStatus(act, selectedDate);
 
                         // Icon mapping
                         const iconMap = {
-                          flight: <Plane className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" />,
-                          transfer: <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-600" />,
-                          hotel: <Bed className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-600" />,
-                          excursion: <Map className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />,
-                          food: <Utensils className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600" />,
+                          flight: <Plane className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-700" />,
+                          transfer: <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-700" />,
+                          hotel: <Bed className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-700" />,
+                          excursion: <Map className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-700" />,
+                          food: <Utensils className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-700" />,
                         };
                         
                         // Color mapping
                         const borderMap = {
-                          flight: 'border-indigo-100 hover:border-indigo-300 bg-indigo-50/20',
-                          transfer: 'border-cyan-100 hover:border-cyan-300 bg-cyan-50/20',
-                          hotel: 'border-pink-100 hover:border-pink-300 bg-pink-50/20',
-                          excursion: 'border-emerald-100 hover:border-emerald-300 bg-emerald-50/20',
-                          food: 'border-amber-100 hover:border-amber-300 bg-amber-50/20',
+                          flight: 'border-ink-100 hover:border-ink-300 bg-ink-50/40',
+                          transfer: 'border-ink-100 hover:border-ink-300 bg-ink-50/40',
+                          hotel: 'border-ink-100 hover:border-ink-300 bg-ink-50/40',
+                          excursion: 'border-ink-100 hover:border-ink-300 bg-ink-50/40',
+                          food: 'border-ink-100 hover:border-ink-300 bg-ink-50/40',
                         };
 
                         const badgeMap = {
-                          flight: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">Vuelo</span>,
-                          transfer: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-cyan-100 text-cyan-700 border border-cyan-200">Traslado</span>,
-                          hotel: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-pink-100 text-pink-700 border border-pink-200">Hotel</span>,
-                          excursion: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">Actividad</span>,
-                          food: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-700 border border-amber-200">Comida</span>,
+                          flight: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-ink-100 text-ink-700 border border-ink-200">Vuelo</span>,
+                          transfer: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-ink-100 text-ink-700 border border-ink-200">Traslado</span>,
+                          hotel: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-ink-100 text-ink-700 border border-ink-200">Hotel</span>,
+                          excursion: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-ink-100 text-ink-700 border border-ink-200">Actividad</span>,
+                          food: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-ink-100 text-ink-700 border border-ink-200">Comida</span>,
                         };
 
                         return (
                           <div key={act.id} className="relative group/item">
                             
                             {/* Dot element on left timeline */}
-                            <div className="absolute -left-[31px] sm:-left-[37px] top-4 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center bg-white border border-slate-100 shadow-md z-10 transition-transform group-hover/item:scale-110">
+                            <div className="absolute -left-[31px] sm:-left-[37px] top-4 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center bg-white border border-ink-100 shadow-md z-10 transition-transform group-hover/item:scale-110">
                               {iconMap[act.type]}
                             </div>
 
@@ -852,13 +877,13 @@ export default function ViajeDetalle({ params }: PageProps) {
                                   
                                   {/* Badge / Type & Time info */}
                                   <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-slate-700 flex items-center gap-1 font-sans">
-                                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                    <span className="text-sm font-bold text-ink-700 flex items-center gap-1 font-sans">
+                                      <Clock className="w-3.5 h-3.5 text-ink-400" />
                                       {hotelStatus ? hotelStatus.time : act.time}
                                     </span>
                                     {hotelStatus ? hotelStatus.badge : badgeMap[act.type]}
                                     {act.price > 0 && (
-                                      <span className="text-xs font-semibold text-slate-500 bg-slate-100/80 px-2.5 py-0.5 rounded-full border border-slate-200">
+                                      <span className="text-xs font-semibold text-ink-500 bg-ink-100/80 px-2.5 py-0.5 rounded-full border border-ink-200">
                                         {formatCurrency(act.price)}
                                       </span>
                                     )}
@@ -869,39 +894,39 @@ export default function ViajeDetalle({ params }: PageProps) {
                                     <div className="space-y-3">
                                       {(act as FlightActivity).legs && ((act as FlightActivity).legs || []).length > 1 ? (
                                         <div className="space-y-3">
-                                          <h4 className="text-base font-bold text-slate-800 font-sans">
+                                          <h4 className="text-base font-bold text-ink-800 font-sans">
                                             Conexión: {(act as FlightActivity).origin} → {(act as FlightActivity).destination}
                                           </h4>
-                                          <div className="border-l-2 border-dashed border-indigo-200 pl-4 ml-2.5 space-y-4 my-2">
+                                          <div className="border-l-2 border-dashed border-ink-300 pl-4 ml-2.5 space-y-4 my-2">
                                             {((act as FlightActivity).legs || []).map((leg, idx) => {
                                               const layoverTime = idx > 0 ? calculateLayover(((act as FlightActivity).legs || [])[idx - 1], leg, act.date) : '';
                                               return (
                                                 <div key={idx} className="relative space-y-2">
                                                   {/* Connecting indicator dot */}
-                                                  <div className="absolute -left-[22px] top-1.5 w-3 h-3 rounded-full bg-indigo-500 border-2 border-white shadow-sm" />
+                                                  <div className="absolute -left-[22px] top-1.5 w-3 h-3 rounded-full bg-ink-900 border-2 border-white shadow-sm" />
                                                   
                                                   {/* Layover banner */}
                                                   {idx > 0 && layoverTime && (
-                                                    <div className="bg-amber-50/65 border border-amber-100 text-amber-800 rounded-lg p-2 text-xs font-semibold flex items-center justify-between shadow-xs mb-3 -ml-2 select-none">
-                                                      <span>Escala en <strong className="text-amber-900">{((act as FlightActivity).legs || [])[idx - 1].destination}</strong></span>
-                                                      <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full text-[9px] uppercase font-bold">Espera: {layoverTime}</span>
+                                                    <div className="bg-ink-50 border border-ink-200 text-ink-700 rounded-lg p-2 text-xs font-semibold flex items-center justify-between shadow-xs mb-3 -ml-2 select-none">
+                                                      <span>Escala en <strong className="text-ink-900">{((act as FlightActivity).legs || [])[idx - 1].destination}</strong></span>
+                                                      <span className="bg-ink-900 text-white px-2 py-0.5 rounded-full text-[9px] uppercase font-bold">Espera: {layoverTime}</span>
                                                     </div>
                                                   )}
 
                                                   {/* Leg segment box */}
-                                                  <div className="bg-white/60 p-3 rounded-xl border border-slate-100 shadow-xs">
-                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-500 font-sans">
+                                                  <div className="bg-white/60 p-3 rounded-xl border border-ink-100 shadow-xs">
+                                                    <div className="flex justify-between items-center text-xs font-bold text-ink-500 font-sans">
                                                       <span>Trayecto {idx + 1}: {leg.flightNumber}</span>
-                                                      <span className="text-indigo-600 font-semibold">{leg.airline}</span>
+                                                      <span className="text-ink-900 font-semibold">{leg.airline}</span>
                                                     </div>
-                                                    <div className="flex items-center gap-3 text-sm text-slate-700 mt-1.5 font-semibold bg-white/40 p-1 rounded max-w-fit flex-wrap">
-                                                      <span className="font-extrabold text-slate-800">{leg.origin}</span>
-                                                      <span className="text-xs text-slate-400 font-normal">
+                                                    <div className="flex items-center gap-3 text-sm text-ink-700 mt-1.5 font-semibold bg-white/40 p-1 rounded max-w-fit flex-wrap">
+                                                      <span className="font-extrabold text-ink-800">{leg.origin}</span>
+                                                      <span className="text-xs text-ink-400 font-normal">
                                                         ({leg.departureTime}{leg.departureDate && leg.departureDate !== act.date ? ` el ${formatDateSimple(leg.departureDate)}` : ''})
                                                       </span>
-                                                      <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                                                      <span className="font-extrabold text-slate-800">{leg.destination}</span>
-                                                      <span className="text-xs text-slate-400 font-normal">
+                                                      <ChevronRight className="w-3.5 h-3.5 text-ink-400" />
+                                                      <span className="font-extrabold text-ink-800">{leg.destination}</span>
+                                                      <span className="text-xs text-ink-400 font-normal">
                                                         ({leg.arrivalTime}{leg.arrivalDate && leg.arrivalDate !== act.date ? ` el ${formatDateSimple(leg.arrivalDate)}` : ''})
                                                       </span>
                                                     </div>
@@ -914,17 +939,17 @@ export default function ViajeDetalle({ params }: PageProps) {
                                       ) : (
                                         // Direct flight view (1 leg or legacy)
                                         <div>
-                                          <h4 className="text-base font-bold text-slate-800 font-sans">
+                                          <h4 className="text-base font-bold text-ink-800 font-sans">
                                             Vuelo {(act as FlightActivity).flightNumber} - {(act as FlightActivity).airline}
                                           </h4>
-                                          <div className="flex items-center gap-3 text-sm text-slate-600 mt-1 font-medium bg-white/60 p-2 rounded-lg border border-slate-100/50 max-w-fit flex-wrap">
-                                            <span className="font-bold text-slate-700">{(act as FlightActivity).origin}</span>
-                                            <span className="text-xs text-slate-400 font-sans">
+                                          <div className="flex items-center gap-3 text-sm text-ink-600 mt-1 font-medium bg-white/60 p-2 rounded-lg border border-ink-100/50 max-w-fit flex-wrap">
+                                            <span className="font-bold text-ink-700">{(act as FlightActivity).origin}</span>
+                                            <span className="text-xs text-ink-400 font-sans">
                                               (Salida: {act.time})
                                             </span>
-                                            <ChevronRight className="w-4 h-4 text-slate-400" />
-                                            <span className="font-bold text-slate-700">{(act as FlightActivity).destination}</span>
-                                            <span className="text-xs text-slate-400 font-sans">
+                                            <ChevronRight className="w-4 h-4 text-ink-400" />
+                                            <span className="font-bold text-ink-700">{(act as FlightActivity).destination}</span>
+                                            <span className="text-xs text-ink-400 font-sans">
                                               (Llegada: {(act as FlightActivity).arrivalTime})
                                             </span>
                                           </div>
@@ -936,7 +961,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                                   {/* Transfer rendering */}
                                   {act.type === 'transfer' && (
                                     <div>
-                                      <h4 className="text-base font-bold text-slate-800 font-sans">
+                                      <h4 className="text-base font-bold text-ink-800 font-sans">
                                         Traslado en {
                                           (act as TransferActivity).transportType === 'taxi' ? 'Taxi' :
                                           (act as TransferActivity).transportType === 'bus' ? 'Autobús' :
@@ -945,16 +970,16 @@ export default function ViajeDetalle({ params }: PageProps) {
                                           (act as TransferActivity).transportType === 'walking' ? 'Caminando' : 'Otro'
                                         }
                                       </h4>
-                                      <p className="text-sm text-slate-600 mt-1 flex items-center gap-1.5 font-sans">
-                                        <MapPin className="w-4 h-4 text-slate-400" />
+                                      <p className="text-sm text-ink-600 mt-1 flex items-center gap-1.5 font-sans">
+                                        <MapPin className="w-4 h-4 text-ink-700" />
                                         <span>{(act as TransferActivity).origin} {' -> '} {(act as TransferActivity).destination}</span>
                                       </p>
-                                      <p className="text-xs text-slate-400 mt-1 bg-white/60 px-2 py-1 rounded border border-slate-100/50 max-w-fit font-sans">
+                                      <p className="text-xs text-ink-400 mt-1 bg-white/60 px-2 py-1 rounded border border-ink-100/50 max-w-fit font-sans">
                                         Duración: {(act as TransferActivity).duration}
                                       </p>
                                       {/* Custom transfer description */}
                                       {(act as any).description && (
-                                        <p className="text-sm text-slate-500 mt-2 max-w-lg leading-relaxed font-sans italic bg-indigo-50/30 p-2.5 rounded-xl border border-indigo-100/50 border-dashed break-words">
+                                        <p className="text-sm text-ink-500 mt-2 max-w-lg leading-relaxed font-sans italic bg-ink-50/30 p-2.5 rounded-xl border border-ink-100/50 border-dashed break-words">
                                           {renderDescriptionWithLinks((act as any).description)}
                                         </p>
                                       )}
@@ -964,28 +989,28 @@ export default function ViajeDetalle({ params }: PageProps) {
                                   {/* Hotel rendering */}
                                   {act.type === 'hotel' && (
                                     <div>
-                                      <h4 className="text-base font-bold text-slate-800 font-sans">
+                                      <h4 className="text-base font-bold text-ink-800 font-sans">
                                         {hotelStatus ? hotelStatus.label : `Alojamiento en ${(act as HotelActivity).hotelName}`}
                                       </h4>
-                                      <p className="text-sm text-slate-600 mt-1 flex items-center gap-1.5 font-sans">
-                                        <MapPin className="w-4 h-4 text-slate-400" />
+                                      <p className="text-sm text-ink-600 mt-1 flex items-center gap-1.5 font-sans">
+                                        <MapPin className="w-4 h-4 text-ink-700" />
                                         <span>{(act as HotelActivity).address}</span>
                                       </p>
                                       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-xs font-medium font-sans">
                                         {hotelStatus && hotelStatus.showCheckInOut ? (
                                           <>
-                                            <span className="text-slate-400">
-                                              Check-in: <strong className="text-slate-600">{(act as HotelActivity).checkIn}</strong>
+                                            <span className="text-ink-400">
+                                              Check-in: <strong className="text-ink-600">{(act as HotelActivity).checkIn}</strong>
                                               {(act as HotelActivity).checkoutDate && ` (${formatDateSimple(act.date)})`}
                                             </span>
-                                            <span className="text-slate-400">
-                                              Check-out: <strong className="text-slate-600">{(act as HotelActivity).checkOut}</strong>
+                                            <span className="text-ink-400">
+                                              Check-out: <strong className="text-ink-600">{(act as HotelActivity).checkOut}</strong>
                                               {(act as HotelActivity).checkoutDate && ` (${formatDateSimple((act as HotelActivity).checkoutDate || '')})`}
                                             </span>
                                           </>
                                         ) : (
                                           (act as HotelActivity).checkoutDate && (
-                                            <span className="text-slate-500 bg-pink-50/50 border border-pink-100 rounded-lg px-2.5 py-0.5 font-semibold">
+                                            <span className="text-ink-500 bg-ink-50 border border-ink-100 rounded-lg px-2.5 py-0.5 font-semibold">
                                               Estancia del {formatDateSimple(act.date)} al {formatDateSimple((act as HotelActivity).checkoutDate || '')}
                                             </span>
                                           )
@@ -994,15 +1019,15 @@ export default function ViajeDetalle({ params }: PageProps) {
                                           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((act as HotelActivity).address)}`}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100/70 border border-indigo-100 rounded-lg px-2.5 py-1 transition-all font-bold hover:scale-[1.02] active:scale-[0.98] cursor-pointer ml-auto sm:ml-0"
+                                          className="inline-flex items-center gap-1 text-ink-900 hover:bg-ink-100 bg-ink-50 border border-ink-200 rounded-lg px-2.5 py-1 transition-all font-bold hover:scale-[1.02] active:scale-[0.98] cursor-pointer ml-auto sm:ml-0"
                                         >
-                                          <MapPin className="w-3.5 h-3.5 text-indigo-500" />
+                                          <MapPin className="w-3.5 h-3.5 text-ink-700" />
                                           <span>Cómo llegar</span>
                                         </a>
                                       </div>
                                       {/* Custom hotel description/notes */}
                                       {(act as HotelActivity).description && (
-                                        <p className="text-sm text-slate-500 mt-2.5 max-w-lg leading-relaxed font-sans italic bg-indigo-50/30 p-2.5 rounded-xl border border-indigo-100/50 border-dashed break-words">
+                                        <p className="text-sm text-ink-500 mt-2.5 max-w-lg leading-relaxed font-sans italic bg-ink-50/30 p-2.5 rounded-xl border border-ink-100/50 border-dashed break-words">
                                           {renderDescriptionWithLinks((act as HotelActivity).description || '')}
                                         </p>
                                       )}
@@ -1179,34 +1204,16 @@ export default function ViajeDetalle({ params }: PageProps) {
 
                 </div>
 
-                {/* General Budget Progress Card */}
+                {/* Automatically calculated trip expenses */}
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                   <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2 font-sans">
                     <Euro className="w-5 h-5 text-cyan-500" />
                     Gastos Acumulados
                   </h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-end font-sans">
-                      <span className="text-xs font-semibold text-slate-500">Progreso del presupuesto</span>
-                      <span className="text-sm font-black text-slate-700">
-                        {formatCurrency(totalTripSpent)} / {formatCurrency(activeTrip.budget)}
-                      </span>
-                    </div>
-                    {/* Custom progress bar to replace HeroUI progress */}
-                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          budgetProgress > 90 ? 'bg-red-500' : budgetProgress > 70 ? 'bg-amber-500' : 'bg-indigo-600'
-                        }`}
-                        style={{ width: `${budgetProgress}%` }}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 uppercase tracking-wide font-sans">
-                      <span>Restante:</span>
-                      <span className={activeTrip.budget - totalTripSpent < 0 ? 'text-red-500 font-bold' : 'text-slate-600'}>
-                        {formatCurrency(activeTrip.budget - totalTripSpent)}
-                      </span>
-                    </div>
+                  <div className="rounded-xl bg-cyan-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-cyan-700">Total registrado</p>
+                    <p className="mt-1 text-2xl font-black text-slate-800">{formatCurrency(totalTripSpent)}</p>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-500">Se calcula automáticamente con los importes de las actividades del itinerario.</p>
                   </div>
                 </div>
 
@@ -1431,6 +1438,11 @@ export default function ViajeDetalle({ params }: PageProps) {
                 * Haz clic en "Guardar Notas" para guardar tus cambios permanentemente en el navegador.
               </p>
             </div>
+          )}
+
+          {/* TAB 5: CONFIGURACIÓN (solo para sesión autenticada) */}
+          {activeTab === 'configuracion' && (
+            <TripNotificationSettings tripId={activeTrip.id} />
           )}
 
         </div>
