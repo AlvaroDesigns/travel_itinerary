@@ -374,6 +374,7 @@ export default function Home() {
                         <Link
                           href={`/viaje/${trip.id}`}
                           className="wanderlust-primary-button flex h-10 w-full items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold transition-all hover:bg-zinc-800 active:scale-[0.98]"
+                          style={{ backgroundColor: '#000000', color: '#ffffff' }}
                         >
                           Ver itinerario
                           <ArrowRight className="h-4 w-4" />

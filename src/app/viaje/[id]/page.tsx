@@ -748,6 +748,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                   ? 'wanderlust-active-tab font-bold'
                   : 'border-transparent text-ink-500 hover:text-ink-700'
               }`}
+              style={activeTab === tab.id ? { borderBottomColor: '#000000', color: '#000000' } : undefined}
             >
               {tab.label}
             </button>
@@ -785,6 +786,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                                 ? 'bg-ink-50 text-ink-900 border-ink-400 hover:bg-ink-100 font-bold'
                                 : 'bg-ink-50 text-ink-600 border-ink-200 hover:bg-ink-100'
                           }`}
+                          style={active ? { backgroundColor: '#000000', borderColor: '#000000', color: '#ffffff' } : undefined}
                         >
                           <span className="text-[10px] font-semibold uppercase tracking-wider opacity-85">
                             Día {idx + 1}{isToday ? ' (Hoy)' : ''}
