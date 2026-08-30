@@ -153,17 +153,22 @@ export default function ViajeDetalle({ params }: PageProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-white gap-4">
-        <Image
-          src="/wanderlust_icono_negro.png"
-          alt="Wanderlust"
-          width={56}
-          height={56}
-          className="h-14 w-auto animate-pulse object-contain"
-        />
-        <div className="flex items-center gap-2">
-          <Loader2 className="w-4 h-4 text-ink-400 animate-spin" />
-          <span className="text-xs font-extrabold text-ink-400 tracking-widest uppercase">Cargando detalles de tu viaje...</span>
+      <div className="flex min-h-screen w-full items-center justify-center bg-ink-50 px-6">
+        <div className="flex flex-col items-center text-center">
+          <div className="flex h-20 w-20 items-center justify-center border border-ink-200 bg-white">
+            <Image
+              src="/wanderlust_icono_negro.png"
+              alt="Wanderlust"
+              width={56}
+              height={56}
+              className="h-12 w-auto animate-pulse object-contain"
+            />
+          </div>
+          <p className="mt-7 text-[10px] font-bold uppercase tracking-[0.28em] text-ink-400">Wanderlust</p>
+          <div className="mt-3 flex items-center gap-2 text-ink-600">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            <span className="text-xs font-semibold">Preparando tu itinerario</span>
+          </div>
         </div>
       </div>
     );
@@ -171,15 +176,22 @@ export default function ViajeDetalle({ params }: PageProps) {
 
   if (!activeTrip) {
     return (
-      <div className="flex flex-col items-center justify-center flex-1 py-32 text-ink-500">
-        <AlertTriangle className="w-12 h-12 text-ink-400 mb-4 animate-bounce" />
-        <h2 className="text-xl font-bold">Viaje no encontrado</h2>
-        <p className="mt-2 text-sm text-ink-400">El viaje que buscas no existe o fue eliminado.</p>
-        <Link href="/" className="mt-6">
-          <button className="bg-ink-900 hover:bg-ink-700 text-white rounded-xl py-2 px-4 font-semibold transition-all active:scale-95 cursor-pointer text-sm shadow-md">
+      <div className="flex min-h-screen flex-1 items-center justify-center bg-ink-50 px-6 py-20">
+        <div className="max-w-md text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center border border-ink-200 bg-white text-ink-900">
+            <AlertTriangle className="h-7 w-7" />
+          </div>
+          <p className="mt-7 text-[10px] font-bold uppercase tracking-[0.28em] text-ink-400">Wanderlust</p>
+          <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-ink-900">Viaje no encontrado</h2>
+          <p className="mt-3 text-sm leading-6 text-ink-500">El viaje que buscas no existe, fue eliminado o ya no tienes acceso a él.</p>
+          <Link
+            href="/"
+            className="wanderlust-primary-button mt-8 inline-flex items-center justify-center px-5 py-3 text-sm font-bold transition-transform hover:scale-[1.02] active:scale-95"
+            style={{ backgroundColor: '#000000', color: '#ffffff' }}
+          >
             Volver a Mis Viajes
-          </button>
-        </Link>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -662,21 +674,21 @@ export default function ViajeDetalle({ params }: PageProps) {
   };
 
   return (
-    <div className="flex-1 pb-16 bg-ink-50">
+    <div className="flex-1 bg-ink-50 pb-16">
       {/* Top Navigation Bar */}
-      <nav className="border-b border-ink-100 bg-white">
+      <nav className="sticky top-0 z-30 border-b border-ink-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/">
-            <Image src="/wanderlust_horizontal_negro.png" alt="Wanderlust" width={180} height={44} priority className="h-9 w-auto object-contain" />
+          <Link href="/" aria-label="Ir a mis viajes" className="inline-flex items-center">
+            <Image src="/wanderlust_horizontal_negro.png" alt="Wanderlust" width={180} height={44} priority className="h-8 w-auto object-contain sm:h-9" />
           </Link>
           {user && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <div className="hidden flex-col text-right sm:flex">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">Conectado como</span>
-                <span className="text-xs font-bold text-ink-900">{user.email}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-400">Cuenta</span>
+                <span className="max-w-48 truncate text-xs font-bold text-ink-900">{user.email}</span>
               </div>
               <div className="hidden h-6 w-px bg-ink-200 sm:block" />
-              <button onClick={logout} className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 transition-all hover:border-ink-900 hover:text-ink-900 active:scale-95">
+              <button onClick={logout} className="inline-flex cursor-pointer items-center gap-1.5 border border-ink-200 bg-white px-3 py-2 text-xs font-bold text-ink-700 transition-colors hover:border-ink-900 hover:bg-ink-900 hover:text-white active:scale-95">
                 <LogOut className="h-3.5 w-3.5" /><span>Salir</span>
               </button>
             </div>
@@ -685,74 +697,82 @@ export default function ViajeDetalle({ params }: PageProps) {
       </nav>
 
       {/* Dynamic Header Banner */}
-      <div className="relative h-64 md:h-80 w-full overflow-hidden bg-ink-900">
+      <header className="relative h-[22rem] w-full overflow-hidden bg-ink-900 md:h-[30rem]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={activeTrip.imageUrl || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1200&q=80'}
           alt={activeTrip.name}
-          className="h-full w-full object-cover opacity-60"
+          className="h-full w-full object-cover opacity-65"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/20 to-transparent"></div>
-        
-        {/* Top bar over banner */}
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
-          <Link href="/">
-            <button
-              className="bg-white/95 text-ink-800 border border-ink-100 hover:bg-ink-100 shadow-lg min-w-10 w-10 h-10 flex items-center justify-center rounded-full cursor-pointer transition-all active:scale-95"
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/35 to-ink-900/10" />
+
+        <div className="absolute inset-x-0 top-0 z-10">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 pt-5 sm:px-6 lg:px-8">
+            <Link
+              href="/"
+              aria-label="Volver a mis viajes"
+              className="inline-flex h-10 w-10 items-center justify-center border border-white/25 bg-ink-900/75 text-white transition-colors hover:bg-white hover:text-ink-900"
               title="Volver a mis viajes"
             >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-          </Link>
-          <div className="flex items-center gap-3">
-            <span className="text-white text-xs font-semibold px-3 py-1.5 rounded-full bg-ink-900/60 backdrop-blur-md border border-white/10">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <span className="border border-white/20 bg-ink-900/75 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white">
               {tripDates.length} {tripDates.length === 1 ? 'Día' : 'Días'}
             </span>
           </div>
         </div>
 
-        {/* Floating Destination Info */}
-        <div className="absolute bottom-5 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="text-white">
-            <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight drop-shadow-md font-sans">
-              {activeTrip.name}
-            </h1>
-            <div className="flex items-center gap-2 mt-2 text-ink-300 text-sm">
-              <Calendar className="w-4 h-4 text-ink-300" />
-              <span className="font-medium">
-                {formatDateLabel(activeTrip.startDate).day} {formatDateLabel(activeTrip.startDate).month}
-                {' -> '}
-                {formatDateLabel(activeTrip.endDate).day} {formatDateLabel(activeTrip.endDate).month} de {activeTrip.endDate.split('-')[0]}
-              </span>
+        <div className="absolute inset-x-0 bottom-0 z-10">
+          <div className="mx-auto flex max-w-7xl flex-col justify-between gap-6 px-4 pb-6 sm:px-6 md:flex-row md:items-end md:pb-8 lg:px-8">
+            <div className="text-white">
+              <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.28em] text-white/65">Tu próximo destino</p>
+              <h1 className="max-w-3xl text-4xl font-extrabold tracking-[-0.04em] sm:text-5xl md:text-6xl">
+                {activeTrip.name}
+              </h1>
+              <div className="mt-4 flex items-center gap-2 text-sm font-medium text-white/75">
+                <Calendar className="h-4 w-4 shrink-0" />
+                <span>
+                  {formatDateLabel(activeTrip.startDate).day} {formatDateLabel(activeTrip.startDate).month}
+                  {' — '}
+                  {formatDateLabel(activeTrip.endDate).day} {formatDateLabel(activeTrip.endDate).month} de {activeTrip.endDate.split('-')[0]}
+                </span>
+              </div>
+            </div>
+
+            <div className="w-fit min-w-40 border border-white/20 bg-white px-4 py-3 text-ink-900 md:min-w-52 md:text-right">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-500">Gastos del viaje</p>
+              <p className="mt-1 text-2xl font-extrabold tracking-tight">{formatCurrency(totalTripSpent)}</p>
             </div>
           </div>
-          
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-white min-w-[150px] md:min-w-[200px] text-left md:text-right self-start md:self-auto w-fit md:w-auto">
-            <p className="text-xs uppercase tracking-wider text-ink-300 font-semibold">Gastos del Viaje</p>
-            <p className="text-2xl font-black mt-0.5">{formatCurrency(totalTripSpent)}</p>
-          </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Container */}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-8">
         
         {/* Custom Tab Switcher */}
-        <div className="mb-8 flex gap-6 overflow-x-auto border-b border-ink-200">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id)}
-              className={`shrink-0 pb-3 font-semibold text-sm transition-all border-b-2 -mb-[2px] ${
-                activeTab === tab.id
-                  ? 'wanderlust-active-tab font-bold'
-                  : 'border-transparent text-ink-500 hover:text-ink-700'
-              }`}
-              style={activeTab === tab.id ? { borderBottomColor: '#000000', color: '#000000' } : undefined}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="mb-8 border-b border-ink-200 pb-3">
+          <div className="flex w-max min-w-full gap-1 overflow-x-auto bg-white p-1.5 scrollbar-hide sm:min-w-0">
+            {TABS.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => handleTabChange(tab.id)}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`shrink-0 px-4 py-2.5 text-sm font-bold transition-colors ${
+                    isActive
+                      ? 'wanderlust-active-tab'
+                      : 'border border-transparent text-ink-500 hover:border-ink-200 hover:bg-ink-50 hover:text-ink-900'
+                  }`}
+                  style={isActive ? { backgroundColor: '#000000', borderColor: '#000000', color: '#ffffff' } : undefined}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* TAB CONTENTS */}
@@ -766,11 +786,15 @@ export default function ViajeDetalle({ params }: PageProps) {
               <div className="lg:col-span-2 space-y-6">
                 
                 {/* Horizontal Day Selector */}
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-ink-100">
-                  <h3 className="text-sm font-semibold text-ink-500 uppercase tracking-wider mb-3 px-1">
-                    Días del viaje
-                  </h3>
-                  <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="border border-ink-200 bg-white p-4 sm:p-5">
+                  <div className="mb-4 flex items-end justify-between gap-4 px-1">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-ink-400">Itinerario</p>
+                      <h3 className="mt-1 text-base font-extrabold text-ink-900">Días del viaje</h3>
+                    </div>
+                    <span className="text-xs font-semibold text-ink-500">{tripDates.length} {tripDates.length === 1 ? 'día' : 'días'}</span>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                     {tripDates.map((date, idx) => {
                       const active = selectedDate === date;
                       const isToday = date === todayStr;
@@ -778,21 +802,22 @@ export default function ViajeDetalle({ params }: PageProps) {
                       return (
                         <button
                           key={date}
+                          type="button"
                           onClick={() => setSelectedDate(date)}
-                          className={`flex flex-col items-center justify-center min-w-[70px] h-[75px] rounded-xl border transition-all ${
+                          aria-pressed={active}
+                          aria-label={`Día ${idx + 1}: ${day} de ${month}${isToday ? ', hoy' : ''}`}
+                          className={`flex h-[84px] min-w-[76px] flex-col items-center justify-center border px-2 transition-colors ${
                             active
-                              ? 'wanderlust-selected-day shadow-md'
+                              ? 'wanderlust-selected-day'
                               : isToday
-                                ? 'bg-ink-50 text-ink-900 border-ink-400 hover:bg-ink-100 font-bold'
-                                : 'bg-ink-50 text-ink-600 border-ink-200 hover:bg-ink-100'
+                                ? 'border-ink-900 bg-white text-ink-900 hover:bg-ink-50'
+                                : 'border-ink-200 bg-ink-50 text-ink-600 hover:border-ink-400 hover:bg-white'
                           }`}
-                          style={active ? { backgroundColor: '#000000', borderColor: '#000000', color: '#ffffff' } : undefined}
+                          style={active ? { backgroundColor: '#000000', borderColor: '#000000', color: '#ffffff', boxShadow: '0 8px 18px rgb(0 0 0 / 18%)' } : undefined}
                         >
-                          <span className="text-[10px] font-semibold uppercase tracking-wider opacity-85">
-                            Día {idx + 1}{isToday ? ' (Hoy)' : ''}
-                          </span>
-                          <span className="text-lg font-black leading-tight mt-0.5">{day}</span>
-                          <span className="text-[10px] font-medium uppercase">{month}</span>
+                          <span className="text-[10px] font-bold uppercase tracking-[0.12em] opacity-80">Día {idx + 1}</span>
+                          <span className="mt-1 text-xl font-extrabold leading-none">{day}</span>
+                          <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.12em]">{month}{isToday ? ' · Hoy' : ''}</span>
                         </button>
                       );
                     })}
@@ -838,54 +863,52 @@ export default function ViajeDetalle({ params }: PageProps) {
                       {dayActivities.map((act) => {
                         const hotelStatus = getHotelStatus(act, selectedDate);
 
-                        // Icon mapping
                         const iconMap = {
-                          flight: <Plane className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-700" />,
-                          transfer: <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-700" />,
-                          hotel: <Bed className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-700" />,
-                          excursion: <Map className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-700" />,
-                          food: <Utensils className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-ink-700" />,
+                          flight: <Plane className="h-3.5 w-3.5 text-white sm:h-4 sm:w-4" />,
+                          transfer: <Car className="h-3.5 w-3.5 text-white sm:h-4 sm:w-4" />,
+                          hotel: <Bed className="h-3.5 w-3.5 text-white sm:h-4 sm:w-4" />,
+                          excursion: <Map className="h-3.5 w-3.5 text-white sm:h-4 sm:w-4" />,
+                          food: <Utensils className="h-3.5 w-3.5 text-white sm:h-4 sm:w-4" />,
                         };
                         
-                        // Color mapping
                         const borderMap = {
-                          flight: 'border-ink-100 hover:border-ink-300 bg-ink-50/40',
-                          transfer: 'border-ink-100 hover:border-ink-300 bg-ink-50/40',
-                          hotel: 'border-ink-100 hover:border-ink-300 bg-ink-50/40',
-                          excursion: 'border-ink-100 hover:border-ink-300 bg-ink-50/40',
-                          food: 'border-ink-100 hover:border-ink-300 bg-ink-50/40',
+                          flight: 'border-ink-200 hover:border-ink-900',
+                          transfer: 'border-ink-200 hover:border-ink-900',
+                          hotel: 'border-ink-200 hover:border-ink-900',
+                          excursion: 'border-ink-200 hover:border-ink-900',
+                          food: 'border-ink-200 hover:border-ink-900',
                         };
 
                         const badgeMap = {
-                          flight: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-ink-100 text-ink-700 border border-ink-200">Vuelo</span>,
-                          transfer: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-ink-100 text-ink-700 border border-ink-200">Traslado</span>,
-                          hotel: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-ink-100 text-ink-700 border border-ink-200">Hotel</span>,
-                          excursion: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-ink-100 text-ink-700 border border-ink-200">Actividad</span>,
-                          food: <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-ink-100 text-ink-700 border border-ink-200">Comida</span>,
+                          flight: <span className="border border-ink-900 bg-ink-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">Vuelo</span>,
+                          transfer: <span className="border border-ink-900 bg-ink-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">Traslado</span>,
+                          hotel: <span className="border border-ink-900 bg-ink-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">Hotel</span>,
+                          excursion: <span className="border border-ink-900 bg-ink-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">Actividad</span>,
+                          food: <span className="border border-ink-900 bg-ink-900 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">Comida</span>,
                         };
 
                         return (
                           <div key={act.id} className="relative group/item">
                             
                             {/* Dot element on left timeline */}
-                            <div className="absolute -left-[31px] sm:-left-[37px] top-4 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center bg-white border border-ink-100 shadow-md z-10 transition-transform group-hover/item:scale-110">
+                            <div className="absolute -left-[31px] top-4 z-10 flex h-6 w-6 items-center justify-center border border-ink-900 bg-ink-900 transition-transform group-hover/item:scale-110 sm:-left-[37px] sm:h-7 sm:w-7">
                               {iconMap[act.type]}
                             </div>
 
                             {/* Card Content */}
-                            <div className={`border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden rounded-2xl bg-white ${borderMap[act.type]}`}>
-                              <div className="p-4 flex flex-col md:flex-row justify-between gap-4">
-                                <div className="space-y-2 flex-1">
+                            <div className={`overflow-hidden border bg-white transition-colors duration-300 ${borderMap[act.type]}`}>
+                              <div className="flex flex-col justify-between gap-4 p-4 md:flex-row">
+                                <div className="flex-1 space-y-2">
                                   
                                   {/* Badge / Type & Time info */}
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-ink-700 flex items-center gap-1 font-sans">
-                                      <Clock className="w-3.5 h-3.5 text-ink-400" />
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="flex items-center gap-1 text-sm font-bold text-ink-800 font-sans">
+                                      <Clock className="h-3.5 w-3.5 text-ink-400" />
                                       {hotelStatus ? hotelStatus.time : act.time}
                                     </span>
                                     {hotelStatus ? hotelStatus.badge : badgeMap[act.type]}
                                     {act.price > 0 && (
-                                      <span className="text-xs font-semibold text-ink-500 bg-ink-100/80 px-2.5 py-0.5 rounded-full border border-ink-200">
+                                      <span className="border border-ink-200 bg-ink-50 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-ink-700">
                                         {formatCurrency(act.price)}
                                       </span>
                                     )}
