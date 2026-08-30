@@ -36,14 +36,7 @@ export function surpriseCountdownMessage() {
  */
 export function decoyCountdownValue() {
   const decoys = [
-    'Faltan 3 días',
-    'Faltan 7 días',
-    'Faltan 15 días',
-    'Falta 1 mes',
-    'Faltan 2 meses',
-    'Faltan 3 meses',
-    'Es mañana',
-    'Falta muy poco',
+'Próximamente, estate alerta.', 'Falta muy poco'
   ];
   return decoys[Math.floor(Math.random() * decoys.length)];
 }

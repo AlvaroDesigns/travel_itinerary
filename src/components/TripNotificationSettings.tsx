@@ -187,7 +187,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
         </div>
         <div className="mt-4 flex gap-2 rounded-xl bg-cyan-50 p-3 text-xs leading-relaxed text-cyan-800">
           <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
-          {settings.countdownMode === 'exact' ? 'El email indicará cuántos días faltan para empezar el viaje.' : 'El email no revelará la fecha exacta y usará mensajes variables para mantener la sorpresa.'}
+          {settings.countdownMode === 'exact' ? 'El email indicará cuántos días faltan para empezar el viaje.' : 'El email no revelará la fecha exacta y mostrará un mensaje genérico para mantener la sorpresa.'}
         </div>
       </div>
 
