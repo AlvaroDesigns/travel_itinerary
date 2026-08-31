@@ -10,7 +10,7 @@ interface TripNotificationSettingsProps {
   tripId: string;
 }
 
-const inputClassName = 'mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none transition focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed disabled:opacity-60';
+const inputClassName = 'mt-1.5 h-10 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-700 outline-none transition focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/15 disabled:cursor-not-allowed disabled:opacity-60';
 
 export function TripNotificationSettings({ tripId }: TripNotificationSettingsProps) {
   const [settings, setSettings] = useState<NotificationSettings | null>(null);
@@ -123,7 +123,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
   };
 
   if (isLoading) {
-    return <div className="rounded-2xl border border-slate-100 bg-white p-8 text-center text-sm font-medium text-slate-500">Cargando configuración…</div>;
+    return <div className="rounded-2xl border border-zinc-100 bg-white p-8 text-center text-sm font-medium text-zinc-500">Cargando configuración…</div>;
   }
 
   if (!settings) {
@@ -134,13 +134,13 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
 
   return (
     <section className="space-y-6">
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-xs">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600"><Bell className="h-5 w-5" /></div>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[#009688]"><Bell className="h-5 w-5" /></div>
             <div>
-              <h2 className="text-xl font-bold text-slate-800">Avisos del viaje</h2>
-              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">Programa recordatorios, las instrucciones previas y el enlace al itinerario para este viaje.</p>
+              <h2 className="text-xl font-bold text-zinc-900">Avisos del viaje</h2>
+              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-zinc-500">Programa recordatorios, las instrucciones previas y el enlace al itinerario para este viaje.</p>
             </div>
           </div>
           <SettingsSwitch
@@ -152,9 +152,9 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
 
         <div className="mt-6 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500" htmlFor="notification-recipient">Email destinatario</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="notification-recipient">Email destinatario</label>
             <div className="relative">
-              <Mail className="pointer-events-none absolute left-3 top-[1.35rem] h-4 w-4 text-slate-400" />
+              <Mail className="pointer-events-none absolute left-3 top-[1.35rem] h-4 w-4 text-zinc-400" />
               <input
                 id="notification-recipient"
                 type="email"
@@ -166,9 +166,9 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
             </div>
           </div>
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500" htmlFor="notification-bcc">CCO (copia oculta)</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="notification-bcc">CCO (copia oculta)</label>
             <div className="relative">
-              <Mail className="pointer-events-none absolute left-3 top-[1.35rem] h-4 w-4 text-slate-400" />
+              <Mail className="pointer-events-none absolute left-3 top-[1.35rem] h-4 w-4 text-zinc-400" />
               <input
                 id="notification-bcc"
                 type="text"
@@ -179,48 +179,48 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
                 placeholder="acompanante@ejemplo.com"
               />
             </div>
-            <p className="mt-1.5 text-xs leading-relaxed text-slate-500">Opcional. Separa varias direcciones con comas; recibirán el correo sin ver a los demás destinatarios.</p>
+            <p className="mt-1.5 text-xs leading-relaxed text-zinc-500">Opcional. Separa varias direcciones con comas; recibirán el correo sin ver a los demás destinatarios.</p>
           </div>
         </div>
       </div>
 
-      <div className={`rounded-2xl border border-slate-100 bg-white p-6 shadow-sm ${dependentClassName}`}>
+      <div className={`rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-xs ${dependentClassName}`}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600"><CalendarClock className="h-5 w-5" /></div>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700"><CalendarClock className="h-5 w-5" /></div>
             <div>
-              <h3 className="font-bold text-slate-800">Cuenta atrás del viaje</h3>
-              <p className="mt-1 text-sm text-slate-500">Envía un email cada cierto número de días mientras se acerca la salida.</p>
+              <h3 className="font-bold text-zinc-900">Cuenta atrás del viaje</h3>
+              <p className="mt-1 text-sm text-zinc-500">Envía un email cada cierto número de días mientras se acerca la salida.</p>
             </div>
           </div>
-          <button type="button" disabled={isSendingTest || !settings.recipientEmail} onClick={() => sendTestEmail('countdown')} className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-cyan-200 bg-cyan-50 px-3 text-xs font-bold text-cyan-700 transition hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-60"><Send className="h-3.5 w-3.5" />{isSendingTest ? 'Enviando…' : 'Enviar prueba'}</button>
+          <button type="button" disabled={isSendingTest || !settings.recipientEmail} onClick={() => sendTestEmail('countdown')} className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-bold text-[#00796b] transition hover:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-60"><Send className="h-3.5 w-3.5" />{isSendingTest ? 'Enviando…' : 'Enviar prueba'}</button>
         </div>
         <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500" htmlFor="reminder-days">Frecuencia (días)</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="reminder-days">Frecuencia (días)</label>
             <input id="reminder-days" type="number" min="1" max="365" disabled={!settings.reminderEnabled} className={inputClassName} value={settings.reminderIntervalDays} onChange={(event) => updateSettings({ reminderIntervalDays: Number(event.target.value) })} />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Tipo de cuenta atrás</p>
-            <div className="mt-1.5 grid grid-cols-2 rounded-xl border border-slate-200 bg-slate-50 p-1 text-sm font-semibold">
-              <button type="button" disabled={!settings.reminderEnabled} onClick={() => updateSettings({ countdownMode: 'exact' })} className={`rounded-lg px-3 py-2 transition ${settings.countdownMode === 'exact' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500'}`}>Real</button>
-              <button type="button" disabled={!settings.reminderEnabled} onClick={() => updateSettings({ countdownMode: 'surprise' })} className={`rounded-lg px-3 py-2 transition ${settings.countdownMode === 'surprise' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500'}`}>Sorpresa</button>
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Tipo de cuenta atrás</p>
+            <div className="mt-1.5 grid grid-cols-2 rounded-xl border border-zinc-200 bg-zinc-50 p-1 text-sm font-semibold">
+              <button type="button" disabled={!settings.reminderEnabled} onClick={() => updateSettings({ countdownMode: 'exact' })} className={`rounded-lg px-3 py-2 transition ${settings.countdownMode === 'exact' ? 'bg-white text-[#00796b] shadow-xs' : 'text-zinc-500'}`}>Real</button>
+              <button type="button" disabled={!settings.reminderEnabled} onClick={() => updateSettings({ countdownMode: 'surprise' })} className={`rounded-lg px-3 py-2 transition ${settings.countdownMode === 'surprise' ? 'bg-white text-[#00796b] shadow-xs' : 'text-zinc-500'}`}>Sorpresa</button>
             </div>
           </div>
         </div>
-        <div className="mt-4 flex gap-2 rounded-xl bg-cyan-50 p-3 text-xs leading-relaxed text-cyan-800">
-          <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
+        <div className="mt-4 flex gap-2 rounded-xl bg-teal-50/80 p-3 text-xs leading-relaxed text-[#004d40]">
+          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[#009688]" />
           {settings.countdownMode === 'exact' ? 'El email indicará cuántos días faltan para empezar el viaje.' : 'El email no revelará la fecha exacta y mostrará un mensaje genérico para mantener la sorpresa.'}
         </div>
       </div>
 
-      <div className={`rounded-2xl border border-slate-100 bg-white p-6 shadow-sm ${dependentClassName}`}>
+      <div className={`rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-xs ${dependentClassName}`}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600"><Clock3 className="h-5 w-5" /></div>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700"><Clock3 className="h-5 w-5" /></div>
             <div>
-              <h3 className="font-bold text-slate-800">Instrucciones 24 horas antes</h3>
-              <p className="mt-1 text-sm text-slate-500">Manda un recordatorio con las indicaciones que escribas durante las 24 horas previas.</p>
+              <h3 className="font-bold text-zinc-900">Instrucciones 24 horas antes</h3>
+              <p className="mt-1 text-sm text-zinc-500">Manda un recordatorio con las indicaciones que escribas durante las 24 horas previas.</p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-3">
@@ -233,20 +233,20 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
             />
           </div>
         </div>
-        <textarea disabled={!settings.reminderEnabled || !settings.instructionsEnabled} className="mt-5 min-h-28 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm leading-relaxed text-slate-700 outline-none transition focus:ring-2 focus:ring-indigo-300 disabled:cursor-not-allowed" value={settings.instructionsText} onChange={(event) => updateSettings({ instructionsText: event.target.value })} maxLength={5000} placeholder="Ej.: prepara el equipaje, lleva tu documentación y acude al punto de encuentro a las 08:30." />
+        <textarea disabled={!settings.reminderEnabled || !settings.instructionsEnabled} className="mt-5 min-h-28 w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-sm leading-relaxed text-zinc-700 outline-none transition focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/15 disabled:cursor-not-allowed" value={settings.instructionsText} onChange={(event) => updateSettings({ instructionsText: event.target.value })} maxLength={5000} placeholder="Ej.: prepara el equipaje, lleva tu documentación y acude al punto de encuentro a las 08:30." />
       </div>
 
-      <div className={`rounded-2xl border border-slate-100 bg-white p-6 shadow-sm ${dependentClassName}`}>
+      <div className={`rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-xs ${dependentClassName}`}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"><Mail className="h-5 w-5" /></div>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[#009688]"><Mail className="h-5 w-5" /></div>
             <div>
-              <h3 className="font-bold text-slate-800">Acceso al itinerario</h3>
-              <p className="mt-1 text-sm text-slate-500">Envía un email final con una invitación y el enlace directo al itinerario.</p>
+              <h3 className="font-bold text-zinc-900">Acceso al itinerario</h3>
+              <p className="mt-1 text-sm text-zinc-500">Envía un email final con una invitación y el enlace directo al itinerario.</p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-3">
-            <button type="button" disabled={isSendingTest || !settings.recipientEmail} onClick={() => sendTestEmail('itinerary')} className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"><Send className="h-3.5 w-3.5" />{isSendingTest ? 'Enviando…' : 'Enviar prueba'}</button>
+            <button type="button" disabled={isSendingTest || !settings.recipientEmail} onClick={() => sendTestEmail('itinerary')} className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-bold text-[#00796b] transition hover:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-60"><Send className="h-3.5 w-3.5" />{isSendingTest ? 'Enviando…' : 'Enviar prueba'}</button>
             <SettingsSwitch
               label="Enviar acceso"
               disabled={!settings.reminderEnabled}
@@ -256,7 +256,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
           </div>
         </div>
         <div className="mt-5 max-w-xs">
-          <label className="text-xs font-semibold uppercase tracking-wider text-slate-500" htmlFor="access-hours">Horas antes de la salida</label>
+          <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="access-hours">Horas antes de la salida</label>
           <input id="access-hours" type="number" min="1" max="720" disabled={!settings.reminderEnabled || !settings.itineraryAccessEnabled} className={inputClassName} value={settings.itineraryAccessHours} onChange={(event) => updateSettings({ itineraryAccessHours: Number(event.target.value) })} />
         </div>
       </div>
@@ -265,7 +265,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
 
       {feedback && <p className={`rounded-xl px-4 py-3 text-sm font-medium ${feedback.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>{feedback.text}</p>}
       <div className="flex justify-end">
-        <button type="button" disabled={isSaving} onClick={saveSettings} className="flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-bold text-white shadow-md shadow-indigo-500/20 transition hover:bg-indigo-700 disabled:cursor-wait disabled:opacity-70">
+        <button type="button" disabled={isSaving} onClick={saveSettings} className="wanderlust-primary-button inline-flex h-11 items-center gap-2 rounded-xl px-6 text-sm font-bold text-white shadow-md disabled:cursor-wait disabled:opacity-70">
           <Save className="h-4 w-4" />{isSaving ? 'Guardando…' : 'Guardar configuración'}
         </button>
       </div>

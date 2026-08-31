@@ -103,3 +103,44 @@ export async function PATCH(request: Request, { params }: RouteContext<'/api/adm
     return NextResponse.json({ error: 'No se pudo actualizar el usuario' }, { status: 500 });
   }
 }
+
+
+export async function DELETE(_request: Request, { params }: RouteContext<'/api/admin/users/[id]'>) {
+  const admin = await requireAdmin();
+  if (admin instanceof NextResponse) return admin;
+
+  const { id: idParam } = await params;
+  const id = Number(idParam);
+  if (!Number.isInteger(id) || id < 1) {
+    return NextResponse.json({ error: 'Usuario no válido' }, { status: 400 });
+  }
+  if (id === admin.userId) {
+    return NextResponse.json({ error: 'No puedes borrar tu propia cuenta' }, { status: 400 });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const activeAdmins = await client.query<{ id: number }>("SELECT id FROM users WHERE role = 'admin' AND is_active = TRUE FOR UPDATE");
+    const targetResult = await client.query<{ id: number; role: UserRole; is_active: boolean }>('SELECT id, role, is_active FROM users WHERE id = $1 FOR UPDATE', [id]);
+    const target = targetResult.rows[0];
+    if (!target) {
+      await client.query('ROLLBACK');
+      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+    }
+    if (target.role === 'admin' && target.is_active && activeAdmins.rows.length <= 1) {
+      await client.query('ROLLBACK');
+      return NextResponse.json({ error: 'Debe permanecer al menos un administrador activo' }, { status: 409 });
+    }
+
+    await client.query('DELETE FROM users WHERE id = $1', [id]);
+    await client.query('COMMIT');
+    return NextResponse.json({ success: true, id });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Delete user error:', error);
+    return NextResponse.json({ error: 'No se pudo borrar el usuario' }, { status: 500 });
+  } finally {
+    client.release();
+  }
+}

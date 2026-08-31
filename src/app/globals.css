@@ -5,27 +5,56 @@
 @theme {
   --font-sans: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
 
-  /* Monochrome brand scale (ink black to paper white) */
-  --color-ink-50: #f6f6f6;
-  --color-ink-100: #ededed;
-  --color-ink-200: #dcdcdc;
-  --color-ink-300: #bfbfbf;
-  --color-ink-400: #8f8f8f;
-  --color-ink-500: #666666;
-  --color-ink-600: #454545;
-  --color-ink-700: #2b2b2b;
-  --color-ink-800: #1a1a1a;
-  --color-ink-900: #0a0a0a;
+  /* Primary Teal Scale (#009688) */
+  --color-primary-50: #e0f2f1;
+  --color-primary-100: #b2dfdb;
+  --color-primary-200: #80cbc4;
+  --color-primary-300: #4db6ac;
+  --color-primary-400: #26a69a;
+  --color-primary-500: #009688;
+  --color-primary-600: #00897b;
+  --color-primary-700: #00796b;
+  --color-primary-800: #00695c;
+  --color-primary-900: #004d40;
+  --color-primary: #009688;
+
+  /* Modern zinc & ink palette */
+  --color-zinc-950: #09090b;
+  --color-zinc-900: #18181b;
+  --color-zinc-800: #27272a;
+  --color-zinc-700: #3f3f46;
+  --color-zinc-600: #52525b;
+  --color-zinc-500: #71717a;
+  --color-zinc-400: #a1a1aa;
+  --color-zinc-300: #d4d4d8;
+  --color-zinc-200: #e4e4e7;
+  --color-zinc-100: #f4f4f5;
+  --color-zinc-50: #fafafa;
+
+  /* Ink alias compatibility */
+  --color-ink-50: #f8fafc;
+  --color-ink-100: #f1f5f9;
+  --color-ink-200: #e2e8f0;
+  --color-ink-300: #cbd5e1;
+  --color-ink-400: #94a3b8;
+  --color-ink-500: #64748b;
+  --color-ink-600: #475569;
+  --color-ink-700: #334155;
+  --color-ink-800: #1e293b;
+  --color-ink-900: #0f172a;
 }
 
 :root {
   --font-geist-sans: 'Outfit', 'Inter', sans-serif;
+  --primary: #009688;
 }
 
 body {
-  background-color: #ffffff;
-  color: #0a0a0a;
+  background-color: #fafafa;
+  color: #09090b;
   font-family: var(--font-geist-sans), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Hide scrollbars where needed */
@@ -37,23 +66,64 @@ body {
   scrollbar-width: none;
 }
 
-/* Explicit interactive states: kept outside utility layers to prevent UI-library overrides. */
+/* HeroUI Pro Glassmorphism & Surface Utilities */
+.heroui-glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(228, 228, 231, 0.7);
+}
+
+.heroui-glass-dark {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.heroui-card {
+  background-color: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.heroui-card:hover {
+  border-color: #d4d4d8;
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.08), 0 4px 8px -4px rgba(0, 0, 0, 0.03);
+}
+
+/* Explicit interactive states for Wanderlust buttons with #009688 */
 .wanderlust-primary-button {
-  background-color: #000000 !important;
+  background-color: #009688 !important;
   color: #ffffff !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px -2px rgba(0, 150, 136, 0.35);
+}
+
+.wanderlust-primary-button:hover {
+  background-color: #00796b !important;
+  box-shadow: 0 6px 20px -2px rgba(0, 150, 136, 0.45);
+  transform: translateY(-1px);
+}
+
+.wanderlust-primary-button:active {
+  transform: scale(0.98);
 }
 
 .wanderlust-selected-day {
-  background-color: #000000 !important;
-  border-color: #000000 !important;
+  background-color: #009688 !important;
+  border-color: #009688 !important;
   color: #ffffff !important;
-  box-shadow: 0 8px 18px rgb(0 0 0 / 18%) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 150, 136, 0.4) !important;
 }
 
 .wanderlust-active-tab {
-  background-color: #000000 !important;
-  border-color: #000000 !important;
+  background-color: #46435c !important;
+  border-color: transparent !important;
   color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
 }
 
 @keyframes shake {
@@ -65,3 +135,12 @@ body {
 .animate-shake {
   animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(0.98); }
+}
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s ease-in-out infinite;
+}
+

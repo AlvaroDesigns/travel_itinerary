@@ -1,6 +1,15 @@
+import bcryptjs from 'bcryptjs';
 import { Pool } from 'pg';
 
 const connectionString = process.env.DATABASE_URL;
+const BCRYPT_HASH_PATTERN = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
+
+async function resolveInitialAdminPasswordHash(value: string): Promise<string> {
+  if (BCRYPT_HASH_PATTERN.test(value)) return value;
+
+  console.warn('INITIAL_ADMIN_PASSWORD_HASH no tiene formato bcrypt. Se hasheará para este arranque; actualiza la variable con un hash bcrypt.');
+  return bcryptjs.hash(value, 12);
+}
 
 // Keep a single pool during development hot reloads.
 const globalForDb = global as unknown as { pool: Pool | undefined };
@@ -153,8 +162,9 @@ export async function initDb() {
     );
 
     const initialAdminEmail = process.env.INITIAL_ADMIN_EMAIL?.trim().toLowerCase();
-    const initialAdminPasswordHash = process.env.INITIAL_ADMIN_PASSWORD_HASH?.trim();
-    if (initialAdminEmail && initialAdminPasswordHash) {
+    const configuredInitialAdminPassword = process.env.INITIAL_ADMIN_PASSWORD_HASH?.trim();
+    if (initialAdminEmail && configuredInitialAdminPassword) {
+      const initialAdminPasswordHash = await resolveInitialAdminPasswordHash(configuredInitialAdminPassword);
       await client.query(
         `INSERT INTO users (email, password, role, is_active)
          VALUES ($1, $2, 'admin', TRUE)
