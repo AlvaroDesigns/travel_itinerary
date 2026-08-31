@@ -1487,7 +1487,7 @@ export default function ViajeDetalle({ params }: PageProps) {
           />
           
           {/* Modal Container */}
-          <div className="bg-white rounded-2xl border border-ink-100 shadow-2xl w-full max-w-lg relative z-10 overflow-hidden transform transition-all duration-300 scale-100 opacity-100 max-h-[90vh] flex flex-col">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-2xl w-full max-w-4xl relative z-10 overflow-hidden transform transition-all duration-300 scale-100 opacity-100 max-h-[90vh] flex flex-col">
             
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-ink-100">
