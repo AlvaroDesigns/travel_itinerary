@@ -89,6 +89,7 @@ export interface Trip {
 export interface AuthUser {
   userId: number;
   email: string;
+  role: 'admin' | 'user';
 }
 
 interface TravelContextType {

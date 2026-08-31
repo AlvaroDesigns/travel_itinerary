@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth';
 import { initDb, pool } from '@/lib/db';
 import { createTravelEmail, decoyCountdownValue, isEmailServiceConfigured, sendEmail, surpriseCountdownMessage } from '@/lib/email';
+import { normalizeBccEmails } from '@/lib/notification-settings';
 
 export const runtime = 'nodejs';
 
@@ -12,15 +13,11 @@ function isTestEmailType(value: unknown): value is TestEmailType {
   return value === 'countdown' || value === 'instructions' || value === 'itinerary';
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const session = await getSession();
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getAuthenticatedUser();
   if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   const { id } = await params;
-
   try {
     await initDb();
     const tripResult = await pool.query<{
@@ -38,10 +35,21 @@ export async function POST(
     const trip = tripResult.rows[0];
     if (!trip) return NextResponse.json({ error: 'Viaje no encontrado' }, { status: 404 });
 
-    const body = await request.json() as { recipientEmail?: string; testType?: unknown; instructionsText?: string; reminderIntervalDays?: number; countdownMode?: unknown };
-    const recipientEmail = body.recipientEmail?.trim() ?? '';
+    const body = await request.json() as {
+      recipientEmail?: string;
+      bccEmails?: unknown;
+      testType?: unknown;
+      instructionsText?: string;
+      reminderIntervalDays?: number;
+      countdownMode?: unknown;
+    };
+    const recipientEmail = body.recipientEmail?.trim().toLowerCase() ?? '';
+    const bccEmails = normalizeBccEmails(body.bccEmails ?? []);
     if (!EMAIL_PATTERN.test(recipientEmail)) {
       return NextResponse.json({ error: 'Introduce un email destinatario válido antes de enviar la prueba' }, { status: 400 });
+    }
+    if (!bccEmails) {
+      return NextResponse.json({ error: 'Las direcciones CCO deben ser emails válidos separados por comas' }, { status: 400 });
     }
     if (!isTestEmailType(body.testType)) {
       return NextResponse.json({ error: 'Selecciona un tipo de email de prueba válido' }, { status: 400 });
@@ -68,13 +76,8 @@ export async function POST(
           preheader: 'Así se verá el recordatorio de cuenta atrás.',
           eyebrow: 'Prueba · Cuenta atrás',
           title: 'Tu aventura se acerca',
-          intro: isSurprise
-            ? surpriseCountdownMessage()
-            : 'Esta vista previa no revela el destino.',
-          highlight: {
-            label: 'Cuenta atrás',
-            value: isSurprise ? decoyCountdownValue() : countdownValue,
-          },
+          intro: isSurprise ? surpriseCountdownMessage() : 'Esta vista previa no revela el destino.',
+          highlight: { label: 'Cuenta atrás', value: isSurprise ? decoyCountdownValue() : countdownValue },
           highlightStyle: 'minimal',
         }),
       },
@@ -90,7 +93,7 @@ export async function POST(
         }),
       },
       itinerary: {
-        subject: `Prueba · ¿Quieres descubrir el plan?`,
+        subject: 'Prueba · ¿Quieres descubrir el plan?',
         html: createTravelEmail({
           preheader: 'Así se verá la invitación al itinerario.',
           eyebrow: 'Prueba · Acceso al itinerario',
@@ -103,15 +106,14 @@ export async function POST(
     } satisfies Record<TestEmailType, { subject: string; html: string }>;
 
     const template = templates[body.testType];
-    await sendEmail({ to: recipientEmail, subject: template.subject, html: template.html });
+    await sendEmail({ to: recipientEmail, bcc: bccEmails, subject: template.subject, html: template.html });
 
-    return NextResponse.json({ success: true, recipientEmail, testType: body.testType });
+    return NextResponse.json({ success: true, recipientCount: 1 + bccEmails.length, testType: body.testType });
   } catch (error) {
     console.error('Send test email error:', error);
     const message = error instanceof Error ? error.message : 'Error desconocido';
     if (message.startsWith('Resend respondió con')) {
-      const resendDetail = message.replace(/^Resend respondió con \d+:\s*/, '').slice(0, 500);
-      return NextResponse.json({ error: `Resend rechazó el envío de prueba: ${resendDetail}` }, { status: 502 });
+      return NextResponse.json({ error: 'Resend rechazó el envío de prueba' }, { status: 502 });
     }
     if (message === 'El servicio de email no está configurado') {
       return NextResponse.json({ error: message }, { status: 503 });

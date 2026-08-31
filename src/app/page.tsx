@@ -17,6 +17,7 @@ import {
   MapPin,
   ChevronLeft,
   ChevronRight,
+  ShieldCheck,
 } from 'lucide-react';
 
 const HERO_SLIDES = [
@@ -25,6 +26,14 @@ const HERO_SLIDES = [
   { url: '/carousel-3.webp', place: 'San Juan de Gaztelugatxe' },
   { url: '/carousel-4.webp', place: 'Cala escondida' },
 ];
+
+const DEFAULT_HERO_CONTENT = {
+  heroBadge: 'Tu compañero de aventuras',
+  heroTitle: 'Planifica cada viaje\ncon intención.',
+  heroDescription: 'Organiza vuelos, traslados, alojamiento y actividades día a día en una interfaz limpia, minimalista y sin distracciones.',
+};
+
+type HeroContent = typeof DEFAULT_HERO_CONTENT;
 
 const PRESET_IMAGES = [
   {
@@ -55,12 +64,25 @@ export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [heroIndex, setHeroIndex] = useState(0);
+  const [heroContent, setHeroContent] = useState<HeroContent>(DEFAULT_HERO_CONTENT);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setHeroIndex((current) => (current + 1) % HERO_SLIDES.length);
     }, 5000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/site/home')
+      .then(async (response) => {
+        const body = await response.json();
+        if (!response.ok || !body.content) return;
+        if (!cancelled) setHeroContent(body.content as HeroContent);
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
   }, []);
 
   const [name, setName] = useState('');
@@ -173,6 +195,15 @@ export default function Home() {
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">Conectado como</span>
                 <span className="text-xs font-bold text-ink-900">{user.email}</span>
               </div>
+              {user.role === 'admin' && (
+                <Link
+                  href="/admin"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 transition-all hover:border-ink-900 hover:text-ink-900"
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Administración
+                </Link>
+              )}
               <div className="hidden h-6 w-px bg-ink-200 sm:block" />
               <button
                 onClick={logout}
@@ -209,13 +240,13 @@ export default function Home() {
           <div className="max-w-2xl text-white">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
               <MapPin className="h-3.5 w-3.5" />
-              <span>Tu compañero de aventuras</span>
+              <span>{heroContent.heroBadge}</span>
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight drop-shadow-sm sm:text-5xl md:text-6xl">
-              Planifica cada viaje<br className="hidden sm:block" /> con intención.
+            <h1 className="whitespace-pre-line text-4xl font-extrabold tracking-tight drop-shadow-sm sm:text-5xl md:text-6xl">
+              {heroContent.heroTitle}
             </h1>
-            <p className="mt-5 max-w-xl text-sm leading-relaxed text-ink-200 sm:text-base">
-              Organiza vuelos, traslados, alojamiento y actividades día a día en una interfaz limpia, minimalista y sin distracciones.
+            <p className="mt-5 max-w-xl whitespace-pre-line text-sm leading-relaxed text-ink-200 sm:text-base">
+              {heroContent.heroDescription}
             </p>
           </div>
         </div>

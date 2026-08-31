@@ -100,6 +100,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           recipientEmail: settings.recipientEmail,
+          bccEmails: settings.bccEmails,
           testType,
           instructionsText: settings.instructionsText,
           reminderIntervalDays: settings.reminderIntervalDays,
@@ -109,7 +110,11 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'No se pudo enviar el email de prueba');
       const labels = { countdown: 'cuenta atrás', instructions: 'instrucciones', itinerary: 'acceso al itinerario' };
-      setFeedback({ type: 'success', text: `Prueba de ${labels[testType]} enviada a ${data.recipientEmail}.` });
+      const hiddenCopies = Math.max(0, Number(data.recipientCount ?? 1) - 1);
+      setFeedback({
+        type: 'success',
+        text: `Prueba de ${labels[testType]} enviada al destinatario principal${hiddenCopies > 0 ? ` y ${hiddenCopies} ${hiddenCopies === 1 ? 'copia oculta' : 'copias ocultas'}` : ''}.`,
+      });
     } catch (error) {
       setFeedback({ type: 'error', text: error instanceof Error ? error.message : 'No se pudo enviar el email de prueba' });
     } finally {
@@ -145,18 +150,36 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
           />
         </div>
 
-        <div className="mt-6 max-w-xl">
-          <label className="text-xs font-semibold uppercase tracking-wider text-slate-500" htmlFor="notification-recipient">Email destinatario</label>
-          <div className="relative">
-            <Mail className="pointer-events-none absolute left-3 top-[1.35rem] h-4 w-4 text-slate-400" />
-            <input
-              id="notification-recipient"
-              type="email"
-              className={`${inputClassName} pl-9`}
-              value={settings.recipientEmail}
-              onChange={(event) => updateSettings({ recipientEmail: event.target.value })}
-              placeholder="persona@ejemplo.com"
-            />
+        <div className="mt-6 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500" htmlFor="notification-recipient">Email destinatario</label>
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-3 top-[1.35rem] h-4 w-4 text-slate-400" />
+              <input
+                id="notification-recipient"
+                type="email"
+                className={`${inputClassName} pl-9`}
+                value={settings.recipientEmail}
+                onChange={(event) => updateSettings({ recipientEmail: event.target.value })}
+                placeholder="persona@ejemplo.com"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500" htmlFor="notification-bcc">CCO (copia oculta)</label>
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-3 top-[1.35rem] h-4 w-4 text-slate-400" />
+              <input
+                id="notification-bcc"
+                type="text"
+                inputMode="email"
+                className={`${inputClassName} pl-9`}
+                value={settings.bccEmails.join(', ')}
+                onChange={(event) => updateSettings({ bccEmails: event.target.value.split(/[,;\n]/).map((email) => email.trim()).filter(Boolean) })}
+                placeholder="acompanante@ejemplo.com"
+              />
+            </div>
+            <p className="mt-1.5 text-xs leading-relaxed text-slate-500">Opcional. Separa varias direcciones con comas; recibirán el correo sin ver a los demás destinatarios.</p>
           </div>
         </div>
       </div>

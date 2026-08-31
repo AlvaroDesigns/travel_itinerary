@@ -10,6 +10,7 @@ type ScheduledNotification = {
   trip_name: string;
   start_date: string;
   recipient_email: string;
+  bcc_emails: string[];
   reminder_enabled: boolean;
   reminder_interval_days: number;
   countdown_mode: 'exact' | 'surprise';
@@ -39,6 +40,7 @@ async function runNotifications() {
       t.name AS trip_name,
       t.start_date,
       s.recipient_email,
+      s.bcc_emails,
       s.reminder_enabled,
       s.reminder_interval_days,
       s.countdown_mode,
@@ -68,7 +70,12 @@ async function runNotifications() {
 
     const send = async (kind: string, subject: string, html: string, sentAtColumn: string) => {
       try {
-        await sendEmail({ to: setting.recipient_email, subject, html });
+        await sendEmail({
+          to: setting.recipient_email,
+          bcc: Array.isArray(setting.bcc_emails) ? setting.bcc_emails : [],
+          subject,
+          html,
+        });
         await pool.query(`UPDATE trip_notification_settings SET ${sentAtColumn} = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE trip_id = $1`, [setting.trip_id]);
         sent.push(`${setting.trip_id}:${kind}`);
       } catch (error) {
@@ -88,16 +95,12 @@ async function runNotifications() {
           preheader: 'Tu próxima aventura se acerca.',
           eyebrow: 'Cuenta atrás',
           title: 'Tu aventura se acerca',
-          intro: isExact
-            ? 'Cada día queda menos para una experiencia especial.'
-            : surpriseCountdownMessage(),
+          intro: isExact ? 'Cada día queda menos para una experiencia especial.' : surpriseCountdownMessage(),
           highlight: {
             label: 'Cuenta atrás',
-            value: isExact
-              ? `Faltan ${setting.reminder_interval_days} ${setting.reminder_interval_days === 1 ? 'día' : 'días'}`
-              : decoyCountdownValue(),
+            value: isExact ? `Faltan ${setting.reminder_interval_days} ${setting.reminder_interval_days === 1 ? 'día' : 'días'}` : decoyCountdownValue(),
           },
-          highlightStyle: 'minimal' as const,
+          highlightStyle: 'minimal',
         }),
         'last_reminder_sent_at'
       );
@@ -114,7 +117,7 @@ async function runNotifications() {
           title: 'Todo listo para salir',
           intro: 'Quedan menos de 24 horas para tu salida.',
           highlight: { label: 'Instrucciones', value: instructions },
-          highlightStyle: 'minimal' as const,
+          highlightStyle: 'minimal',
         }),
         'instructions_sent_at'
       );
@@ -150,10 +153,7 @@ function isAuthorized(request: NextRequest) {
 }
 
 async function handleCron(request: NextRequest) {
-  if (!isAuthorized(request)) {
-    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-  }
-
+  if (!isAuthorized(request)) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM) {
     return NextResponse.json({ error: 'El servicio de email no está configurado' }, { status: 503 });
   }

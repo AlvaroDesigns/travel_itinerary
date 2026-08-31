@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTravel, Activity, ActivityType, FlightActivity, FlightLeg, TransferActivity, HotelActivity, ExcursionActivity, FoodActivity } from '@/context/TravelContext';
 import { TripNotificationSettings } from '@/components/TripNotificationSettings';
+import { ItineraryAssistantChat } from '@/components/ItineraryAssistantChat';
 import {
   ArrowLeft,
   Calendar,
@@ -27,6 +28,7 @@ import {
   X,
   Loader2,
   LogOut,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface PageProps {
@@ -677,6 +679,15 @@ export default function ViajeDetalle({ params }: PageProps) {
                 <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-400">Cuenta</span>
                 <span className="max-w-48 truncate text-xs font-bold text-ink-900">{user.email}</span>
               </div>
+              {user.role === 'admin' && (
+                <Link
+                  href="/admin"
+                  className="inline-flex items-center gap-1.5 border border-ink-200 bg-white px-3 py-2 text-xs font-bold text-ink-700 transition-colors hover:border-ink-900 hover:bg-ink-900 hover:text-white"
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>Usuarios</span>
+                </Link>
+              )}
               <div className="hidden h-6 w-px bg-ink-200 sm:block" />
               <button onClick={logout} className="inline-flex cursor-pointer items-center gap-1.5 border border-ink-200 bg-white px-3 py-2 text-xs font-bold text-ink-700 transition-colors hover:border-ink-900 hover:bg-ink-900 hover:text-white active:scale-95">
                 <LogOut className="h-3.5 w-3.5" /><span>Salir</span>
@@ -1463,6 +1474,8 @@ export default function ViajeDetalle({ params }: PageProps) {
         </div>
 
       </main>
+
+      <ItineraryAssistantChat trip={activeTrip} />
 
       {/* Custom Modal: Agregar / Editar Actividad */}
       {isOpen && (

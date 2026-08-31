@@ -1,80 +1,89 @@
+import 'server-only';
+
 import { cookies } from 'next/headers';
+import { initDb, pool } from '@/lib/db';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'travel_itinerary_super_secret_key_2026_alvarodesigns';
+export type UserRole = 'admin' | 'user';
 
-// Convert string key to CryptoKey using Web Crypto API
+export interface AuthenticatedUser {
+  userId: number;
+  email: string;
+  role: UserRole;
+}
+
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET no está configurado');
+  }
+  return secret;
+}
+
 async function getCryptoKey(): Promise<CryptoKey> {
-  const encoder = new TextEncoder();
-  const keyData = encoder.encode(JWT_SECRET);
-  return await crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign', 'verify']
-  );
+  const keyData = new TextEncoder().encode(getJwtSecret());
+  return crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
 }
 
-// Sign payload
 export async function signSession(payload: { userId: number; email: string }): Promise<string> {
-  const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
+  const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
   const data = JSON.stringify({ ...payload, expiresAt });
-  
-  const encoder = new TextEncoder();
-  const encodedData = encoder.encode(data);
-  const key = await getCryptoKey();
-  const signatureBuffer = await crypto.subtle.sign('HMAC', key, encodedData);
-  
-  // Convert signature buffer to hex
-  const signatureArray = Array.from(new Uint8Array(signatureBuffer));
-  const signatureHex = signatureArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  
-  // Base64 encode the data payload safely (supporting unicode characters)
-  const b64Data = btoa(unescape(encodeURIComponent(data)));
-  return `${b64Data}.${signatureHex}`;
+  const encodedData = new TextEncoder().encode(data);
+  const signatureBuffer = await crypto.subtle.sign('HMAC', await getCryptoKey(), encodedData);
+  const signatureHex = Array.from(new Uint8Array(signatureBuffer))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+
+  return `${btoa(unescape(encodeURIComponent(data)))}.${signatureHex}`;
 }
 
-// Verify session
 export async function verifySession(token: string): Promise<{ userId: number; email: string } | null> {
   try {
-    const parts = token.split('.');
-    if (parts.length !== 2) return null;
-    
-    const [b64Data, signatureHex] = parts;
+    const [b64Data, signatureHex, extraPart] = token.split('.');
+    if (!b64Data || !signatureHex || extraPart) return null;
+
     const data = decodeURIComponent(escape(atob(b64Data)));
-    const parsed = JSON.parse(data);
-    
-    if (parsed.expiresAt < Date.now()) {
-      return null; // Expired
+    const parsed = JSON.parse(data) as { userId?: unknown; email?: unknown; expiresAt?: unknown };
+    const userId = parsed.userId;
+    const email = parsed.email;
+    const expiresAt = parsed.expiresAt;
+    if (typeof userId !== 'number' || !Number.isInteger(userId) || typeof email !== 'string' || typeof expiresAt !== 'number' || expiresAt < Date.now()) {
+      return null;
     }
-    
-    // Verify signature
-    const encoder = new TextEncoder();
-    const encodedData = encoder.encode(data);
-    
-    // Reconstruct signature buffer from hex
+
     const hexMatch = signatureHex.match(/.{1,2}/g);
-    if (!hexMatch) return null;
-    const signatureBytes = new Uint8Array(
-      hexMatch.map(byte => parseInt(byte, 16))
+    if (!hexMatch || hexMatch.some((byte) => !/^[0-9a-f]{2}$/i.test(byte))) return null;
+
+    const isValid = await crypto.subtle.verify(
+      'HMAC',
+      await getCryptoKey(),
+      new Uint8Array(hexMatch.map((byte) => parseInt(byte, 16))),
+      new TextEncoder().encode(data)
     );
-    
-    const key = await getCryptoKey();
-    const isValid = await crypto.subtle.verify('HMAC', key, signatureBytes, encodedData);
-    
-    if (!isValid) return null;
-    
-    return { userId: parsed.userId, email: parsed.email };
-  } catch (error) {
-    console.error('Session verification error:', error);
+
+    return isValid ? { userId, email } : null;
+  } catch {
     return null;
   }
 }
 
-// NextJS Cookie helper for Server Components / API Routes
 export async function getSession() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('travel_session')?.value;
-  if (!token) return null;
-  return await verifySession(token);
+  const token = (await cookies()).get('travel_session')?.value;
+  return token ? verifySession(token) : null;
+}
+
+export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
+  await initDb();
+  const session = await getSession();
+  if (!session) return null;
+
+  const result = await pool.query<{
+    id: number;
+    email: string;
+    role: UserRole;
+    is_active: boolean;
+  }>('SELECT id, email, role, is_active FROM users WHERE id = $1', [session.userId]);
+  const user = result.rows[0];
+
+  if (!user || !user.is_active || (user.role !== 'admin' && user.role !== 'user')) return null;
+  return { userId: user.id, email: user.email, role: user.role };
 }

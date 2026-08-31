@@ -13,15 +13,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 });
     }
 
-    const res = await pool.query('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
-    if (res.rows.length === 0) {
-      return NextResponse.json({ error: 'Credenciales incorrectas' }, { status: 401 });
-    }
-
+    const res = await pool.query<{
+      id: number;
+      email: string;
+      password: string;
+      role: 'admin' | 'user';
+      is_active: boolean;
+    }>('SELECT id, email, password, role, is_active FROM users WHERE email = $1', [email.toLowerCase().trim()]);
     const user = res.rows[0];
-    const passwordMatch = await bcryptjs.compare(password, user.password);
-    
-    if (!passwordMatch) {
+    if (!user || !user.is_active || !(await bcryptjs.compare(password, user.password))) {
       return NextResponse.json({ error: 'Credenciales incorrectas' }, { status: 401 });
     }
 
@@ -42,6 +42,7 @@ export async function POST(request: Request) {
       user: {
         id: user.id,
         email: user.email,
+        role: user.role,
       }
     });
 

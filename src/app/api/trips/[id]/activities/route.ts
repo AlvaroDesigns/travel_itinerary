@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth';
 import { pool } from '@/lib/db';
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getSession();
+  const session = await getAuthenticatedUser();
   if (!session) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }

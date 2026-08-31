@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/lib/auth';
 import { pool } from '@/lib/db';
 
 export async function GET() {
-  const session = await getSession();
+  const session = await getAuthenticatedUser();
   if (!session) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
@@ -52,7 +52,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const session = await getSession();
+  const session = await getAuthenticatedUser();
   if (!session) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
