@@ -147,7 +147,7 @@ export default function Home() {
   }, [trips]);
 
   if (isLoading) {
-    return <WanderlustLoader label="Cargando tus aventuras…" />;
+    return <WanderlustLoader />;
   }
 
   const filteredTrips = trips.filter((trip) =>

@@ -123,7 +123,25 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
   };
 
   if (isLoading) {
-    return <div className="rounded-2xl border border-zinc-100 bg-white p-8 text-center text-sm font-medium text-zinc-500">Cargando configuración…</div>;
+    return (
+      <div className="space-y-6 animate-pulse">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="rounded-2xl border border-zinc-200/80 bg-white p-6 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-zinc-200" />
+                <div className="space-y-1.5">
+                  <div className="h-4 w-36 rounded bg-zinc-200" />
+                  <div className="h-3 w-48 rounded bg-zinc-100" />
+                </div>
+              </div>
+              <div className="h-6 w-12 rounded-full bg-zinc-200" />
+            </div>
+            <div className="h-10 w-full rounded-xl bg-zinc-50 border border-zinc-200/60" />
+          </div>
+        ))}
+      </div>
+    );
   }
 
   if (!settings) {

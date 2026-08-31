@@ -2,13 +2,8 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Loader2 } from 'lucide-react';
 
-interface WanderlustLoaderProps {
-  label?: string;
-}
-
-export function WanderlustLoader({ label = 'Cargando...' }: WanderlustLoaderProps) {
+export function WanderlustLoader() {
   return (
     <div className="fixed inset-0 z-50 flex min-h-screen w-full flex-col items-center justify-center bg-[#fafafa] px-4">
       {/* Ambient background glow */}
@@ -45,14 +40,6 @@ export function WanderlustLoader({ label = 'Cargando...' }: WanderlustLoaderProp
             className="relative z-10 h-11 w-auto animate-pulse-subtle object-contain drop-shadow-sm"
           />
         </div>
-      </div>
-
-      {/* HeroUI Pro Text Pill Below */}
-      <div className="mt-8 flex items-center gap-2.5 rounded-full border border-zinc-200/90 bg-white/90 px-4 py-2 shadow-sm backdrop-blur-md">
-        <Loader2 className="h-4 w-4 animate-spin text-[#009688]" />
-        <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">
-          {label}
-        </span>
       </div>
     </div>
   );

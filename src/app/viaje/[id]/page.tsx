@@ -18,6 +18,7 @@ import {
 import { TripNotificationSettings } from '@/components/TripNotificationSettings';
 import { ItineraryAssistantChat } from '@/components/ItineraryAssistantChat';
 import { WanderlustLoader } from '@/components/WanderlustLoader';
+import { TabSkeleton } from '@/components/TabSkeletons';
 import {
   ArrowLeft,
   Calendar,
@@ -93,7 +94,11 @@ export default function ViajeDetalle({ params }: PageProps) {
     ? (tabFromUrl as string)
     : 'itinerario';
 
+  const [isTabTransitioning, setIsTabTransitioning] = useState(false);
+
   const handleTabChange = (tabId: string) => {
+    if (tabId === activeTab) return;
+    setIsTabTransitioning(true);
     const p = new URLSearchParams(Array.from(searchParams.entries()));
     if (tabId === 'itinerario') {
       p.delete('tab');
@@ -102,6 +107,9 @@ export default function ViajeDetalle({ params }: PageProps) {
     }
     const query = p.toString();
     router.replace(`/viaje/${id}${query ? `?${query}` : ''}`, { scroll: false });
+    window.setTimeout(() => {
+      setIsTabTransitioning(false);
+    }, 280);
   };
 
   // Modal State
@@ -318,7 +326,7 @@ export default function ViajeDetalle({ params }: PageProps) {
   }, [activeTrip, selectedDate, todayStr]);
 
   if (isLoading) {
-    return <WanderlustLoader label="Preparando tu itinerario…" />;
+    return <WanderlustLoader />;
   }
 
   if (!activeTrip) {
@@ -812,9 +820,9 @@ export default function ViajeDetalle({ params }: PageProps) {
 
       {/* Main Container */}
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-6">
-        {/* Dark Capsule Pill Tabs Switcher (Image 1 style) */}
+        {/* Capsule Pill Tabs Switcher (Fondo gris con #009688 primary) */}
         <div className="mb-8 flex overflow-x-auto pb-1 scrollbar-hide">
-          <div className="inline-flex items-center rounded-full bg-[#27273a] p-1.5 shadow-lg border border-white/10">
+          <div className="inline-flex items-center rounded-full bg-zinc-100 p-1.5 border border-zinc-200/80 shadow-none">
             {TABS.map((tab) => {
               const isActive = activeTab === tab.id;
               const Icon = tab.icon;
@@ -823,10 +831,10 @@ export default function ViajeDetalle({ params }: PageProps) {
                   key={tab.id}
                   type="button"
                   onClick={() => handleTabChange(tab.id)}
-                  className={`inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2 text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                  className={`inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2 text-xs font-bold transition-all duration-150 cursor-pointer shadow-none ${
                     isActive
-                      ? 'bg-[#46435c] text-white shadow-sm'
-                      : 'text-[#9e9eb4] hover:text-white hover:bg-white/5'
+                      ? 'bg-[#009688] text-white'
+                      : 'text-zinc-600 hover:text-zinc-950 hover:bg-zinc-200/70'
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -837,11 +845,15 @@ export default function ViajeDetalle({ params }: PageProps) {
           </div>
         </div>
 
-        {/* TAB CONTENTS */}
+        {/* TAB CONTENTS (with Skeleton Loading) */}
         <div>
-          {/* TAB 1: ITINERARIO */}
-          {activeTab === 'itinerario' && (
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          {isTabTransitioning ? (
+            <TabSkeleton tab={activeTab} />
+          ) : (
+            <>
+              {/* TAB 1: ITINERARIO */}
+              {activeTab === 'itinerario' && (
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               {/* Timeline & Day Carousel (Left / center 2 cols) */}
               <div className="space-y-6 lg:col-span-2">
                 {/* HeroUI Pro Day Selector Strip */}
@@ -1698,6 +1710,8 @@ export default function ViajeDetalle({ params }: PageProps) {
           {/* TAB 5: CONFIGURACIÓN */}
           {activeTab === 'configuracion' && (
             <TripNotificationSettings tripId={activeTrip.id} />
+          )}
+            </>
           )}
         </div>
       </main>
