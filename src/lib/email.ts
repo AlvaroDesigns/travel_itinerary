@@ -114,3 +114,20 @@ export function createPasswordResetOtpEmail(code: string) {
     html: `<!doctype html><html lang="es"><body style="margin:0;padding:32px;background:#f6f6f6;font-family:Arial,Helvetica,sans-serif;color:#0a0a0a"><table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;background:#fff;border:1px solid #e5e5e5;border-radius:16px"><tr><td style="padding:32px"><p style="margin:0 0 10px;color:#666;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase">Wanderlust</p><h1 style="margin:0;font-size:26px">Restablece tu contraseña</h1><p style="line-height:1.6;color:#454545">Introduce este código en la aplicación. Caduca en 10 minutos y solo puede usarse una vez.</p><p style="margin:26px 0;padding:16px;border-radius:10px;background:#f6f6f6;text-align:center;font-size:30px;font-weight:800;letter-spacing:8px">${safeCode}</p><p style="color:#666;font-size:13px;line-height:1.5">Si no solicitaste este cambio, puedes ignorar este correo.</p></td></tr></table></td></tr></table></body></html>`,
   };
 }
+
+
+export function createWelcomeInvitationEmail(challengeId: string, code: string) {
+  const setupUrl = `${appUrl()}/login#welcome=1&challengeId=${encodeURIComponent(challengeId)}&code=${encodeURIComponent(code)}`;
+  return {
+    subject: 'Bienvenido a Wanderlust: crea tu contraseña',
+    text: `Te damos la bienvenida a Wanderlust. Para crear tu contraseña, abre este enlace: ${setupUrl}\n\nEl enlace caduca en 10 minutos y solo puede utilizarse una vez. Si no esperabas esta invitación, puedes ignorar este correo.`,
+    html: createTravelEmail({
+      preheader: 'Tu invitación a Wanderlust está lista.',
+      eyebrow: 'Bienvenido a Wanderlust',
+      title: 'Crea tu contraseña',
+      intro: 'Se ha creado una cuenta para ti. Elige una contraseña segura para activar tu acceso al planificador.',
+      detail: 'Por seguridad, este enlace caduca en 10 minutos y solo puede utilizarse una vez. Si no esperabas esta invitación, puedes ignorar este correo.',
+      cta: { label: 'Crear mi contraseña', url: setupUrl },
+    }),
+  };
+}

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { use, useEffect, useState } from 'react';
 import {
   CalendarDays,
@@ -149,7 +150,10 @@ export default function PublicTripPage({ params }: PageProps) {
   }
 
   if (!data) {
-    return <main className="flex min-h-screen items-center justify-center bg-[#159dc6] text-sm font-semibold text-white"><span className="flex items-center gap-2"><Clock3 className="h-4 w-4 animate-pulse" /> Preparando tu aventura…</span></main>;
+    return <main className="flex min-h-screen w-full flex-col items-center justify-center gap-5 bg-white px-5 text-slate-700">
+      <Image src="/wanderlust_horizontal_negro.png" alt="Wanderlust" width={180} height={45} priority className="h-9 w-auto object-contain" />
+      <span className="flex items-center gap-2 text-sm font-semibold"><Clock3 className="h-4 w-4 animate-pulse text-violet-600" /> Preparando tu aventura…</span>
+    </main>;
   }
 
   if (!data.available) {
@@ -168,20 +172,20 @@ export default function PublicTripPage({ params }: PageProps) {
   const totalExpenses = trip.activities.reduce((total, activity) => total + (activity.price || 0), 0);
   const duration = tripDuration(trip.startDate, trip.endDate);
 
-  return <main className="min-h-screen overflow-x-hidden bg-[#dff3f7] text-slate-900">
+  return <main className="min-h-screen w-full bg-[#dff3f7] text-slate-900">
     <section className="relative isolate min-h-[16rem] overflow-hidden bg-[#159dc6] sm:min-h-[17.5rem]">
       {trip.imageUrl && <>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={trip.imageUrl} alt={`Vista de ${trip.name}`} className="absolute inset-0 -z-20 h-full w-full object-cover" />
       </>}
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(21,157,198,0.14)_0%,rgba(6,91,130,0.2)_38%,rgba(5,47,69,0.88)_100%)]" />
-      <div className="mx-auto flex min-h-[16rem] max-w-5xl flex-col justify-between px-5 pb-14 pt-5 text-white sm:min-h-[17.5rem] sm:px-9 sm:pb-16">
-        <div className="flex items-center justify-between"><span className="flex h-10 w-10 items-center justify-center rounded-full border border-white/40 bg-white/15 text-sm font-black backdrop-blur">W</span><span className="rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] backdrop-blur">Itinerario</span></div>
-        <div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[0.22em] text-[#d3ff72]">Tu próxima aventura</p><h1 className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">{trip.name}</h1><p className="mt-4 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base">{trip.description || 'Cada momento de tu viaje, organizado para disfrutarlo sin pensar en nada más.'}</p></div>
+      <div className="relative mx-auto flex min-h-[16rem] max-w-5xl flex-col px-5 pb-14 pt-5 text-white sm:min-h-[17.5rem] sm:px-9 sm:pb-16">
+        <div className="absolute inset-x-5 top-5 z-10 flex items-center justify-between sm:inset-x-9"><span className="flex h-10 w-10 items-center justify-center rounded-full border border-white/40 bg-white/15 text-sm font-black backdrop-blur">W</span><span className="rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] backdrop-blur">Itinerario</span></div>
+        <div className="relative z-10 mt-auto max-w-2xl pt-14 sm:pt-16"><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#d3ff72] sm:text-xs">Tu próxima aventura</p><h1 className="mt-2 text-3xl font-extrabold leading-[1.02] tracking-tight sm:mt-3 sm:text-5xl">{trip.name}</h1></div>
       </div>
     </section>
 
-    <div className="relative z-10 mx-auto -mt-16 max-w-5xl rounded-t-[2.5rem] bg-white px-5 pb-10 pt-4 shadow-[0_-16px_36px_rgba(5,70,94,0.12)] sm:-mt-20 sm:rounded-[2.75rem] sm:px-9 sm:pt-5">
+    <div className="relative z-10 mx-auto -mt-8 max-w-5xl rounded-t-[2.5rem] bg-white px-5 pb-10 pt-4 shadow-[0_-16px_36px_rgba(5,70,94,0.12)] sm:-mt-10 sm:rounded-[2.75rem] sm:px-9 sm:pt-5">
       <div className="mx-auto mb-5 h-1.5 w-11 rounded-full bg-slate-200" />
       <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-700">Plan de viaje</p><p className="mt-1 flex items-center gap-2 text-sm font-bold text-slate-800"><CalendarDays className="h-4 w-4 text-cyan-600" />{formatDate(trip.startDate)} — {formatDate(trip.endDate)}</p></div><span className="rounded-full bg-[#d3ff72] px-3 py-2 text-xs font-extrabold text-slate-900">{duration} {duration === 1 ? 'día' : 'días'}</span></div>
 

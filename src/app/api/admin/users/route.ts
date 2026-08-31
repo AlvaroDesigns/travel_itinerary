@@ -1,20 +1,31 @@
+import { randomBytes } from 'crypto';
 import { NextResponse } from 'next/server';
 import bcryptjs from 'bcryptjs';
 import { type UserRole } from '@/lib/auth';
 import { requireAdmin } from '@/lib/admin';
 import { pool } from '@/lib/db';
+import { createWelcomeInvitationEmail, isEmailServiceConfigured, sendEmail } from '@/lib/email';
+import { digestOtp, generateOtp, OTP_TTL_MINUTES } from '@/lib/password-reset';
+
+export const runtime = 'nodejs';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PASSWORD_MIN_LENGTH = 12;
-
 type BulkAction = 'activate' | 'deactivate' | 'changeRole';
+
+type CreatedUser = {
+  id: number;
+  email: string;
+  role: UserRole;
+  is_active: boolean;
+  created_at: string;
+};
 
 function isUserRole(value: unknown): value is UserRole {
   return value === 'admin' || value === 'user';
 }
 
-function isValidPassword(password: unknown): password is string {
-  return typeof password === 'string' && password.length >= PASSWORD_MIN_LENGTH && password.length <= 128;
+function serializeUser(user: CreatedUser) {
+  return { id: user.id, email: user.email, role: user.role, isActive: user.is_active, createdAt: user.created_at, tripCount: 0 };
 }
 
 export async function GET(request: Request) {
@@ -54,48 +65,61 @@ export async function POST(request: Request) {
   if (admin instanceof NextResponse) return admin;
 
   try {
-    const body = await request.json() as { email?: unknown; password?: unknown; role?: unknown };
+    const body = await request.json() as { email?: unknown; role?: unknown };
     const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
     const role = body.role ?? 'user';
 
     if (!EMAIL_PATTERN.test(email) || email.length > 255) {
       return NextResponse.json({ error: 'Introduce un correo electrónico válido' }, { status: 400 });
     }
-    if (!isValidPassword(body.password)) {
-      return NextResponse.json({ error: `La contraseña debe tener entre ${PASSWORD_MIN_LENGTH} y 128 caracteres` }, { status: 400 });
-    }
     if (!isUserRole(role)) {
       return NextResponse.json({ error: 'El rol indicado no es válido' }, { status: 400 });
     }
+    if (!isEmailServiceConfigured()) {
+      return NextResponse.json({ error: 'El servicio de email no está configurado. No se puede enviar la invitación.' }, { status: 503 });
+    }
 
-    const passwordHash = await bcryptjs.hash(body.password, 12);
-    const result = await pool.query<{
-      id: number;
-      email: string;
-      role: UserRole;
-      is_active: boolean;
-      created_at: string;
-    }>(
-      `INSERT INTO users (email, password, role) VALUES ($1, $2, $3)
-       RETURNING id, email, role, is_active, created_at`,
-      [email, passwordHash, role]
-    );
-    const user = result.rows[0];
+    const challengeId = crypto.randomUUID();
+    const code = generateOtp();
+    const passwordHash = await bcryptjs.hash(randomBytes(48).toString('base64url'), 12);
+    const client = await pool.connect();
+    let user: CreatedUser;
 
-    return NextResponse.json({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      isActive: user.is_active,
-      createdAt: user.created_at,
-      tripCount: 0,
-    }, { status: 201 });
+    try {
+      await client.query('BEGIN');
+      const result = await client.query<CreatedUser>(
+        `INSERT INTO users (email, password, role) VALUES ($1, $2, $3)
+         RETURNING id, email, role, is_active, created_at`,
+        [email, passwordHash, role]
+      );
+      user = result.rows[0];
+      await client.query(
+        'INSERT INTO password_reset_otps (id, user_id, code_digest, expires_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP + INTERVAL \'10 minutes\')',
+        [challengeId, user.id, digestOtp(challengeId, code)]
+      );
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+
+    try {
+      await sendEmail({ to: user.email, ...createWelcomeInvitationEmail(challengeId, code) });
+    } catch (emailError) {
+      console.error('Welcome invitation email error:', emailError);
+      await pool.query('DELETE FROM users WHERE id = $1', [user.id]);
+      return NextResponse.json({ error: 'No se pudo enviar la invitación. La cuenta no se ha creado; inténtalo de nuevo.' }, { status: 502 });
+    }
+
+    return NextResponse.json({ ...serializeUser(user), invitationExpiresInMinutes: OTP_TTL_MINUTES }, { status: 201 });
   } catch (error) {
     if ((error as { code?: string }).code === '23505') {
       return NextResponse.json({ error: 'Ya existe una cuenta con ese correo' }, { status: 409 });
     }
-    console.error('Create user error:', error);
-    return NextResponse.json({ error: 'No se pudo crear el usuario' }, { status: 500 });
+    console.error('Create user invitation error:', error);
+    return NextResponse.json({ error: 'No se pudo crear el usuario ni enviar la invitación' }, { status: 500 });
   }
 }
 
