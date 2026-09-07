@@ -321,16 +321,21 @@ function getTripCode(id: string) {
   return result;
 }
 
+interface SuggestedActionItem {
+  id?: string;
+  type: ActivityType;
+  label: string;
+  date?: string;
+  payload: any;
+}
+
 interface ChatMessage {
   id: string;
   sender: 'user' | 'agent';
   text: string;
   timestamp: string;
-  suggestedAction?: {
-    type: ActivityType;
-    label: string;
-    payload: any;
-  };
+  suggestedAction?: SuggestedActionItem;
+  suggestedActions?: SuggestedActionItem[];
 }
 
 export default function ViajeDetalle({ params }: PageProps) {
@@ -539,6 +544,7 @@ export default function ViajeDetalle({ params }: PageProps) {
   // AI Agent Chat State
   const [chatInput, setChatInput] = useState('');
   const [isAgentThinking, setIsAgentThinking] = useState(false);
+  const [appliedActionKeys, setAppliedActionKeys] = useState<string[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       id: 'msg-1',
@@ -726,11 +732,11 @@ export default function ViajeDetalle({ params }: PageProps) {
   };
 
   // -------------------------------------------------------------
-  // AI Agent Handlers
+  // AI Agent Handlers (Groq Powered with API_AI)
   // -------------------------------------------------------------
   const handleSendMessage = async (textToSend?: string) => {
     const query = (textToSend || chatInput).trim();
-    if (!query) return;
+    if (!query || isAgentThinking) return;
 
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -743,135 +749,138 @@ export default function ViajeDetalle({ params }: PageProps) {
     setChatInput('');
     setIsAgentThinking(true);
 
-    setTimeout(() => {
-      let replyText = '';
-      let suggestedAction: ChatMessage['suggestedAction'] = undefined;
+    try {
+      const response = await fetch('/api/assistant/itinerary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tripId: activeTrip.id,
+          message: query,
+          activeDate,
+          tripContext: {
+            name: activeTrip.name,
+            startDate: activeTrip.startDate,
+            endDate: activeTrip.endDate,
+            budget: activeTrip.budget,
+            activities: activeTrip.activities,
+          },
+          history: chatMessages.slice(-6).map((m) => ({
+            role: m.sender === 'user' ? 'user' : 'assistant',
+            content: m.text,
+          })),
+        }),
+      });
 
-      const lower = query.toLowerCase();
-      if (lower.includes('restaurante') || lower.includes('cenar') || lower.includes('comer')) {
-        replyText = `He encontrado una excelente recomendación gastronómica: "Restaurante Gourmet Bellavista" con terraza y vistas panorámicas. ¿Deseas añadirlo a la agenda del día?`;
-        suggestedAction = {
-          type: 'food',
-          label: 'Añadir Cena Gourmet',
-          payload: {
-            restaurantName: 'Restaurante Gourmet Bellavista',
-            mealType: 'dinner',
-            time: '21:00',
-            price: 65,
-            description: 'Cena degustación con maridaje de autor y mesa reservada con vistas.',
-          },
-        };
-      } else if (lower.includes('hotel') || lower.includes('alojamiento') || lower.includes('dormir')) {
-        replyText = `Te sugiero el resort 5 estrellas "The Grand Luxury Resort & Spa" situado a pocos minutos de los principales atractivos con desayuno buffet incluido.`;
-        suggestedAction = {
-          type: 'hotel',
-          label: 'Añadir Hotel 5*',
-          payload: {
-            hotelName: 'The Grand Luxury Resort & Spa',
-            address: 'Avenida Principal 102',
-            checkIn: '15:00',
-            checkOut: '12:00',
-            price: 240,
-            description: 'Suite Premium con cama king size, vistas al mar y acceso ilimitado al spa.',
-          },
-        };
-      } else if (lower.includes('excursión') || lower.includes('tour') || lower.includes('visita') || lower.includes('actividad')) {
-        replyText = `He preparado una actividad destacada: "Tour Guiado en Catamarán Privado con Snorkel y Almuerzo". Duración aproximada de 4 horas.`;
-        suggestedAction = {
-          type: 'excursion',
-          label: 'Añadir Tour Catamarán',
-          payload: {
-            title: 'Tour Guiado en Catamarán Privado con Snorkel',
-            duration: '4 horas',
-            time: '10:30',
-            price: 85,
-            description: 'Paseo en barco con paradas en arrecifes protegidos, equipo de snorkel y barra libre.',
-          },
-        };
-      } else if (lower.includes('vuelo') || lower.includes('avion') || lower.includes('aeropuerto')) {
-        replyText = `He localizado el vuelo directo con Iberia "IB3820". Con salida a las 11:45 y llegada estimada a las 16:30.`;
-        suggestedAction = {
-          type: 'flight',
-          label: 'Añadir Vuelo IB3820',
-          payload: {
-            flightNumber: 'IB3820',
-            airline: 'Iberia Airlines',
-            origin: 'Madrid Barajas (MAD)',
-            destination: 'Cancún International (CUN)',
-            time: '11:45',
-            arrivalTime: '16:30',
-            price: 520,
-          },
-        };
-      } else {
-        replyText = `Perfecto. He registrado tu solicitud para el ${activeTrip.name}. ¿Deseas que agregue una nueva actividad, ajuste los horarios del día o calcule el presupuesto total?`;
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'No se pudo obtener respuesta del agente');
       }
 
       const agentMsg: ChatMessage = {
         id: `agent-${Date.now()}`,
         sender: 'agent',
-        text: replyText,
+        text: data.message || 'He preparado una recomendación personalizada para tu viaje.',
         timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-        suggestedAction,
+        suggestedAction: data.suggestedAction || undefined,
+        suggestedActions: Array.isArray(data.suggestedActions) && data.suggestedActions.length > 0 ? data.suggestedActions : undefined,
       };
 
       setChatMessages((prev) => [...prev, agentMsg]);
+    } catch (err) {
+      console.error('AI agent error:', err);
+      const errorMsg: ChatMessage = {
+        id: `agent-${Date.now()}`,
+        sender: 'agent',
+        text: `Lo siento, ha ocurrido un problema al consultar con el asistente: ${
+          err instanceof Error ? err.message : 'Error de conexión'
+        }. Por favor, inténtalo de nuevo.`,
+        timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+      };
+      setChatMessages((prev) => [...prev, errorMsg]);
+    } finally {
       setIsAgentThinking(false);
-    }, 1200);
+    }
   };
 
-  const handleApplySuggestedAction = async (action: NonNullable<ChatMessage['suggestedAction']>) => {
-    const targetDate = targetModalDate || activeDate;
+  const handleApplySuggestedAction = async (action: SuggestedActionItem, actionKey?: string) => {
+    const targetDate = action.date || targetModalDate || activeDate;
     if (action.type === 'food') {
       const foodPayload: Omit<FoodActivity, 'id'> = {
         type: 'food',
         date: targetDate,
-        time: action.payload.time || '20:30',
-        price: action.payload.price || 50,
-        restaurantName: action.payload.restaurantName,
-        mealType: action.payload.mealType || 'dinner',
-        description: action.payload.description || '',
+        time: action.payload?.time || '20:30',
+        price: Number(action.payload?.price) || 50,
+        restaurantName: action.payload?.restaurantName || action.payload?.title || action.label || 'Restaurante Recomendado',
+        mealType: action.payload?.mealType || 'dinner',
+        description: action.payload?.description || '',
       };
       await addActivity(activeTrip.id, foodPayload);
     } else if (action.type === 'hotel') {
       const hotelPayload: Omit<HotelActivity, 'id'> = {
         type: 'hotel',
         date: targetDate,
-        time: '15:00',
-        price: action.payload.price || 150,
-        hotelName: action.payload.hotelName,
-        address: action.payload.address || '',
-        checkIn: action.payload.checkIn || '15:00',
-        checkOut: action.payload.checkOut || '12:00',
-        description: action.payload.description || '',
+        time: action.payload?.time || '15:00',
+        price: Number(action.payload?.price) || 150,
+        hotelName: action.payload?.hotelName || action.payload?.title || action.label || 'Alojamiento Recomendado',
+        address: action.payload?.address || '',
+        checkIn: action.payload?.checkIn || '15:00',
+        checkOut: action.payload?.checkOut || '12:00',
+        description: action.payload?.description || '',
       };
       await addActivity(activeTrip.id, hotelPayload);
     } else if (action.type === 'excursion') {
       const excursionPayload: Omit<ExcursionActivity, 'id'> = {
         type: 'excursion',
         date: targetDate,
-        time: action.payload.time || '10:00',
-        price: action.payload.price || 70,
-        title: action.payload.title,
-        duration: action.payload.duration || '3 horas',
-        description: action.payload.description || '',
+        time: action.payload?.time || '10:00',
+        price: Number(action.payload?.price) || 70,
+        title: action.payload?.title || action.label || 'Excursión / Actividad',
+        duration: action.payload?.duration || '3 horas',
+        description: action.payload?.description || '',
       };
       await addActivity(activeTrip.id, excursionPayload);
     } else if (action.type === 'flight') {
       const flightPayload: Omit<FlightActivity, 'id'> = {
         type: 'flight',
         date: targetDate,
-        time: action.payload.time || '11:00',
-        price: action.payload.price || 300,
-        flightNumber: action.payload.flightNumber,
-        airline: action.payload.airline,
-        origin: action.payload.origin,
-        destination: action.payload.destination,
-        arrivalTime: action.payload.arrivalTime || '',
+        time: action.payload?.time || '11:00',
+        price: Number(action.payload?.price) || 300,
+        flightNumber: action.payload?.flightNumber || 'FLIGHT',
+        airline: action.payload?.airline || 'Aerolínea',
+        origin: action.payload?.origin || 'Origen',
+        destination: action.payload?.destination || 'Destino',
+        arrivalTime: action.payload?.arrivalTime || '',
       };
       await addActivity(activeTrip.id, flightPayload);
+    } else if (action.type === 'transfer') {
+      const transferPayload: Omit<TransferActivity, 'id'> = {
+        type: 'transfer',
+        date: targetDate,
+        time: action.payload?.time || '09:00',
+        price: Number(action.payload?.price) || 30,
+        transportType: action.payload?.transportType || 'train',
+        origin: action.payload?.origin || 'Origen',
+        destination: action.payload?.destination || 'Destino',
+        duration: action.payload?.duration || '45 min',
+        description: action.payload?.description || '',
+      };
+      await addActivity(activeTrip.id, transferPayload);
     }
-    showToast(`✨ ${action.label} añadido con éxito al itinerario.`);
+
+    if (actionKey) {
+      setAppliedActionKeys((prev) => (prev.includes(actionKey) ? prev : [...prev, actionKey]));
+    }
+    showToast(`✨ ${action.label || 'Actividad'} añadido con éxito al itinerario.`);
+  };
+
+  const handleApplyAllSuggestedActions = async (actions: SuggestedActionItem[], msgId: string) => {
+    for (let i = 0; i < actions.length; i++) {
+      const action = actions[i];
+      const actionKey = `${msgId}-${i}`;
+      if (!appliedActionKeys.includes(actionKey)) {
+        await handleApplySuggestedAction(action, actionKey);
+      }
+    }
   };
 
   // -------------------------------------------------------------
@@ -2070,19 +2079,113 @@ export default function ViajeDetalle({ params }: PageProps) {
                         )}
                         <p>{msg.text}</p>
 
-                        {/* Suggested Action Card */}
-                        {msg.suggestedAction && (
-                          <div className="mt-2.5 pt-2 border-t border-[#eaecf0]">
-                            <button
-                              type="button"
-                              onClick={() => handleApplySuggestedAction(msg.suggestedAction!)}
-                              className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#009688] px-3 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition-all cursor-pointer"
-                            >
-                              <Plus className="h-3.5 w-3.5" />
-                              <span>{msg.suggestedAction.label}</span>
-                            </button>
-                          </div>
-                        )}
+                        {/* Suggested Action Cards (Single or Multiple) */}
+                        {(() => {
+                          const actions: SuggestedActionItem[] = msg.suggestedActions && msg.suggestedActions.length > 0
+                            ? msg.suggestedActions
+                            : msg.suggestedAction
+                            ? [msg.suggestedAction]
+                            : [];
+
+                          if (actions.length === 0) return null;
+
+                          const allApplied = actions.every((_, idx) => appliedActionKeys.includes(`${msg.id}-${idx}`));
+
+                          return (
+                            <div className="mt-3 pt-3 border-t border-[#eaecf0] space-y-2">
+                              {actions.length > 1 && !allApplied && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleApplyAllSuggestedActions(actions, msg.id)}
+                                  className="w-full mb-2 flex items-center justify-center gap-1.5 rounded-xl bg-[#101828] px-3 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#1f2937] transition-all cursor-pointer"
+                                >
+                                  <Sparkles className="h-3.5 w-3.5 text-[#14b8a6]" />
+                                  <span>+ Añadir todas ({actions.length}) al itinerario</span>
+                                </button>
+                              )}
+
+                              {actions.map((act, idx) => {
+                                const actionKey = `${msg.id}-${idx}`;
+                                const isApplied = appliedActionKeys.includes(actionKey);
+
+                                return (
+                                  <div
+                                    key={actionKey}
+                                    className={`rounded-xl border p-2.5 transition-all text-left ${
+                                      isApplied
+                                        ? 'bg-[#f0fdf4] border-[#bbf7d0]'
+                                        : 'bg-white border-[#e5e7eb] shadow-2xs hover:border-[#009688]/40'
+                                    }`}
+                                  >
+                                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                                      <div className="flex items-center gap-1.5 min-w-0">
+                                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#e0f2f1] text-[#00796b]">
+                                          {act.type === 'food' && <Utensils className="h-3.5 w-3.5" />}
+                                          {act.type === 'hotel' && <Bed className="h-3.5 w-3.5" />}
+                                          {act.type === 'excursion' && <Compass className="h-3.5 w-3.5" />}
+                                          {act.type === 'flight' && <Plane className="h-3.5 w-3.5" />}
+                                          {act.type === 'transfer' && <Car className="h-3.5 w-3.5" />}
+                                        </div>
+                                        <div className="min-w-0">
+                                          <p className="text-xs font-bold text-[#101828] truncate">
+                                            {act.label || act.payload?.restaurantName || act.payload?.hotelName || act.payload?.title || 'Propuesta'}
+                                          </p>
+                                          {act.date && (
+                                            <p className="text-[10px] text-[#667085]">
+                                              📅 {act.date}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {act.payload?.price ? (
+                                        <span className="shrink-0 text-[11px] font-bold text-[#00796b] bg-[#e0f2f1] px-1.5 py-0.5 rounded-md">
+                                          {act.payload.price}€
+                                        </span>
+                                      ) : null}
+                                    </div>
+
+                                    {act.payload?.description && (
+                                      <p className="text-[11px] text-[#475467] line-clamp-2 mb-2">
+                                        {act.payload.description}
+                                      </p>
+                                    )}
+
+                                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                                      <div className="flex items-center gap-2 text-[10px] text-[#667085]">
+                                        {act.payload?.time && (
+                                          <span className="flex items-center gap-0.5">
+                                            <Clock className="h-3 w-3" />
+                                            {act.payload.time}
+                                          </span>
+                                        )}
+                                        {act.payload?.duration && (
+                                          <span>• {act.payload.duration}</span>
+                                        )}
+                                      </div>
+
+                                      {isApplied ? (
+                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#059669]">
+                                          <Check className="h-3.5 w-3.5" />
+                                          Añadido
+                                        </span>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleApplySuggestedAction(act, actionKey)}
+                                          className="inline-flex items-center gap-1 rounded-lg bg-[#009688] px-2.5 py-1 text-[11px] font-bold text-white shadow-xs hover:bg-[#00796b] transition-all cursor-pointer"
+                                        >
+                                          <Plus className="h-3 w-3" />
+                                          Añadir
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
                       </div>
                       <span className="text-[9px] text-[#98a2b3] mt-1 px-1">{msg.timestamp}</span>
                     </div>
