@@ -10,7 +10,11 @@ export async function GET() {
 
   try {
     const tripsRes = await pool.query(
-      'SELECT * FROM trips WHERE user_id = $1 ORDER BY start_date ASC',
+      `SELECT t.*, c.name as client_name, c.email as client_email
+       FROM trips t
+       LEFT JOIN clients c ON c.id = t.client_id
+       WHERE t.user_id = $1
+       ORDER BY t.start_date ASC`,
       [session.userId]
     );
 
@@ -40,6 +44,9 @@ export async function GET() {
         imageUrl: tripRow.image_url,
         description: tripRow.description,
         notes: tripRow.notes,
+        clientId: tripRow.client_id || null,
+        clientName: tripRow.client_name || null,
+        clientEmail: tripRow.client_email || null,
         activities
       });
     }
@@ -58,7 +65,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { name, startDate, endDate, budget, imageUrl, description, notes } = await request.json();
+    const { name, startDate, endDate, budget, imageUrl, description, notes, clientId } = await request.json();
 
     if (!name || !startDate || !endDate) {
       return NextResponse.json({ error: 'Campos obligatorios faltantes' }, { status: 400 });
@@ -67,11 +74,12 @@ export async function POST(request: Request) {
     const tripId = `trip-${Date.now()}`;
 
     await pool.query(
-      `INSERT INTO trips (id, user_id, name, start_date, end_date, budget, image_url, description, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      `INSERT INTO trips (id, user_id, client_id, name, start_date, end_date, budget, image_url, description, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
       [
         tripId,
         session.userId,
+        clientId || null,
         name,
         startDate,
         endDate,
@@ -91,6 +99,7 @@ export async function POST(request: Request) {
       imageUrl: imageUrl || '',
       description: description || '',
       notes: notes || '',
+      clientId: clientId || null,
       activities: []
     });
   } catch (error) {

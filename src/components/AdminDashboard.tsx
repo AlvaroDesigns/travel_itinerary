@@ -52,7 +52,7 @@ export function AdminDashboard() {
     return () => { cancelled = true; };
   }, []);
 
-  if (error) return <div className="mx-auto max-w-7xl rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-medium text-rose-800 shadow-sm">{error}</div>;
+  if (error) return <div className="w-full rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-medium text-rose-800 shadow-sm">{error}</div>;
   if (!data) return <div className="flex min-h-64 items-center justify-center gap-2 text-sm font-medium text-zinc-500"><Loader2 className="h-5 w-5 animate-spin text-[#009688]" /> Cargando analítica…</div>;
 
   const { overview } = data;
@@ -63,14 +63,14 @@ export function AdminDashboard() {
     { label: 'Recordatorios', value: overview.remindersEnabled, detail: `${overview.publicLinksEnabled} enlaces públicos activos`, icon: BellRing, tone: 'bg-emerald-50 text-emerald-700' },
   ];
 
-  return <div className="mx-auto max-w-7xl">
+  return <div className="w-full space-y-6">
     <div className="mb-7 flex flex-wrap items-end justify-between gap-5">
       <div>
         <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-teal-200/80 bg-teal-50 px-3.5 py-1 text-xs font-bold text-[#00796b]"><Sparkles className="h-3.5 w-3.5 text-[#009688]" /> Centro de control</div>
         <h1 className="text-3xl font-extrabold tracking-tight text-zinc-950 sm:text-4xl">Buenos días, equipo</h1>
         <p className="mt-2 text-sm text-zinc-500 sm:text-base">Una vista rápida de la actividad de Wanderlust.</p>
       </div>
-      <Link href="/admin/paginas" className="wanderlust-primary-button inline-flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold text-white shadow-md"><FileText className="h-4 w-4" /> Editar página</Link>
+      <Link href="/admin/paginas" className="wanderlust-primary-button inline-flex h-11 items-center gap-2 rounded-full px-6 text-sm font-bold text-white shadow-md"><FileText className="h-4 w-4" /> Editar página</Link>
     </div>
 
     <section className="mb-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -82,7 +82,7 @@ export function AdminDashboard() {
 
     <section className="relative mb-7 overflow-hidden rounded-3xl bg-gradient-to-r from-teal-950 via-[#004d40] to-teal-900 p-6 text-white shadow-xl sm:p-8">
       <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full bg-[#009688]/20 blur-3xl" />
-      <div className="relative z-10 flex flex-col justify-between gap-5 md:flex-row md:items-center"><div><p className="text-xs font-bold uppercase tracking-wider text-teal-300">Próximo paso</p><h2 className="mt-1 text-2xl font-extrabold tracking-tight">Mantén actualizada la página de inicio</h2><p className="mt-2 max-w-xl text-sm leading-relaxed text-teal-100">Revisa el mensaje principal que ven los viajeros y publícalo en un solo paso.</p></div><Link href="/admin/paginas/inicio" className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-[#00796b] shadow-md transition-all hover:bg-teal-50 hover:scale-105 active:scale-95"><FileText className="h-4 w-4" /> Abrir editor <ArrowRight className="h-4 w-4" /></Link></div>
+      <div className="relative z-10 flex flex-col justify-between gap-5 md:flex-row md:items-center"><div><p className="text-xs font-bold uppercase tracking-wider text-teal-300">Próximo paso</p><h2 className="mt-1 text-2xl font-extrabold tracking-tight">Mantén actualizada la página de inicio</h2><p className="mt-2 max-w-xl text-sm leading-relaxed text-teal-100">Revisa el mensaje principal que ven los viajeros y publícalo en un solo paso.</p></div><Link href="/admin/paginas/inicio" className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-[#00796b] shadow-md transition-all hover:bg-teal-50 hover:scale-105 active:scale-95"><FileText className="h-4 w-4" /> Abrir editor <ArrowRight className="h-4 w-4" /></Link></div>
     </section>
 
     <div className="grid gap-6 xl:grid-cols-5">

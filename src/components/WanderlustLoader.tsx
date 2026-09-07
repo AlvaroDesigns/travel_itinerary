@@ -37,6 +37,7 @@ export function WanderlustLoader() {
             width={44}
             height={44}
             priority
+            style={{ width: 'auto', height: 'auto' }}
             className="relative z-10 h-11 w-auto animate-pulse-subtle object-contain drop-shadow-sm"
           />
         </div>

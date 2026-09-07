@@ -112,18 +112,16 @@ body {
   transform: scale(0.98);
 }
 
-.wanderlust-selected-day {
-  background-color: #009688 !important;
-  border-color: #009688 !important;
-  color: #ffffff !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 150, 136, 0.4) !important;
+/* Drag and drop highlight styles */
+.drag-over-active {
+  outline: 2px dashed #009688 !important;
+  outline-offset: 4px;
+  background-color: rgba(224, 242, 241, 0.6) !important;
 }
 
-.wanderlust-active-tab {
-  background-color: #009688 !important;
-  border-color: transparent !important;
-  color: #ffffff !important;
-  box-shadow: none !important;
+.dragging-item {
+  opacity: 0.5;
+  transform: scale(0.98);
 }
 
 @keyframes shake {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/admin';
+import { getAuthenticatedUser } from '@/lib/auth';
 import { pool } from '@/lib/db';
 
 type OverviewRow = {
@@ -30,8 +30,10 @@ type RecentUserRow = {
 };
 
 export async function GET() {
-  const admin = await requireAdmin();
-  if (admin instanceof NextResponse) return admin;
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  }
 
   try {
     const [overviewResult, breakdownResult, recentUsersResult] = await Promise.all([

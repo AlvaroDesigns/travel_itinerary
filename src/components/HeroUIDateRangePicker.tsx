@@ -129,12 +129,23 @@ export function HeroUIDateRangePicker({
   };
 
   const handleQuickPreset = (days: number) => {
-    const start = startDate ? new Date(startDate) : new Date();
+    const parseLocal = (s: string) => {
+      const parts = s.split('-').map(Number);
+      return parts.length === 3 ? new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0) : new Date();
+    };
+    const start = startDate ? parseLocal(startDate) : new Date();
     const end = new Date(start);
     end.setDate(start.getDate() + (days - 1));
 
-    const startStr = start.toISOString().split('T')[0];
-    const endStr = end.toISOString().split('T')[0];
+    const formatDateStr = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    const startStr = formatDateStr(start);
+    const endStr = formatDateStr(end);
     onChange({ startDate: startStr, endDate: endStr });
     setIsOpen(false);
   };
@@ -142,8 +153,11 @@ export function HeroUIDateRangePicker({
   // Calculate day count
   const calculateDays = () => {
     if (!startDate || !endDate) return null;
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const startParts = startDate.split('-').map(Number);
+    const endParts = endDate.split('-').map(Number);
+    if (startParts.length !== 3 || endParts.length !== 3) return null;
+    const start = new Date(startParts[0], startParts[1] - 1, startParts[2], 12, 0, 0);
+    const end = new Date(endParts[0], endParts[1] - 1, endParts[2], 12, 0, 0);
     const diffTime = end.getTime() - start.getTime();
     if (diffTime < 0) return null;
     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;

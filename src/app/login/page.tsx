@@ -186,6 +186,7 @@ export default function Login() {
             width={260}
             height={70}
             priority
+            style={{ width: 'auto', height: 'auto' }}
             className="h-14 w-auto object-contain"
           />
           <span className="inline-flex items-center gap-1 rounded-full border border-teal-500/30 bg-teal-950/40 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-teal-300 backdrop-blur-md">

@@ -23,7 +23,7 @@ export async function PUT(
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    const { name, startDate, endDate, budget, imageUrl, description, notes } = await request.json();
+    const { name, startDate, endDate, budget, imageUrl, description, notes, clientId } = await request.json();
 
     await pool.query(
       `UPDATE trips
@@ -33,9 +33,21 @@ export async function PUT(
            budget = COALESCE($4, budget),
            image_url = COALESCE($5, image_url),
            description = COALESCE($6, description),
-           notes = COALESCE($7, notes)
-       WHERE id = $8`,
-      [name, startDate, endDate, budget, imageUrl, description, notes, id]
+           notes = COALESCE($7, notes),
+           client_id = CASE WHEN $8::boolean THEN $9 ELSE client_id END
+       WHERE id = $10`,
+      [
+        name ?? null,
+        startDate ?? null,
+        endDate ?? null,
+        budget ?? null,
+        imageUrl ?? null,
+        description ?? null,
+        notes ?? null,
+        clientId !== undefined,
+        clientId || null,
+        id,
+      ]
     );
 
     return NextResponse.json({ success: true });

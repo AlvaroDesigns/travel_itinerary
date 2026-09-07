@@ -50,7 +50,11 @@ export async function initDb() {
     await client.query(`
       ALTER TABLE users
         ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'user',
-        ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
+        ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        ADD COLUMN IF NOT EXISTS name VARCHAR(255) DEFAULT '',
+        ADD COLUMN IF NOT EXISTS phone VARCHAR(50) DEFAULT '',
+        ADD COLUMN IF NOT EXISTS company VARCHAR(255) DEFAULT '',
+        ADD COLUMN IF NOT EXISTS preferences JSONB DEFAULT '{}'::jsonb;
     `);
     await client.query(`
       ALTER TABLE users
@@ -79,9 +83,26 @@ export async function initDb() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS clients (
+        id VARCHAR(255) PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) DEFAULT '',
+        phone VARCHAR(50) DEFAULT '',
+        document_id VARCHAR(50) DEFAULT '',
+        nationality VARCHAR(100) DEFAULT '',
+        notes TEXT DEFAULT '',
+        status VARCHAR(20) NOT NULL DEFAULT 'activo' CHECK (status IN ('activo', 'prospecto', 'inactivo')),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS trips (
         id VARCHAR(255) PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        client_id VARCHAR(255) REFERENCES clients(id) ON DELETE SET NULL,
         name VARCHAR(255) NOT NULL,
         start_date VARCHAR(10) NOT NULL,
         end_date VARCHAR(10) NOT NULL,
@@ -91,6 +112,10 @@ export async function initDb() {
         notes TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+    await client.query(`
+      ALTER TABLE trips
+        ADD COLUMN IF NOT EXISTS client_id VARCHAR(255) REFERENCES clients(id) ON DELETE SET NULL;
     `);
 
     await client.query(`
@@ -169,7 +194,6 @@ export async function initDb() {
         `INSERT INTO users (email, password, role, is_active)
          VALUES ($1, $2, 'admin', TRUE)
          ON CONFLICT (email) DO UPDATE SET
-           password = EXCLUDED.password,
            role = 'admin',
            is_active = TRUE`,
         [initialAdminEmail, initialAdminPasswordHash]

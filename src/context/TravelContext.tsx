@@ -11,6 +11,10 @@ export interface BaseActivity {
   date: string; // YYYY-MM-DD
   time: string; // HH:MM
   price: number;
+  description?: string;
+  customIconUrl?: string;
+  isCheckout?: boolean;
+  originalId?: string;
 }
 
 export interface FlightLeg {
@@ -32,6 +36,7 @@ export interface FlightActivity extends BaseActivity {
   destination: string;
   arrivalTime: string;
   legs?: FlightLeg[];
+  description?: string;
 }
 
 export interface TransferActivity extends BaseActivity {
@@ -56,7 +61,7 @@ export interface HotelActivity extends BaseActivity {
 export interface ExcursionActivity extends BaseActivity {
   type: 'excursion';
   title: string;
-  description: string;
+  description?: string;
   duration: string; // e.g. "4 horas"
 }
 
@@ -64,7 +69,7 @@ export interface FoodActivity extends BaseActivity {
   type: 'food';
   restaurantName: string;
   mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  description: string;
+  description?: string;
 }
 
 export type Activity =
@@ -83,7 +88,24 @@ export interface Trip {
   imageUrl: string;
   description: string;
   notes: string;
+  clientId?: string | null;
+  clientName?: string | null;
+  clientEmail?: string | null;
   activities: Activity[];
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  documentId: string;
+  nationality: string;
+  notes: string;
+  status: 'activo' | 'prospecto' | 'inactivo';
+  createdAt: string;
+  assignedTripsCount?: number;
+  assignedTrips?: { id: string; name: string; startDate: string; endDate: string }[];
 }
 
 export interface AuthUser {
@@ -95,6 +117,7 @@ export interface AuthUser {
 interface TravelContextType {
   trips: Trip[];
   activeTrip: Trip | null;
+  clients: Client[];
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -102,9 +125,17 @@ interface TravelContextType {
   addTrip: (trip: Omit<Trip, 'id' | 'activities'>) => Promise<void>;
   updateTrip: (trip: Trip) => Promise<void>;
   deleteTrip: (id: string) => Promise<void>;
-  addActivity: (tripId: string, activity: Omit<Activity, 'id'>) => Promise<void>;
+  addActivity: (tripId: string, activity: Omit<Activity, 'id'>) => Promise<Activity | undefined>;
   updateActivity: (tripId: string, activity: Activity) => Promise<void>;
   deleteActivity: (tripId: string, activityId: string) => Promise<void>;
+  fetchClients: () => Promise<void>;
+  addClient: (
+    client: Omit<Client, 'id' | 'createdAt' | 'assignedTripsCount' | 'assignedTrips'>,
+    assignedTripIds?: string[]
+  ) => Promise<Client | null>;
+  updateClient: (client: Client, assignedTripIds?: string[]) => Promise<void>;
+  deleteClient: (id: string) => Promise<void>;
+  assignTripClient: (tripId: string, clientId: string | null) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -112,12 +143,42 @@ const TravelContext = createContext<TravelContextType | undefined>(undefined);
 
 export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [activeTrip, setActiveTrip] = useState<Trip | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check auth and fetch initial trips
+  const fetchClients = useCallback(async () => {
+    try {
+      const res = await fetch('/api/clients');
+      if (res.ok) {
+        const data = await res.json();
+        setClients(data);
+      }
+    } catch (e) {
+      console.error('Failed to load clients:', e);
+    }
+  }, []);
+
+  const fetchTrips = useCallback(async () => {
+    try {
+      const tripsRes = await fetch('/api/trips');
+      if (tripsRes.ok) {
+        const tripsData = await tripsRes.json();
+        setTrips(tripsData);
+        if (tripsData.length > 0) {
+          const lastActiveId = localStorage.getItem('last_active_trip_id');
+          const matched = tripsData.find((t: Trip) => t.id === lastActiveId);
+          setActiveTrip(matched || tripsData[0]);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load trips:', e);
+    }
+  }, []);
+
+  // Check auth and fetch initial trips & clients
   useEffect(() => {
     async function checkAuthAndLoadData() {
       try {
@@ -128,18 +189,7 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setUser(authData.user);
           setIsAuthenticated(true);
 
-          // Fetch user's trips from Postgres
-          const tripsRes = await fetch('/api/trips');
-          if (tripsRes.ok) {
-            const tripsData = await tripsRes.json();
-            setTrips(tripsData);
-            if (tripsData.length > 0) {
-              // Select active trip from localStorage if exists, else first trip
-              const lastActiveId = localStorage.getItem('last_active_trip_id');
-              const matched = tripsData.find((t: Trip) => t.id === lastActiveId);
-              setActiveTrip(matched || tripsData[0]);
-            }
-          }
+          await Promise.all([fetchTrips(), fetchClients()]);
         } else {
           setUser(null);
           setIsAuthenticated(false);
@@ -152,7 +202,7 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     checkAuthAndLoadData();
-  }, []);
+  }, [fetchTrips, fetchClients]);
 
   const setActiveTripById = useCallback((id: string) => {
     const trip = trips.find((t) => t.id === id) || null;
@@ -261,6 +311,8 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (matchedTrip) {
         setActiveTrip(matchedTrip);
       }
+
+      return addedActivity as Activity;
     } catch (error) {
       console.error(error);
       alert('Hubo un error al agregar la actividad.');
@@ -313,7 +365,10 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         method: 'DELETE',
       });
 
-      if (!res.ok) throw new Error('Error al eliminar actividad de base de datos');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        console.warn('Server error on delete activity:', errorData);
+      }
 
       const updatedTrips = trips.map((trip) => {
         if (trip.id === tripId) {
@@ -332,8 +387,92 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setActiveTrip(matchedTrip);
       }
     } catch (error) {
-      console.error(error);
-      alert('Hubo un error al eliminar la actividad.');
+      console.error('deleteActivity error:', error);
+    }
+  };
+
+  const addClient = async (
+    newClientData: Omit<Client, 'id' | 'createdAt' | 'assignedTripsCount' | 'assignedTrips'>,
+    assignedTripIds?: string[]
+  ): Promise<Client | null> => {
+    try {
+      const res = await fetch('/api/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newClientData, assignedTripIds }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Error al crear cliente');
+      }
+
+      const created = await res.json();
+      await Promise.all([fetchClients(), fetchTrips()]);
+      return created;
+    } catch (error) {
+      console.error('addClient error:', error);
+      alert(error instanceof Error ? error.message : 'Error al crear el cliente');
+      return null;
+    }
+  };
+
+  const updateClient = async (client: Client, assignedTripIds?: string[]) => {
+    try {
+      const res = await fetch(`/api/clients/${client.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...client, assignedTripIds }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Error al actualizar cliente');
+      }
+
+      await Promise.all([fetchClients(), fetchTrips()]);
+    } catch (error) {
+      console.error('updateClient error:', error);
+      alert(error instanceof Error ? error.message : 'Error al actualizar el cliente');
+    }
+  };
+
+  const deleteClient = async (id: string) => {
+    try {
+      const res = await fetch(`/api/clients/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Error al eliminar cliente');
+      }
+
+      setClients((prev) => prev.filter((c) => c.id !== id));
+      await fetchTrips();
+    } catch (error) {
+      console.error('deleteClient error:', error);
+      alert(error instanceof Error ? error.message : 'Error al eliminar el cliente');
+    }
+  };
+
+  const assignTripClient = async (tripId: string, clientId: string | null) => {
+    try {
+      const res = await fetch(`/api/trips/${tripId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientId: clientId || null }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Error al asignar cliente al viaje');
+      }
+
+      await Promise.all([fetchTrips(), fetchClients()]);
+    } catch (error) {
+      console.error('assignTripClient error:', error);
+      alert(error instanceof Error ? error.message : 'Error al asignar el cliente al viaje');
     }
   };
 
@@ -346,6 +485,7 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setUser(null);
       setIsAuthenticated(false);
       setTrips([]);
+      setClients([]);
       setActiveTrip(null);
       localStorage.removeItem('last_active_trip_id');
       window.location.href = '/login';
@@ -357,6 +497,7 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       value={{
         trips,
         activeTrip,
+        clients,
         user,
         isAuthenticated,
         isLoading,
@@ -367,6 +508,11 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         addActivity,
         updateActivity,
         deleteActivity,
+        fetchClients,
+        addClient,
+        updateClient,
+        deleteClient,
+        assignTripClient,
         logout,
       }}
     >
