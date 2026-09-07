@@ -737,11 +737,12 @@ export default function PublicTripPage({ params }: PageProps) {
           {/* Left: White Logo */}
           <Link href="/" className="flex items-center group transition-transform hover:scale-105">
             <Image
-              src="/wanderlust_icono_blanco.png"
+              src="/wanderlust_horizontal_blanco.png"
               alt="Wanderlust"
-              width={64}
-              height={64}
-              className="h-12 sm:h-14 w-auto object-contain drop-shadow-lg"
+              width={180}
+              height={45}
+              style={{ width: 'auto', height: 'auto' }}
+              className="h-8 sm:h-10 w-auto object-contain drop-shadow-md"
               priority
             />
           </Link>
