@@ -1,38 +1,26 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { use, useEffect, useMemo, useState } from 'react';
 import {
+  Bed,
   CalendarDays,
-  CheckCircle2,
+  Car,
+  Check,
+  ChevronRight,
   Clock3,
-  Hotel,
+  FileText,
   LockKeyhole,
   MapPin,
-  Plane,
-  Route,
-  UtensilsCrossed,
-  Wallet,
-  Share2,
-  ChevronRight,
-  Compass,
-  FileText,
   PhoneCall,
-  Sparkles,
-  Info,
-  Car,
-  X,
-  ExternalLink,
-  Download,
+  Plane,
+  Share2,
   ShieldCheck,
-  Bed,
-  Luggage,
-  Calendar,
-  Check,
-  Navigation,
-  ChevronDown,
-} from 'lucide-react';
+  Sparkles,
+  UtensilsCrossed,
+  X,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { use, useEffect, useState } from "react";
 
 interface PageProps {
   params: Promise<{ token: string }>;
@@ -72,44 +60,47 @@ function toDate(date: string) {
 }
 
 function formatDate(date: string) {
-  return new Intl.DateTimeFormat('es-ES', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
+  return new Intl.DateTimeFormat("es-ES", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   }).format(toDate(date));
 }
 
 function formatDayLabel(date: string) {
   const d = toDate(date);
-  const weekday = new Intl.DateTimeFormat('es-ES', { weekday: 'short' })
+  const weekday = new Intl.DateTimeFormat("es-ES", { weekday: "short" })
     .format(d)
-    .replace('.', '')
+    .replace(".", "")
     .toUpperCase();
   const dayNum = d.getDate();
-  const month = new Intl.DateTimeFormat('es-ES', { month: 'short' })
+  const month = new Intl.DateTimeFormat("es-ES", { month: "short" })
     .format(d)
-    .replace('.', '');
+    .replace(".", "");
   return { weekday, dayNum, month };
 }
 
 function formatWeekday(date: string) {
-  return new Intl.DateTimeFormat('es-ES', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
+  return new Intl.DateTimeFormat("es-ES", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
   }).format(toDate(date));
 }
 
 function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'EUR',
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
     maximumFractionDigits: 0,
   }).format(amount);
 }
 
 function tripDuration(startDate: string, endDate: string) {
-  const diff = Math.round((toDate(endDate).getTime() - toDate(startDate).getTime()) / 86_400_000) + 1;
+  const diff =
+    Math.round(
+      (toDate(endDate).getTime() - toDate(startDate).getTime()) / 86_400_000,
+    ) + 1;
   return Math.max(1, diff);
 }
 
@@ -120,8 +111,8 @@ function tripDates(startDate: string, endDate: string) {
 
   while (cursor <= end) {
     const year = cursor.getFullYear();
-    const month = String(cursor.getMonth() + 1).padStart(2, '0');
-    const day = String(cursor.getDate()).padStart(2, '0');
+    const month = String(cursor.getMonth() + 1).padStart(2, "0");
+    const day = String(cursor.getDate()).padStart(2, "0");
     dates.push(`${year}-${month}-${day}`);
     cursor.setDate(cursor.getDate() + 1);
   }
@@ -130,7 +121,7 @@ function tripDates(startDate: string, endDate: string) {
 }
 
 function extractAirportCode(locationStr?: string) {
-  if (!locationStr) return '---';
+  if (!locationStr) return "---";
   const match = locationStr.match(/\(([A-Z0-9]{3,4})\)/i);
   if (match) return match[1].toUpperCase();
   const trimmed = locationStr.trim();
@@ -138,11 +129,14 @@ function extractAirportCode(locationStr?: string) {
   return trimmed.slice(0, 3).toUpperCase();
 }
 
-function calculateLayoverDuration(arrivalTime?: string, departureTime?: string) {
-  if (!arrivalTime || !departureTime) return '';
-  const [arrH, arrM] = arrivalTime.split(':').map(Number);
-  const [depH, depM] = departureTime.split(':').map(Number);
-  if (isNaN(arrH) || isNaN(arrM) || isNaN(depH) || isNaN(depM)) return '';
+function calculateLayoverDuration(
+  arrivalTime?: string,
+  departureTime?: string,
+) {
+  if (!arrivalTime || !departureTime) return "";
+  const [arrH, arrM] = arrivalTime.split(":").map(Number);
+  const [depH, depM] = departureTime.split(":").map(Number);
+  if (isNaN(arrH) || isNaN(arrM) || isNaN(depH) || isNaN(depM)) return "";
 
   let arrTotal = arrH * 60 + arrM;
   let depTotal = depH * 60 + depM;
@@ -161,149 +155,169 @@ function calculateLayoverDuration(arrivalTime?: string, departureTime?: string) 
 }
 
 function getAirlineMeta(airlineName?: string, flightNumber?: string) {
-  const num = (flightNumber || '').toUpperCase().trim();
-  const name = (airlineName || '').toLowerCase();
+  const num = (flightNumber || "").toUpperCase().trim();
+  const name = (airlineName || "").toLowerCase();
 
-  let code = '';
-  let airlineOfficialName = airlineName || 'Vuelo Comercial';
-  let bgColor = 'bg-[#009688]';
-  let textColor = 'text-white';
-  let borderColor = 'border-[#009688]/40';
-  let logoText = 'FL';
+  let code = "";
+  let airlineOfficialName = airlineName || "Vuelo Comercial";
+  let bgColor = "bg-[#009688]";
+  let textColor = "text-white";
+  let borderColor = "border-[#009688]/40";
+  let logoText = "FL";
 
-  if (num.startsWith('FR') || name.includes('ryanair')) {
-    code = 'FR';
-    airlineOfficialName = 'Ryanair';
-    bgColor = 'bg-[#073590]';
-    textColor = 'text-[#f1c40f]';
-    borderColor = 'border-[#073590]/40';
-    logoText = 'FR';
-  } else if (num.startsWith('IB') || num.startsWith('I2') || name.includes('iberia')) {
-    code = 'IB';
-    airlineOfficialName = num.startsWith('I2') ? 'Iberia Express' : 'Iberia';
-    bgColor = 'bg-[#d71920]';
-    textColor = 'text-white';
-    borderColor = 'border-[#d71920]/40';
-    logoText = 'IB';
-  } else if (num.startsWith('VY') || name.includes('vueling')) {
-    code = 'VY';
-    airlineOfficialName = 'Vueling';
-    bgColor = 'bg-[#ffd200]';
-    textColor = 'text-[#101828]';
-    borderColor = 'border-[#ffd200]/50';
-    logoText = 'VY';
-  } else if (num.startsWith('UX') || name.includes('europa')) {
-    code = 'UX';
-    airlineOfficialName = 'Air Europa';
-    bgColor = 'bg-[#0073ce]';
-    textColor = 'text-white';
-    borderColor = 'border-[#0073ce]/40';
-    logoText = 'UX';
-  } else if (num.startsWith('LH') || name.includes('lufthansa')) {
-    code = 'LH';
-    airlineOfficialName = 'Lufthansa';
-    bgColor = 'bg-[#05164d]';
-    textColor = 'text-[#ffaa00]';
-    borderColor = 'border-[#05164d]/40';
-    logoText = 'LH';
-  } else if (num.startsWith('AF') || name.includes('air france')) {
-    code = 'AF';
-    airlineOfficialName = 'Air France';
-    bgColor = 'bg-[#002157]';
-    textColor = 'text-white';
-    borderColor = 'border-[#002157]/40';
-    logoText = 'AF';
-  } else if (num.startsWith('BA') || name.includes('british')) {
-    code = 'BA';
-    airlineOfficialName = 'British Airways';
-    bgColor = 'bg-[#075aaa]';
-    textColor = 'text-white';
-    borderColor = 'border-[#075aaa]/40';
-    logoText = 'BA';
-  } else if (num.startsWith('EK') || name.includes('emirates')) {
-    code = 'EK';
-    airlineOfficialName = 'Emirates';
-    bgColor = 'bg-[#d71920]';
-    textColor = 'text-white';
-    borderColor = 'border-[#d71920]/40';
-    logoText = 'EK';
-  } else if (num.startsWith('QR') || name.includes('qatar')) {
-    code = 'QR';
-    airlineOfficialName = 'Qatar Airways';
-    bgColor = 'bg-[#5c0632]';
-    textColor = 'text-white';
-    borderColor = 'border-[#5c0632]/40';
-    logoText = 'QR';
-  } else if (num.startsWith('KL') || name.includes('klm')) {
-    code = 'KL';
-    airlineOfficialName = 'KLM';
-    bgColor = 'bg-[#00a1de]';
-    textColor = 'text-white';
-    borderColor = 'border-[#00a1de]/40';
-    logoText = 'KL';
-  } else if (num.startsWith('EY') || name.includes('etihad')) {
-    code = 'EY';
-    airlineOfficialName = 'Etihad Airways';
-    bgColor = 'bg-[#b38b3f]';
-    textColor = 'text-white';
-    borderColor = 'border-[#b38b3f]/40';
-    logoText = 'EY';
-  } else if (num.startsWith('U2') || num.startsWith('EZY') || num.startsWith('EZS') || name.includes('easyjet')) {
-    code = 'U2';
-    airlineOfficialName = 'easyJet';
-    bgColor = 'bg-[#ff6600]';
-    textColor = 'text-white';
-    borderColor = 'border-[#ff6600]/40';
-    logoText = 'EZ';
-  } else if (num.startsWith('TK') || name.includes('turkish')) {
-    code = 'TK';
-    airlineOfficialName = 'Turkish Airlines';
-    bgColor = 'bg-[#e81932]';
-    textColor = 'text-white';
-    borderColor = 'border-[#e81932]/40';
-    logoText = 'TK';
-  } else if (num.startsWith('TP') || name.includes('tap')) {
-    code = 'TP';
-    airlineOfficialName = 'TAP Air Portugal';
-    bgColor = 'bg-[#009b48]';
-    textColor = 'text-white';
-    borderColor = 'border-[#009b48]/40';
-    logoText = 'TP';
-  } else if (num.startsWith('AZ') || num.startsWith('ITY') || name.includes('ita')) {
-    code = 'AZ';
-    airlineOfficialName = 'ITA Airways';
-    bgColor = 'bg-[#00387b]';
-    textColor = 'text-white';
-    borderColor = 'border-[#00387b]/40';
-    logoText = 'AZ';
-  } else if (name.includes('volotea') || num.startsWith('V7')) {
-    code = 'V7';
-    airlineOfficialName = airlineName || 'Volotea';
-    bgColor = 'bg-[#e5004c]';
-    textColor = 'text-white';
-    borderColor = 'border-[#e5004c]/40';
-    logoText = 'V7';
-  } else if (name.includes('wizz') || num.startsWith('W6') || num.startsWith('WZZ')) {
-    code = 'W6';
-    airlineOfficialName = airlineName || 'Wizz Air';
-    bgColor = 'bg-[#cb0081]';
-    textColor = 'text-white';
-    borderColor = 'border-[#cb0081]/40';
-    logoText = 'W6';
+  if (num.startsWith("FR") || name.includes("ryanair")) {
+    code = "FR";
+    airlineOfficialName = "Ryanair";
+    bgColor = "bg-[#073590]";
+    textColor = "text-[#f1c40f]";
+    borderColor = "border-[#073590]/40";
+    logoText = "FR";
+  } else if (
+    num.startsWith("IB") ||
+    num.startsWith("I2") ||
+    name.includes("iberia")
+  ) {
+    code = "IB";
+    airlineOfficialName = num.startsWith("I2") ? "Iberia Express" : "Iberia";
+    bgColor = "bg-[#d71920]";
+    textColor = "text-white";
+    borderColor = "border-[#d71920]/40";
+    logoText = "IB";
+  } else if (num.startsWith("VY") || name.includes("vueling")) {
+    code = "VY";
+    airlineOfficialName = "Vueling";
+    bgColor = "bg-[#ffd200]";
+    textColor = "text-[#101828]";
+    borderColor = "border-[#ffd200]/50";
+    logoText = "VY";
+  } else if (num.startsWith("UX") || name.includes("europa")) {
+    code = "UX";
+    airlineOfficialName = "Air Europa";
+    bgColor = "bg-[#0073ce]";
+    textColor = "text-white";
+    borderColor = "border-[#0073ce]/40";
+    logoText = "UX";
+  } else if (num.startsWith("LH") || name.includes("lufthansa")) {
+    code = "LH";
+    airlineOfficialName = "Lufthansa";
+    bgColor = "bg-[#05164d]";
+    textColor = "text-[#ffaa00]";
+    borderColor = "border-[#05164d]/40";
+    logoText = "LH";
+  } else if (num.startsWith("AF") || name.includes("air france")) {
+    code = "AF";
+    airlineOfficialName = "Air France";
+    bgColor = "bg-[#002157]";
+    textColor = "text-white";
+    borderColor = "border-[#002157]/40";
+    logoText = "AF";
+  } else if (num.startsWith("BA") || name.includes("british")) {
+    code = "BA";
+    airlineOfficialName = "British Airways";
+    bgColor = "bg-[#075aaa]";
+    textColor = "text-white";
+    borderColor = "border-[#075aaa]/40";
+    logoText = "BA";
+  } else if (num.startsWith("EK") || name.includes("emirates")) {
+    code = "EK";
+    airlineOfficialName = "Emirates";
+    bgColor = "bg-[#d71920]";
+    textColor = "text-white";
+    borderColor = "border-[#d71920]/40";
+    logoText = "EK";
+  } else if (num.startsWith("QR") || name.includes("qatar")) {
+    code = "QR";
+    airlineOfficialName = "Qatar Airways";
+    bgColor = "bg-[#5c0632]";
+    textColor = "text-white";
+    borderColor = "border-[#5c0632]/40";
+    logoText = "QR";
+  } else if (num.startsWith("KL") || name.includes("klm")) {
+    code = "KL";
+    airlineOfficialName = "KLM";
+    bgColor = "bg-[#00a1de]";
+    textColor = "text-white";
+    borderColor = "border-[#00a1de]/40";
+    logoText = "KL";
+  } else if (num.startsWith("EY") || name.includes("etihad")) {
+    code = "EY";
+    airlineOfficialName = "Etihad Airways";
+    bgColor = "bg-[#b38b3f]";
+    textColor = "text-white";
+    borderColor = "border-[#b38b3f]/40";
+    logoText = "EY";
+  } else if (
+    num.startsWith("U2") ||
+    num.startsWith("EZY") ||
+    num.startsWith("EZS") ||
+    name.includes("easyjet")
+  ) {
+    code = "U2";
+    airlineOfficialName = "easyJet";
+    bgColor = "bg-[#ff6600]";
+    textColor = "text-white";
+    borderColor = "border-[#ff6600]/40";
+    logoText = "EZ";
+  } else if (num.startsWith("TK") || name.includes("turkish")) {
+    code = "TK";
+    airlineOfficialName = "Turkish Airlines";
+    bgColor = "bg-[#e81932]";
+    textColor = "text-white";
+    borderColor = "border-[#e81932]/40";
+    logoText = "TK";
+  } else if (num.startsWith("TP") || name.includes("tap")) {
+    code = "TP";
+    airlineOfficialName = "TAP Air Portugal";
+    bgColor = "bg-[#009b48]";
+    textColor = "text-white";
+    borderColor = "border-[#009b48]/40";
+    logoText = "TP";
+  } else if (
+    num.startsWith("AZ") ||
+    num.startsWith("ITY") ||
+    name.includes("ita")
+  ) {
+    code = "AZ";
+    airlineOfficialName = "ITA Airways";
+    bgColor = "bg-[#00387b]";
+    textColor = "text-white";
+    borderColor = "border-[#00387b]/40";
+    logoText = "AZ";
+  } else if (name.includes("volotea") || num.startsWith("V7")) {
+    code = "V7";
+    airlineOfficialName = airlineName || "Volotea";
+    bgColor = "bg-[#e5004c]";
+    textColor = "text-white";
+    borderColor = "border-[#e5004c]/40";
+    logoText = "V7";
+  } else if (
+    name.includes("wizz") ||
+    num.startsWith("W6") ||
+    num.startsWith("WZZ")
+  ) {
+    code = "W6";
+    airlineOfficialName = airlineName || "Wizz Air";
+    bgColor = "bg-[#cb0081]";
+    textColor = "text-white";
+    borderColor = "border-[#cb0081]/40";
+    logoText = "W6";
   } else {
     const match = num.match(/^([A-Z0-9]{2})/);
-    code = match ? match[1] : '';
-    const cleanName = airlineName || 'Vuelo';
-    logoText = cleanName
-      .split(' ')
-      .map((w) => w[0])
-      .filter(Boolean)
-      .slice(0, 2)
-      .join('')
-      .toUpperCase() || (code ? code : 'FL');
+    code = match ? match[1] : "";
+    const cleanName = airlineName || "Vuelo";
+    logoText =
+      cleanName
+        .split(" ")
+        .map((w) => w[0])
+        .filter(Boolean)
+        .slice(0, 2)
+        .join("")
+        .toUpperCase() || (code ? code : "FL");
   }
 
-  const logoUrl = code ? `https://cdn.logitravel.com/webmobile/vuelos/images/logo_${code.toUpperCase()}.png` : null;
+  const logoUrl = code
+    ? `https://cdn.logitravel.com/webmobile/vuelos/images/logo_${code.toUpperCase()}.png`
+    : null;
 
   return {
     name: airlineOfficialName,
@@ -318,11 +332,12 @@ function getAirlineMeta(airlineName?: string, flightNumber?: string) {
 
 function PublicActivityIcon({ act }: { act: PublicActivity }) {
   const [imgError, setImgError] = useState(false);
-  const customUrl = typeof act.customIconUrl === 'string' ? act.customIconUrl.trim() : null;
-  const isHotel = act.type === 'hotel';
-  const isFood = act.type === 'food';
-  const isTransfer = act.type === 'transfer';
-  const isExcursion = act.type === 'excursion';
+  const customUrl =
+    typeof act.customIconUrl === "string" ? act.customIconUrl.trim() : null;
+  const isHotel = act.type === "hotel";
+  const isFood = act.type === "food";
+  const isTransfer = act.type === "transfer";
+  const isExcursion = act.type === "excursion";
 
   useEffect(() => {
     setImgError(false);
@@ -334,7 +349,7 @@ function PublicActivityIcon({ act }: { act: PublicActivity }) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={customUrl}
-          alt={String(act.type || 'actividad')}
+          alt={String(act.type || "actividad")}
           className="h-full w-full object-contain"
           onError={() => setImgError(true)}
         />
@@ -353,9 +368,11 @@ function PublicActivityIcon({ act }: { act: PublicActivity }) {
 }
 
 function hasActivityDetails(act: PublicActivity): boolean {
-  if (typeof act.description === 'string' && act.description.trim().length > 0) return true;
-  if (typeof act.notes === 'string' && act.notes.trim().length > 0) return true;
-  if (act.type === 'flight' && Array.isArray(act.legs) && act.legs.length > 1) return true;
+  if (typeof act.description === "string" && act.description.trim().length > 0)
+    return true;
+  if (typeof act.notes === "string" && act.notes.trim().length > 0) return true;
+  if (act.type === "flight" && Array.isArray(act.legs) && act.legs.length > 1)
+    return true;
   return false;
 }
 
@@ -369,11 +386,14 @@ function PublicActivityCardItem({
   onSelect: (act: PublicActivity) => void;
 }) {
   const [imgError, setImgError] = useState(false);
-  const customUrl = typeof act.customIconUrl === 'string' && act.customIconUrl.trim().length > 0 ? act.customIconUrl.trim() : null;
-  const isHotel = act.type === 'hotel';
-  const isFood = act.type === 'food';
-  const isTransfer = act.type === 'transfer';
-  const isExcursion = act.type === 'excursion';
+  const customUrl =
+    typeof act.customIconUrl === "string" && act.customIconUrl.trim().length > 0
+      ? act.customIconUrl.trim()
+      : null;
+  const isHotel = act.type === "hotel";
+  const isFood = act.type === "food";
+  const isTransfer = act.type === "transfer";
+  const isExcursion = act.type === "excursion";
   const isClickable = hasActivityDetails(act);
   const showFullImage = Boolean(customUrl && !imgError);
 
@@ -385,7 +405,9 @@ function PublicActivityCardItem({
     <div
       onClick={() => isClickable && onSelect(act)}
       className={`group relative flex flex-row items-stretch rounded-3xl border border-[#eaecf0] bg-white shadow-xs transition-all overflow-hidden min-h-[140px] sm:min-h-[155px] ${
-        isClickable ? 'cursor-pointer hover:border-[#009688] hover:shadow-md' : ''
+        isClickable
+          ? "cursor-pointer hover:border-[#009688] hover:shadow-md"
+          : ""
       }`}
     >
       {showFullImage ? (
@@ -393,7 +415,9 @@ function PublicActivityCardItem({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={customUrl!}
-            alt={String(act.title || act.hotelName || act.restaurantName || act.type)}
+            alt={String(
+              act.title || act.hotelName || act.restaurantName || act.type,
+            )}
             className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
             onError={() => setImgError(true)}
           />
@@ -405,7 +429,7 @@ function PublicActivityCardItem({
             {isFood && <UtensilsCrossed className="h-5 w-5" />}
             {isTransfer && <Car className="h-5 w-5" />}
             {isExcursion && <MapPin className="h-5 w-5" />}
-            {act.type === 'flight' && <Plane className="h-5 w-5" />}
+            {act.type === "flight" && <Plane className="h-5 w-5" />}
           </div>
         </div>
       )}
@@ -416,32 +440,34 @@ function PublicActivityCardItem({
           {isHotel && (
             <h3 className="text-sm sm:text-base font-extrabold text-[#101828] leading-tight">
               {act.isCheckout
-                ? `Check-out: ${(act.hotelName as string) || 'Alojamiento'}`
-                : (act.hotelName as string) || 'Hotel Resort & Spa'}
+                ? `Check-out: ${(act.hotelName as string) || "Alojamiento"}`
+                : (act.hotelName as string) || "Hotel Resort & Spa"}
             </h3>
           )}
 
           {isExcursion && (
             <h3 className="text-sm sm:text-base font-extrabold text-[#101828] leading-tight">
-              {(act.title as string) || 'Tour y Excursión'}
+              {(act.title as string) || "Tour y Excursión"}
             </h3>
           )}
 
           {isFood && (
             <h3 className="text-sm sm:text-base font-extrabold text-[#101828] leading-tight">
-              {(act.restaurantName as string) || 'Restaurante Exclusivo'}
+              {(act.restaurantName as string) || "Restaurante Exclusivo"}
             </h3>
           )}
 
           {isTransfer && (
             <h3 className="text-sm sm:text-base font-extrabold text-[#101828] leading-tight">
-              {(act.origin as string) || 'Origen'} → {(act.destination as string) || 'Destino'}
+              {(act.origin as string) || "Origen"} →{" "}
+              {(act.destination as string) || "Destino"}
             </h3>
           )}
 
-          {act.type === 'flight' && (
+          {act.type === "flight" && (
             <h3 className="text-sm sm:text-base font-extrabold text-[#101828] leading-tight">
-              {(act.airline as string) || 'Vuelo'} {act.flightNumber ? `(${act.flightNumber})` : ''}
+              {(act.airline as string) || "Vuelo"}{" "}
+              {act.flightNumber ? `(${act.flightNumber})` : ""}
             </h3>
           )}
 
@@ -450,15 +476,16 @@ function PublicActivityCardItem({
             <span
               className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                 act.isCheckout
-                  ? 'bg-rose-50 border border-rose-200 text-rose-700'
-                  : 'bg-[#f2f4f7] text-[#475467]'
+                  ? "bg-rose-50 border border-rose-200 text-rose-700"
+                  : "bg-[#f2f4f7] text-[#475467]"
               }`}
             >
-              {isHotel && (act.isCheckout ? 'Check-out Alojamiento' : 'Alojamiento')}
-              {isFood && 'Restaurante & Gastronomía'}
-              {isTransfer && 'Traslado Privado'}
-              {isExcursion && 'Actividad Guiada'}
-              {act.type === 'flight' && 'Vuelo'}
+              {isHotel &&
+                (act.isCheckout ? "Check-out Alojamiento" : "Alojamiento")}
+              {isFood && "Restaurante & Gastronomía"}
+              {isTransfer && "Traslado Privado"}
+              {isExcursion && "Actividad Guiada"}
+              {act.type === "flight" && "Vuelo"}
             </span>
             <span className="flex items-center gap-1 text-xs font-bold text-[#009688]">
               <Clock3 className="h-3.5 w-3.5" />
@@ -477,7 +504,8 @@ function PublicActivityCardItem({
               )}
               {act.isCheckout && (
                 <p className="text-[11px] text-rose-600 font-semibold mt-0.5">
-                  Salida de la estancia antes de las {String(act.checkOut || act.time || '11:00')}
+                  Salida de la estancia antes de las{" "}
+                  {String(act.checkOut || act.time || "11:00")}
                 </p>
               )}
             </div>
@@ -491,26 +519,31 @@ function PublicActivityCardItem({
 
           {isFood && (
             <p className="text-xs text-[#667085] mt-1">
-              {(act.mealType as string) || 'Comida'}
-              {act.description ? ` · ${act.description}` : ''}
+              {(act.mealType as string) || "Comida"}
+              {act.description ? ` · ${act.description}` : ""}
             </p>
           )}
 
           {isTransfer && (
             <p className="text-xs text-[#667085] mt-1">
-              {act.duration ? `${act.duration as string} · ` : ''}
-              {act.description ? String(act.description) : 'Traslado confirmado'}
+              {act.duration ? `${act.duration as string} · ` : ""}
+              {act.description
+                ? String(act.description)
+                : "Traslado confirmado"}
             </p>
           )}
         </div>
 
-        {(Boolean(trip.showExpenses && act.price && act.price > 0) || isClickable) && (
+        {(Boolean(trip.showExpenses && act.price && act.price > 0) ||
+          isClickable) && (
           <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-[#f2f4f7]">
             {trip.showExpenses && act.price && act.price > 0 ? (
               <span className="rounded-full bg-[#f8fafc] px-2.5 py-0.5 text-xs font-black text-[#101828] border border-[#eaecf0]">
                 {formatCurrency(act.price)}
               </span>
-            ) : <div />}
+            ) : (
+              <div />
+            )}
 
             {isClickable && (
               <div className="flex items-center gap-1 text-xs font-bold text-[#009688] group-hover:translate-x-1 transition-transform">
@@ -530,25 +563,38 @@ export default function PublicTripPage({ params }: PageProps) {
   const [data, setData] = useState<PublicTripResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'itinerario' | 'resumen' | 'notas'>('itinerario');
-  const [selectedActivity, setSelectedActivity] = useState<PublicActivity | null>(null);
+  const [activeTab, setActiveTab] = useState<
+    "itinerario" | "resumen" | "notas"
+  >("itinerario");
+  const [selectedActivity, setSelectedActivity] =
+    useState<PublicActivity | null>(null);
   const [copiedToast, setCopiedToast] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
     async function loadTrip() {
       try {
-        const response = await fetch(`/api/public/trips/${encodeURIComponent(token)}`, {
-          signal: controller.signal,
-        });
-        const payload = (await response.json()) as PublicTripResponse & { error?: string };
-        if (!response.ok) throw new Error(payload.error || 'No se ha podido abrir el itinerario');
+        const response = await fetch(
+          `/api/public/trips/${encodeURIComponent(token)}`,
+          {
+            signal: controller.signal,
+          },
+        );
+        const payload = (await response.json()) as PublicTripResponse & {
+          error?: string;
+        };
+        if (!response.ok)
+          throw new Error(
+            payload.error || "No se ha podido abrir el itinerario",
+          );
         setData(payload);
         if (payload.available) setSelectedDate(payload.trip.startDate);
       } catch (loadError) {
-        if ((loadError as Error).name !== 'AbortError') {
+        if ((loadError as Error).name !== "AbortError") {
           setError(
-            loadError instanceof Error ? loadError.message : 'No se ha podido abrir el itinerario'
+            loadError instanceof Error
+              ? loadError.message
+              : "No se ha podido abrir el itinerario",
           );
         }
       }
@@ -564,7 +610,9 @@ export default function PublicTripPage({ params }: PageProps) {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
             <LockKeyhole className="h-8 w-8" />
           </div>
-          <h1 className="mt-5 text-xl font-extrabold text-[#101828]">Enlace no disponible</h1>
+          <h1 className="mt-5 text-xl font-extrabold text-[#101828]">
+            Enlace no disponible
+          </h1>
           <p className="mt-2 text-xs leading-relaxed text-[#667085]">{error}</p>
           <a
             href="/"
@@ -598,9 +646,9 @@ export default function PublicTripPage({ params }: PageProps) {
   }
 
   if (!data.available) {
-    const availableAt = new Intl.DateTimeFormat('es-ES', {
-      dateStyle: 'full',
-      timeStyle: 'short',
+    const availableAt = new Intl.DateTimeFormat("es-ES", {
+      dateStyle: "full",
+      timeStyle: "short",
     }).format(new Date(data.availableAt));
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#090e1a] p-5 font-sans">
@@ -611,7 +659,9 @@ export default function PublicTripPage({ params }: PageProps) {
           <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-[#009688]">
             Aventura en preparación
           </p>
-          <h1 className="mt-2 text-2xl font-extrabold text-[#101828]">Itinerario por descubrir</h1>
+          <h1 className="mt-2 text-2xl font-extrabold text-[#101828]">
+            Itinerario por descubrir
+          </h1>
           <p className="mt-3 text-xs leading-relaxed text-[#667085]">
             El itinerario se desbloqueará el {availableAt}.
           </p>
@@ -622,16 +672,19 @@ export default function PublicTripPage({ params }: PageProps) {
 
   const { trip } = data;
   const dates = tripDates(trip.startDate, trip.endDate);
-  const activeDate = selectedDate && dates.includes(selectedDate) ? selectedDate : trip.startDate;
+  const activeDate =
+    selectedDate && dates.includes(selectedDate)
+      ? selectedDate
+      : trip.startDate;
   const getNextDateStr = (dateStr: string) => {
-    if (!dateStr || !dateStr.includes('-')) return dateStr;
-    const parts = dateStr.split('-').map(Number);
+    if (!dateStr || !dateStr.includes("-")) return dateStr;
+    const parts = dateStr.split("-").map(Number);
     if (parts.length !== 3 || parts.some(isNaN)) return dateStr;
     const [y, m, d] = parts;
     const nextDate = new Date(Date.UTC(y, m - 1, d + 1));
     const ny = nextDate.getUTCFullYear();
-    const nm = String(nextDate.getUTCMonth() + 1).padStart(2, '0');
-    const nd = String(nextDate.getUTCDate()).padStart(2, '0');
+    const nm = String(nextDate.getUTCMonth() + 1).padStart(2, "0");
+    const nd = String(nextDate.getUTCDate()).padStart(2, "0");
     return `${ny}-${nm}-${nd}`;
   };
 
@@ -639,15 +692,21 @@ export default function PublicTripPage({ params }: PageProps) {
 
   trip.activities.forEach((activity) => {
     // 1. Add primary activity to its scheduled date
-    activitiesByDate[activity.date] = [...(activitiesByDate[activity.date] || []), activity];
+    activitiesByDate[activity.date] = [
+      ...(activitiesByDate[activity.date] || []),
+      activity,
+    ];
 
     // 2. If hotel, also register check-out on departure day (strictly after check-in date)
-    if (activity.type === 'hotel') {
-      let checkoutDay = typeof activity.checkoutDate === 'string' ? activity.checkoutDate.trim() : '';
+    if (activity.type === "hotel") {
+      let checkoutDay =
+        typeof activity.checkoutDate === "string"
+          ? activity.checkoutDate.trim()
+          : "";
       if (!checkoutDay || checkoutDay === activity.date) {
         checkoutDay = getNextDateStr(activity.date);
       }
-      const checkoutTime = (activity.checkOut as string) || '11:00';
+      const checkoutTime = (activity.checkOut as string) || "11:00";
 
       if (checkoutDay && checkoutDay !== activity.date) {
         const checkoutAct: PublicActivity = {
@@ -659,28 +718,36 @@ export default function PublicTripPage({ params }: PageProps) {
           time: checkoutTime,
           price: 0, // avoid double expense calculation
         };
-        activitiesByDate[checkoutDay] = [...(activitiesByDate[checkoutDay] || []), checkoutAct];
+        activitiesByDate[checkoutDay] = [
+          ...(activitiesByDate[checkoutDay] || []),
+          checkoutAct,
+        ];
       }
     }
   });
 
   // Sort each day chronologically by time
   Object.keys(activitiesByDate).forEach((d) => {
-    activitiesByDate[d].sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+    activitiesByDate[d].sort((a, b) =>
+      (a.time || "").localeCompare(b.time || ""),
+    );
   });
 
   const activeActivities = activitiesByDate[activeDate] ?? [];
   const duration = tripDuration(trip.startDate, trip.endDate);
-  const totalExpenses = trip.activities.reduce((sum, a) => sum + (a.price || 0), 0);
+  const totalExpenses = trip.activities.reduce(
+    (sum, a) => sum + (a.price || 0),
+    0,
+  );
 
   const handleShare = async () => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     if (navigator.share) {
       try {
         await navigator.share({ title: trip.name, url: window.location.href });
       } catch (err) {
-        if (err instanceof Error && err.name === 'AbortError') {
+        if (err instanceof Error && err.name === "AbortError") {
           // User dismissed or canceled the share sheet — perfectly normal behavior
           return;
         }
@@ -724,7 +791,7 @@ export default function PublicTripPage({ params }: PageProps) {
           <img
             src={
               trip.imageUrl ||
-              'https://images.unsplash.com/photo-1512815046276-89d511254976?auto=format&fit=crop&w=1600&q=80'
+              "https://images.unsplash.com/photo-1512815046276-89d511254976?auto=format&fit=crop&w=1600&q=80"
             }
             alt={trip.name}
             className="h-full w-full object-cover"
@@ -735,13 +802,17 @@ export default function PublicTripPage({ params }: PageProps) {
         {/* Top Floating Glass Bar inside Hero */}
         <div className="absolute top-0 inset-x-0 z-20 mx-auto max-w-7xl px-4 sm:px-8 pt-5 sm:pt-6 flex items-center justify-between">
           {/* Left: White Logo */}
-          <Link href="/" className="flex items-center group transition-transform hover:scale-105">
+          <Link
+            href="/"
+            className="flex items-center group transition-transform hover:scale-105"
+            aria-label="Inicio"
+          >
             <Image
               src="/wanderlust_horizontal_blanco.png"
               alt="Wanderlust"
               width={180}
               height={45}
-              style={{ width: 'auto', height: 'auto' }}
+              style={{ width: "auto", height: "auto" }}
               className="h-8 sm:h-10 w-auto object-contain drop-shadow-md"
               priority
             />
@@ -795,9 +866,9 @@ export default function PublicTripPage({ params }: PageProps) {
         <div className="w-full overflow-x-auto pb-1 [scrollbar-width:none]">
           <div className="inline-flex items-center gap-1 rounded-full bg-[#f4f4f5] p-1 border border-[#e4e4e7]/70 shadow-2xs">
             {[
-              { id: 'itinerario', label: 'Itinerario' },
-              { id: 'resumen', label: 'Resumen de servicios' },
-              { id: 'notas', label: 'Notas' },
+              { id: "itinerario", label: "Itinerario" },
+              { id: "resumen", label: "Resumen de servicios" },
+              { id: "notas", label: "Notas" },
             ].map((tab) => {
               const isSelected = activeTab === tab.id;
               return (
@@ -807,8 +878,8 @@ export default function PublicTripPage({ params }: PageProps) {
                   onClick={() => setActiveTab(tab.id as typeof activeTab)}
                   className={`rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap select-none ${
                     isSelected
-                      ? 'bg-white text-[#18181b] shadow-sm font-bold'
-                      : 'text-[#71717a] hover:text-[#18181b] hover:bg-black/[0.02]'
+                      ? "bg-white text-[#18181b] shadow-sm font-bold"
+                      : "text-[#71717a] hover:text-[#18181b] hover:bg-black/[0.02]"
                   }`}
                 >
                   {tab.label}
@@ -834,21 +905,23 @@ export default function PublicTripPage({ params }: PageProps) {
                 onClick={() => setSelectedDate(dateStr)}
                 className={`group flex shrink-0 flex-col items-center justify-center min-w-[62px] sm:min-w-[72px] py-3 sm:py-3.5 px-3.5 sm:px-4 rounded-2xl transition-all duration-200 cursor-pointer ${
                   isSelected
-                    ? 'bg-[#009688] text-white shadow-lg shadow-[#009688]/30 scale-105 ring-2 ring-[#009688]/20'
-                    : 'bg-white text-[#475467] border border-[#eaecf0] shadow-xs hover:border-[#009688]/50 hover:bg-slate-50'
+                    ? "bg-[#009688] text-white shadow-lg shadow-[#009688]/30 scale-105 ring-2 ring-[#009688]/20"
+                    : "bg-white text-[#475467] border border-[#eaecf0] shadow-xs hover:border-[#009688]/50 hover:bg-slate-50"
                 }`}
                 title={`${weekday} ${dayNum}`}
               >
                 <span
                   className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider ${
-                    isSelected ? 'text-white/90' : 'text-[#667085] group-hover:text-[#101828]'
+                    isSelected
+                      ? "text-white/90"
+                      : "text-[#667085] group-hover:text-[#101828]"
                   }`}
                 >
                   {weekday}
                 </span>
                 <span
                   className={`text-lg sm:text-xl font-black leading-tight mt-0.5 ${
-                    isSelected ? 'text-white' : 'text-[#101828]'
+                    isSelected ? "text-white" : "text-[#101828]"
                   }`}
                 >
                   {dayNum}
@@ -863,7 +936,7 @@ export default function PublicTripPage({ params }: PageProps) {
       {/* 4. MAIN CONTENT: 2-COLUMN RESPONSIVE LAYOUT                 */}
       {/* ----------------------------------------------------------- */}
       <main className="mx-auto max-w-7xl px-4 sm:px-8 py-5">
-        {activeTab === 'itinerario' && (
+        {activeTab === "itinerario" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* ------------------------------------------------------- */}
             {/* MAIN ACTIVITIES TIMELINE COLUMN (Order 1 on mobile, Cols 8 on desktop) */}
@@ -875,22 +948,28 @@ export default function PublicTripPage({ params }: PageProps) {
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688] shadow-sm">
                     <CalendarDays className="h-6 w-6" />
                   </div>
-                  <h3 className="mt-3 text-base font-extrabold text-[#101828]">Día libre para relajarse</h3>
+                  <h3 className="mt-3 text-base font-extrabold text-[#101828]">
+                    Día libre para relajarse
+                  </h3>
                   <p className="mt-1 max-w-sm text-xs text-[#667085] leading-relaxed">
-                    No hay traslados ni horarios programados para esta jornada. Aprovecha para explorar el destino o descansar en el hotel.
+                    No hay traslados ni horarios programados para esta jornada.
+                    Aprovecha para explorar el destino o descansar en el hotel.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {activeActivities.map((act) => {
-                    const isFlight = act.type === 'flight';
-                    const isHotel = act.type === 'hotel';
-                    const isFood = act.type === 'food';
-                    const isTransfer = act.type === 'transfer';
-                    const isExcursion = act.type === 'excursion';
+                    const isFlight = act.type === "flight";
+                    const isHotel = act.type === "hotel";
+                    const isFood = act.type === "food";
+                    const isTransfer = act.type === "transfer";
+                    const isExcursion = act.type === "excursion";
 
                     const airlineMeta = isFlight
-                      ? getAirlineMeta(act.airline as string, act.flightNumber as string)
+                      ? getAirlineMeta(
+                          act.airline as string,
+                          act.flightNumber as string,
+                        )
                       : null;
                     const legs = Array.isArray(act.legs) ? act.legs : [];
                     const hasScales = legs.length > 1;
@@ -902,7 +981,8 @@ export default function PublicTripPage({ params }: PageProps) {
                             {legs.map((leg: any, lIdx: number) => {
                               const legAirlineMeta = getAirlineMeta(
                                 leg.airline || (act.airline as string),
-                                leg.flightNumber || (act.flightNumber as string)
+                                leg.flightNumber ||
+                                  (act.flightNumber as string),
                               );
                               const nextLeg = legs[lIdx + 1];
 
@@ -910,9 +990,14 @@ export default function PublicTripPage({ params }: PageProps) {
                                 <div key={lIdx} className="space-y-3">
                                   {/* Individual Card for this flight leg */}
                                   <div
-                                    onClick={() => hasActivityDetails(act) && setSelectedActivity(act)}
+                                    onClick={() =>
+                                      hasActivityDetails(act) &&
+                                      setSelectedActivity(act)
+                                    }
                                     className={`group relative flex flex-col gap-3.5 rounded-3xl border border-[#eaecf0] bg-white p-4 sm:p-5 shadow-xs transition-all ${
-                                      hasActivityDetails(act) ? 'cursor-pointer hover:border-[#009688] hover:shadow-md' : ''
+                                      hasActivityDetails(act)
+                                        ? "cursor-pointer hover:border-[#009688] hover:shadow-md"
+                                        : ""
                                     }`}
                                   >
                                     <div className="w-full space-y-3.5">
@@ -930,16 +1015,20 @@ export default function PublicTripPage({ params }: PageProps) {
                                                 alt={legAirlineMeta.name}
                                                 className="h-full w-full object-contain"
                                                 onError={(e) => {
-                                                  const target = e.currentTarget;
-                                                  target.style.display = 'none';
+                                                  const target =
+                                                    e.currentTarget;
+                                                  target.style.display = "none";
                                                   if (target.parentElement) {
                                                     target.parentElement.className = `flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-full font-black text-xs sm:text-sm tracking-tight shadow-xs border ${legAirlineMeta.bgColor} ${legAirlineMeta.textColor} ${legAirlineMeta.borderColor}`;
-                                                    target.parentElement.innerText = legAirlineMeta.logoText;
+                                                    target.parentElement.innerText =
+                                                      legAirlineMeta.logoText;
                                                   }
                                                 }}
                                               />
                                             ) : (
-                                              <div className={`flex h-full w-full items-center justify-center rounded-full font-black text-xs ${legAirlineMeta.bgColor} ${legAirlineMeta.textColor}`}>
+                                              <div
+                                                className={`flex h-full w-full items-center justify-center rounded-full font-black text-xs ${legAirlineMeta.bgColor} ${legAirlineMeta.textColor}`}
+                                              >
                                                 {legAirlineMeta.logoText}
                                               </div>
                                             )}
@@ -952,8 +1041,8 @@ export default function PublicTripPage({ params }: PageProps) {
                                               {leg.flightNumber
                                                 ? `Vuelo ${leg.flightNumber}`
                                                 : act.flightNumber
-                                                ? `Vuelo ${act.flightNumber}`
-                                                : 'Vuelo regular'}
+                                                  ? `Vuelo ${act.flightNumber}`
+                                                  : "Vuelo regular"}
                                             </p>
                                           </div>
                                         </div>
@@ -961,14 +1050,19 @@ export default function PublicTripPage({ params }: PageProps) {
                                         <div className="flex items-center gap-2">
                                           <span className="rounded-full bg-[#f0fdf4] border border-[#dcfce7] px-3 py-1 text-[11px] font-bold text-[#15803d] flex items-center gap-1.5 shadow-2xs">
                                             <span className="h-1.5 w-1.5 rounded-full bg-[#16a34a]" />
-                                            <span>Tramo {lIdx + 1} de {legs.length}</span>
+                                            <span>
+                                              Tramo {lIdx + 1} de {legs.length}
+                                            </span>
                                           </span>
 
-                                          {lIdx === 0 && trip.showExpenses && act.price && act.price > 0 && (
-                                            <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-black text-[#101828] border border-[#eaecf0]">
-                                              {formatCurrency(act.price)}
-                                            </span>
-                                          )}
+                                          {lIdx === 0 &&
+                                            trip.showExpenses &&
+                                            act.price &&
+                                            act.price > 0 && (
+                                              <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-black text-[#101828] border border-[#eaecf0]">
+                                                {formatCurrency(act.price)}
+                                              </span>
+                                            )}
                                         </div>
                                       </div>
 
@@ -976,7 +1070,7 @@ export default function PublicTripPage({ params }: PageProps) {
                                       <div className="py-2 flex items-center justify-between gap-3 sm:gap-6">
                                         <div className="flex-1 min-w-0 text-left">
                                           <p className="text-xs font-semibold text-[#667085] truncate">
-                                            {leg.origin || 'Origen'}
+                                            {leg.origin || "Origen"}
                                           </p>
                                           <p className="text-xl sm:text-2xl font-black text-[#101828] tracking-tight mt-0.5">
                                             {extractAirportCode(leg.origin)}
@@ -1000,13 +1094,15 @@ export default function PublicTripPage({ params }: PageProps) {
 
                                         <div className="flex-1 min-w-0 text-right">
                                           <p className="text-xs font-semibold text-[#667085] truncate">
-                                            {leg.destination || 'Destino'}
+                                            {leg.destination || "Destino"}
                                           </p>
                                           <p className="text-xl sm:text-2xl font-black text-[#101828] tracking-tight mt-0.5">
-                                            {extractAirportCode(leg.destination)}
+                                            {extractAirportCode(
+                                              leg.destination,
+                                            )}
                                           </p>
                                           <p className="text-xs sm:text-sm font-extrabold text-[#009688] mt-0.5">
-                                            {leg.arrivalTime || '—'}
+                                            {leg.arrivalTime || "—"}
                                           </p>
                                         </div>
                                       </div>
@@ -1027,19 +1123,26 @@ export default function PublicTripPage({ params }: PageProps) {
                                     <div className="flex items-center justify-center my-2 relative py-3">
                                       <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0 border-l-2 border-dashed border-[#ea580c]/60" />
                                       {(() => {
-                                        const layoverTime = calculateLayoverDuration(
-                                          leg.arrivalTime,
-                                          nextLeg.departureTime
-                                        );
+                                        const layoverTime =
+                                          calculateLayoverDuration(
+                                            leg.arrivalTime,
+                                            nextLeg.departureTime,
+                                          );
                                         return (
                                           <div className="relative z-10 rounded-full bg-[#fff7ed] border border-[#ffedd5] px-4 py-1.5 text-xs font-bold text-[#c2410c] shadow-xs flex items-center gap-2">
                                             <Clock3 className="h-3.5 w-3.5 text-[#ea580c]" />
                                             <span>
-                                              Escala en{' '}
-                                              {extractAirportCode(leg.destination) !== '---'
-                                                ? extractAirportCode(leg.destination)
+                                              Escala en{" "}
+                                              {extractAirportCode(
+                                                leg.destination,
+                                              ) !== "---"
+                                                ? extractAirportCode(
+                                                    leg.destination,
+                                                  )
                                                 : leg.destination}
-                                              {layoverTime ? ` · ${layoverTime}` : ''}
+                                              {layoverTime
+                                                ? ` · ${layoverTime}`
+                                                : ""}
                                             </span>
                                           </div>
                                         );
@@ -1057,9 +1160,13 @@ export default function PublicTripPage({ params }: PageProps) {
                       return (
                         <div
                           key={act.id}
-                          onClick={() => hasActivityDetails(act) && setSelectedActivity(act)}
+                          onClick={() =>
+                            hasActivityDetails(act) && setSelectedActivity(act)
+                          }
                           className={`group relative flex flex-col gap-3.5 rounded-3xl border border-[#eaecf0] bg-white p-4 sm:p-5 shadow-xs transition-all ${
-                            hasActivityDetails(act) ? 'cursor-pointer hover:border-[#009688] hover:shadow-md' : ''
+                            hasActivityDetails(act)
+                              ? "cursor-pointer hover:border-[#009688] hover:shadow-md"
+                              : ""
                           }`}
                         >
                           <div className="w-full space-y-3.5">
@@ -1069,23 +1176,32 @@ export default function PublicTripPage({ params }: PageProps) {
                                   className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white p-1.5 border border-[#eaecf0] shadow-2xs overflow-hidden"
                                   title={airlineMeta.name}
                                 >
-                                  {Boolean((act.customIconUrl as string) || airlineMeta.logoUrl) ? (
+                                  {Boolean(
+                                    (act.customIconUrl as string) ||
+                                    airlineMeta.logoUrl,
+                                  ) ? (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img
-                                      src={((act.customIconUrl as string)?.trim()) || airlineMeta.logoUrl!}
+                                      src={
+                                        (act.customIconUrl as string)?.trim() ||
+                                        airlineMeta.logoUrl!
+                                      }
                                       alt={airlineMeta.name}
                                       className="h-full w-full object-contain"
                                       onError={(e) => {
                                         const target = e.currentTarget;
-                                        target.style.display = 'none';
+                                        target.style.display = "none";
                                         if (target.parentElement) {
                                           target.parentElement.className = `flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl font-black text-xs sm:text-sm tracking-tight shadow-xs border ${airlineMeta.bgColor} ${airlineMeta.textColor} ${airlineMeta.borderColor}`;
-                                          target.parentElement.innerText = airlineMeta.logoText;
+                                          target.parentElement.innerText =
+                                            airlineMeta.logoText;
                                         }
                                       }}
                                     />
                                   ) : (
-                                    <div className={`flex h-full w-full items-center justify-center rounded-2xl font-black text-xs ${airlineMeta.bgColor} ${airlineMeta.textColor}`}>
+                                    <div
+                                      className={`flex h-full w-full items-center justify-center rounded-2xl font-black text-xs ${airlineMeta.bgColor} ${airlineMeta.textColor}`}
+                                    >
                                       {airlineMeta.logoText}
                                     </div>
                                   )}
@@ -1095,7 +1211,9 @@ export default function PublicTripPage({ params }: PageProps) {
                                     {airlineMeta.name}
                                   </span>
                                   <p className="text-[11px] font-bold text-[#475467] mt-0.5">
-                                    {act.flightNumber ? `Vuelo ${act.flightNumber}` : 'Vuelo regular'}
+                                    {act.flightNumber
+                                      ? `Vuelo ${act.flightNumber}`
+                                      : "Vuelo regular"}
                                   </p>
                                 </div>
                               </div>
@@ -1104,18 +1222,20 @@ export default function PublicTripPage({ params }: PageProps) {
                                   <span className="h-1.5 w-1.5 rounded-full bg-[#16a34a]" />
                                   <span>Directo (Non-Stop)</span>
                                 </span>
-                                {trip.showExpenses && act.price && act.price > 0 && (
-                                  <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-black text-[#101828] border border-[#eaecf0]">
-                                    {formatCurrency(act.price)}
-                                  </span>
-                                )}
+                                {trip.showExpenses &&
+                                  act.price &&
+                                  act.price > 0 && (
+                                    <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-black text-[#101828] border border-[#eaecf0]">
+                                      {formatCurrency(act.price)}
+                                    </span>
+                                  )}
                               </div>
                             </div>
 
                             <div className="py-2 flex items-center justify-between gap-3 sm:gap-6">
                               <div className="flex-1 min-w-0 text-left">
                                 <p className="text-xs font-semibold text-[#667085] truncate">
-                                  {(act.origin as string) || 'Origen'}
+                                  {(act.origin as string) || "Origen"}
                                 </p>
                                 <p className="text-xl sm:text-2xl font-black text-[#101828] tracking-tight mt-0.5">
                                   {extractAirportCode(act.origin as string)}
@@ -1137,13 +1257,15 @@ export default function PublicTripPage({ params }: PageProps) {
                               </div>
                               <div className="flex-1 min-w-0 text-right">
                                 <p className="text-xs font-semibold text-[#667085] truncate">
-                                  {(act.destination as string) || 'Destino'}
+                                  {(act.destination as string) || "Destino"}
                                 </p>
                                 <p className="text-xl sm:text-2xl font-black text-[#101828] tracking-tight mt-0.5">
-                                  {extractAirportCode(act.destination as string)}
+                                  {extractAirportCode(
+                                    act.destination as string,
+                                  )}
                                 </p>
                                 <p className="text-xs sm:text-sm font-extrabold text-[#009688] mt-0.5">
-                                  {(act.arrivalTime as string) || '—'}
+                                  {(act.arrivalTime as string) || "—"}
                                 </p>
                               </div>
                             </div>
@@ -1188,9 +1310,11 @@ export default function PublicTripPage({ params }: PageProps) {
                 </h3>
                 <p className="text-xs text-[#667085]">
                   {activeActivities.length === 0
-                    ? 'Jornada libre para descansar o explorar a tu propio ritmo.'
+                    ? "Jornada libre para descansar o explorar a tu propio ritmo."
                     : `${activeActivities.length} ${
-                        activeActivities.length === 1 ? 'servicio programado' : 'servicios programados'
+                        activeActivities.length === 1
+                          ? "servicio programado"
+                          : "servicios programados"
                       } para este día.`}
                 </p>
               </div>
@@ -1204,7 +1328,8 @@ export default function PublicTripPage({ params }: PageProps) {
                   </h4>
                 </div>
                 <p className="text-xs text-[#475467] leading-relaxed">
-                  Todos los traslados, hoteles y actividades cuentan con seguro de viaje y soporte directo durante toda tu estancia.
+                  Todos los traslados, hoteles y actividades cuentan con seguro
+                  de viaje y soporte directo durante toda tu estancia.
                 </p>
                 <div className="pt-2 border-t border-[#ccfbf1]/60 flex items-center justify-between text-xs text-[#00796b] font-bold">
                   <span>Asistencia 24/7 en ruta</span>
@@ -1218,7 +1343,7 @@ export default function PublicTripPage({ params }: PageProps) {
         {/* ----------------------------------------------------------- */}
         {/* TAB 2: RESUMEN DE SERVICIOS                                 */}
         {/* ----------------------------------------------------------- */}
-        {activeTab === 'resumen' && (
+        {activeTab === "resumen" && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs text-center">
@@ -1226,9 +1351,11 @@ export default function PublicTripPage({ params }: PageProps) {
                   <Plane className="h-6 w-6" />
                 </div>
                 <p className="text-3xl font-black text-[#101828]">
-                  {trip.activities.filter((a) => a.type === 'flight').length}
+                  {trip.activities.filter((a) => a.type === "flight").length}
                 </p>
-                <p className="text-xs font-bold text-[#667085] mt-1">Vuelos confirmados</p>
+                <p className="text-xs font-bold text-[#667085] mt-1">
+                  Vuelos confirmados
+                </p>
               </div>
 
               <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs text-center">
@@ -1236,9 +1363,11 @@ export default function PublicTripPage({ params }: PageProps) {
                   <Bed className="h-6 w-6" />
                 </div>
                 <p className="text-3xl font-black text-[#101828]">
-                  {trip.activities.filter((a) => a.type === 'hotel').length}
+                  {trip.activities.filter((a) => a.type === "hotel").length}
                 </p>
-                <p className="text-xs font-bold text-[#667085] mt-1">Noches de hotel</p>
+                <p className="text-xs font-bold text-[#667085] mt-1">
+                  Noches de hotel
+                </p>
               </div>
 
               <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs text-center">
@@ -1246,9 +1375,11 @@ export default function PublicTripPage({ params }: PageProps) {
                   <MapPin className="h-6 w-6" />
                 </div>
                 <p className="text-3xl font-black text-[#101828]">
-                  {trip.activities.filter((a) => a.type === 'excursion').length}
+                  {trip.activities.filter((a) => a.type === "excursion").length}
                 </p>
-                <p className="text-xs font-bold text-[#667085] mt-1">Excursiones y tours</p>
+                <p className="text-xs font-bold text-[#667085] mt-1">
+                  Excursiones y tours
+                </p>
               </div>
 
               <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs text-center">
@@ -1256,9 +1387,11 @@ export default function PublicTripPage({ params }: PageProps) {
                   <Car className="h-6 w-6" />
                 </div>
                 <p className="text-3xl font-black text-[#101828]">
-                  {trip.activities.filter((a) => a.type === 'transfer').length}
+                  {trip.activities.filter((a) => a.type === "transfer").length}
                 </p>
-                <p className="text-xs font-bold text-[#667085] mt-1">Traslados privados</p>
+                <p className="text-xs font-bold text-[#667085] mt-1">
+                  Traslados privados
+                </p>
               </div>
             </div>
 
@@ -1269,7 +1402,7 @@ export default function PublicTripPage({ params }: PageProps) {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {trip.activities
-                  .filter((a) => a.type === 'hotel')
+                  .filter((a) => a.type === "hotel")
                   .map((hotelAct, i) => (
                     <div
                       key={i}
@@ -1277,7 +1410,7 @@ export default function PublicTripPage({ params }: PageProps) {
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-extrabold text-[#101828] text-sm">
-                          {(hotelAct.hotelName as string) || 'Hotel'}
+                          {(hotelAct.hotelName as string) || "Hotel"}
                         </span>
                         <span className="rounded-full bg-[#e0f2f1] px-2.5 py-0.5 text-[10px] font-bold text-[#009688]">
                           {hotelAct.date}
@@ -1285,7 +1418,9 @@ export default function PublicTripPage({ params }: PageProps) {
                       </div>
                       <p className="text-xs text-[#667085] flex items-center gap-1.5">
                         <MapPin className="h-3.5 w-3.5 text-[#009688]" />
-                        <span>{(hotelAct.address as string) || 'Dirección'}</span>
+                        <span>
+                          {(hotelAct.address as string) || "Dirección"}
+                        </span>
                       </p>
                     </div>
                   ))}
@@ -1297,7 +1432,7 @@ export default function PublicTripPage({ params }: PageProps) {
         {/* ----------------------------------------------------------- */}
         {/* TAB 3: NOTAS DEL VIAJE                                      */}
         {/* ----------------------------------------------------------- */}
-        {activeTab === 'notas' && (
+        {activeTab === "notas" && (
           <div className="space-y-6">
             {/* Trip Notes / Description Card */}
             {trip.description && (
@@ -1307,8 +1442,12 @@ export default function PublicTripPage({ params }: PageProps) {
                     <FileText className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-extrabold text-[#101828]">Notas generales del viaje</h3>
-                    <p className="text-xs text-[#667085]">Información clave y recomendaciones</p>
+                    <h3 className="text-base font-extrabold text-[#101828]">
+                      Notas generales del viaje
+                    </h3>
+                    <p className="text-xs text-[#667085]">
+                      Información clave y recomendaciones
+                    </p>
                   </div>
                 </div>
                 <p className="whitespace-pre-line text-sm leading-relaxed text-[#344054] pt-2 border-t border-[#f2f4f7]">
@@ -1324,18 +1463,30 @@ export default function PublicTripPage({ params }: PageProps) {
                     <PhoneCall className="h-6 w-6" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-extrabold text-[#101828]">Atención y Soporte</h4>
-                    <p className="text-xs text-[#667085]">Contacto durante el viaje</p>
+                    <h4 className="text-sm font-extrabold text-[#101828]">
+                      Atención y Soporte
+                    </h4>
+                    <p className="text-xs text-[#667085]">
+                      Contacto durante el viaje
+                    </p>
                   </div>
                 </div>
                 <div className="rounded-2xl bg-[#f8fafc] p-4 border border-[#eaecf0] space-y-2 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-[#667085]">Teléfono internacional:</span>
-                    <span className="font-bold text-[#101828]">+34 91 123 4567</span>
+                    <span className="text-[#667085]">
+                      Teléfono internacional:
+                    </span>
+                    <span className="font-bold text-[#101828]">
+                      +34 91 123 4567
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#667085]">WhatsApp de asistencia:</span>
-                    <span className="font-bold text-[#009688]">+34 600 000 000</span>
+                    <span className="text-[#667085]">
+                      WhatsApp de asistencia:
+                    </span>
+                    <span className="font-bold text-[#009688]">
+                      +34 600 000 000
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1346,12 +1497,17 @@ export default function PublicTripPage({ params }: PageProps) {
                     <ShieldCheck className="h-6 w-6" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-extrabold text-[#101828]">Póliza y Coberturas</h4>
-                    <p className="text-xs text-[#667085]">Cobertura médica y cancelaciones</p>
+                    <h4 className="text-sm font-extrabold text-[#101828]">
+                      Póliza y Coberturas
+                    </h4>
+                    <p className="text-xs text-[#667085]">
+                      Cobertura médica y cancelaciones
+                    </p>
                   </div>
                 </div>
                 <p className="text-xs text-[#475467] leading-relaxed">
-                  Tu viaje cuenta con póliza multiasistencia contratada que cubre incidencias médicas, equipajes y traslados sanitarios.
+                  Tu viaje cuenta con póliza multiasistencia contratada que
+                  cubre incidencias médicas, equipajes y traslados sanitarios.
                 </p>
               </div>
             </div>
@@ -1377,7 +1533,7 @@ export default function PublicTripPage({ params }: PageProps) {
                       (selectedActivity.hotelName as string) ||
                       (selectedActivity.airline as string) ||
                       (selectedActivity.restaurantName as string) ||
-                      'Servicio del Itinerario'}
+                      "Servicio del Itinerario"}
                   </h3>
                 </div>
               </div>
@@ -1390,66 +1546,93 @@ export default function PublicTripPage({ params }: PageProps) {
             </div>
 
             <div className="mt-5 space-y-3.5 text-xs text-[#475467]">
-              {selectedActivity.type === 'flight' && (
+              {selectedActivity.type === "flight" && (
                 <div className="rounded-2xl bg-[#f0fdfa] p-4 border border-[#ccfbf1] space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase tracking-wider text-[#009688]">
                       Itinerario de vuelo
                     </span>
                     <span className="font-extrabold text-[#101828]">
-                      {(selectedActivity.airline as string) || 'Aerolínea'} · {(selectedActivity.flightNumber as string) || 'Vuelo'}
+                      {(selectedActivity.airline as string) || "Aerolínea"} ·{" "}
+                      {(selectedActivity.flightNumber as string) || "Vuelo"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm font-bold text-[#101828]">
                     <div>
                       <p className="text-xs text-[#667085]">Salida</p>
-                      <p className="font-extrabold text-base">{(selectedActivity.origin as string) || 'Origen'}</p>
-                      <p className="text-xs text-[#009688]">{selectedActivity.time}</p>
+                      <p className="font-extrabold text-base">
+                        {(selectedActivity.origin as string) || "Origen"}
+                      </p>
+                      <p className="text-xs text-[#009688]">
+                        {selectedActivity.time}
+                      </p>
                     </div>
                     <div className="flex flex-col items-center px-4">
                       <Plane className="h-4 w-4 text-[#009688] rotate-90" />
                       <span className="text-[10px] text-[#667085] mt-1">
-                        {Array.isArray(selectedActivity.legs) && selectedActivity.legs.length > 1
+                        {Array.isArray(selectedActivity.legs) &&
+                        selectedActivity.legs.length > 1
                           ? `${selectedActivity.legs.length - 1} escala`
-                          : 'Directo'}
+                          : "Directo"}
                       </span>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-[#667085]">Llegada</p>
-                      <p className="font-extrabold text-base">{(selectedActivity.destination as string) || 'Destino'}</p>
-                      <p className="text-xs text-[#009688]">{(selectedActivity.arrivalTime as string) || '—'}</p>
+                      <p className="font-extrabold text-base">
+                        {(selectedActivity.destination as string) || "Destino"}
+                      </p>
+                      <p className="text-xs text-[#009688]">
+                        {(selectedActivity.arrivalTime as string) || "—"}
+                      </p>
                     </div>
                   </div>
 
-                  {Array.isArray(selectedActivity.legs) && selectedActivity.legs.length > 1 && (
-                    <div className="pt-2 border-t border-[#ccfbf1] space-y-2">
-                      <p className="text-[10px] font-bold uppercase text-[#009688]">Escalas programadas:</p>
-                      {selectedActivity.legs.map((leg: any, idx: number) => (
-                        <div key={idx} className="flex justify-between items-center text-[11px] bg-white p-2 rounded-xl border border-[#ccfbf1]/60">
-                          <span className="font-bold">{leg.origin} → {leg.destination}</span>
-                          <span className="text-[#009688] font-semibold">{leg.departureTime} - {leg.arrivalTime} ({leg.flightNumber})</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {Array.isArray(selectedActivity.legs) &&
+                    selectedActivity.legs.length > 1 && (
+                      <div className="pt-2 border-t border-[#ccfbf1] space-y-2">
+                        <p className="text-[10px] font-bold uppercase text-[#009688]">
+                          Escalas programadas:
+                        </p>
+                        {selectedActivity.legs.map((leg: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className="flex justify-between items-center text-[11px] bg-white p-2 rounded-xl border border-[#ccfbf1]/60"
+                          >
+                            <span className="font-bold">
+                              {leg.origin} → {leg.destination}
+                            </span>
+                            <span className="text-[#009688] font-semibold">
+                              {leg.departureTime} - {leg.arrivalTime} (
+                              {leg.flightNumber})
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                 </div>
               )}
 
               <div className="flex items-center justify-between rounded-2xl bg-[#f8fafc] p-3.5 border border-[#eaecf0]">
-                <span className="font-semibold text-[#667085]">Fecha y Hora:</span>
+                <span className="font-semibold text-[#667085]">
+                  Fecha y Hora:
+                </span>
                 <span className="font-bold text-[#101828]">
                   {selectedActivity.date} · {selectedActivity.time}
                 </span>
               </div>
 
-              {selectedActivity.price && selectedActivity.price > 0 && trip.showExpenses && (
-                <div className="flex items-center justify-between rounded-2xl bg-[#f0fdfa] p-3.5 border border-[#ccfbf1]">
-                  <span className="font-semibold text-[#009688]">Tarifa Incluida:</span>
-                  <span className="font-black text-sm text-[#009688]">
-                    {formatCurrency(Number(selectedActivity.price))}
-                  </span>
-                </div>
-              )}
+              {selectedActivity.price &&
+                selectedActivity.price > 0 &&
+                trip.showExpenses && (
+                  <div className="flex items-center justify-between rounded-2xl bg-[#f0fdfa] p-3.5 border border-[#ccfbf1]">
+                    <span className="font-semibold text-[#009688]">
+                      Tarifa Incluida:
+                    </span>
+                    <span className="font-black text-sm text-[#009688]">
+                      {formatCurrency(Number(selectedActivity.price))}
+                    </span>
+                  </div>
+                )}
 
               {Boolean(selectedActivity.description) && (
                 <div className="rounded-2xl border border-[#eaecf0] p-4 bg-[#fafafa]">

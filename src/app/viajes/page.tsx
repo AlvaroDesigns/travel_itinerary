@@ -282,10 +282,10 @@ export default function MisViajesPage() {
         </div>
 
         {/* Action Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-[#eaecf0] bg-white p-3.5 shadow-xs">
-          <div className="flex items-center gap-3 flex-1 min-w-[240px]">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 rounded-3xl border border-[#eaecf0] bg-white p-3 sm:p-3.5 shadow-xs">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
             {/* Search Input */}
-            <div className="relative flex-1 max-w-md">
+            <div className="relative flex-1">
               <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#98a2b3]" />
               <input
                 type="text"
@@ -297,17 +297,17 @@ export default function MisViajesPage() {
             </div>
 
             {/* Filtros Button */}
-            <button className="flex items-center gap-1.5 rounded-full border border-[#d0d5dd] bg-white px-4 py-2 text-xs font-semibold text-[#344054] hover:bg-[#f9fafb] transition-all cursor-pointer">
+            <button className="flex items-center gap-1.5 rounded-full border border-[#d0d5dd] bg-white px-3 sm:px-4 py-2 text-xs font-semibold text-[#344054] hover:bg-[#f9fafb] transition-all cursor-pointer shrink-0">
               <span>Filtros</span>
             </button>
 
             {/* Counter */}
-            <span className="text-xs font-semibold text-[#475467] hidden md:inline">
+            <span className="text-xs font-semibold text-[#475467] hidden md:inline shrink-0">
               {filteredTrips.length} {filteredTrips.length === 1 ? 'Viaje' : 'Viajes'}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
             {/* View Mode Toggle */}
             <div className="flex items-center rounded-full border border-[#d0d5dd] bg-[#f9fafb] p-0.5">
               <button
@@ -333,16 +333,16 @@ export default function MisViajesPage() {
             </div>
 
             {/* Exportar Button */}
-            <button className="flex items-center gap-1.5 rounded-full border border-[#d0d5dd] bg-white px-4 py-2 text-xs font-semibold text-[#344054] hover:bg-[#f9fafb] shadow-xs transition-all cursor-pointer">
+            <button className="flex items-center gap-1.5 rounded-full border border-[#d0d5dd] bg-white px-3 sm:px-4 py-2 text-xs font-semibold text-[#344054] hover:bg-[#f9fafb] shadow-xs transition-all cursor-pointer">
               <Download className="h-3.5 w-3.5 text-[#667085]" />
-              <span>Exportar</span>
+              <span className="hidden xs:inline">Exportar</span>
             </button>
 
             {/* + Crear Viaje Button */}
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-full bg-[#009688] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#00796b] transition-all active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-full bg-[#009688] px-3.5 sm:px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#00796b] transition-all active:scale-95 cursor-pointer whitespace-nowrap"
             >
               <Plus className="h-4 w-4" />
               <span>Crear viaje</span>
@@ -398,7 +398,7 @@ export default function MisViajesPage() {
                         startD && endD
                           ? Math.max(1, Math.round((endD.getTime() - startD.getTime()) / (1000 * 60 * 60 * 24)))
                           : 0;
-                      const isNearBottom = filteredTrips.length <= 4 || index >= filteredTrips.length - 2;
+                      const isNearBottom = index >= 2 && index >= filteredTrips.length - 2;
                       const isDropdownOpen = openDropdownId === trip.id;
 
                       return (
@@ -536,15 +536,120 @@ export default function MisViajesPage() {
                               {isDropdownOpen && (
                                 <>
                                   <div
-                                    className="fixed inset-0 z-40"
+                                    className="fixed inset-0 z-40 bg-black/30 sm:bg-transparent"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setOpenDropdownId(null);
                                     }}
                                   />
+
+                                  {/* Mobile Bottom Action Sheet (sm:hidden) */}
                                   <div
                                     onClick={(e) => e.stopPropagation()}
-                                    className={`absolute right-2 ${
+                                    className="sm:hidden fixed inset-x-0 bottom-0 z-50 rounded-t-3xl border-t border-[#eaecf0] bg-white p-5 shadow-2xl animate-slide-up text-left space-y-1"
+                                  >
+                                    <div className="flex items-center justify-between pb-3 mb-2 border-b border-[#eaecf0]">
+                                      <div className="min-w-0 pr-2">
+                                        <p className="text-sm font-bold text-[#101828] truncate">{trip.name}</p>
+                                        <p className="text-xs text-[#667085] font-semibold">{tripCode}</p>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => setOpenDropdownId(null)}
+                                        className="rounded-full p-1.5 text-[#667085] hover:bg-[#f4f5f8]"
+                                      >
+                                        <X className="h-5 w-5" />
+                                      </button>
+                                    </div>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setOpenDropdownId(null);
+                                        router.push(`/viaje/${trip.id}`);
+                                      }}
+                                      className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-xs font-bold text-[#344054] hover:bg-[#f4f5f8] cursor-pointer"
+                                    >
+                                      <Edit className="h-4 w-4 text-[#009688]" />
+                                      <span>Editar viaje</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setOpenDropdownId(null);
+                                        router.push(`/viaje/${trip.id}/configuracion`);
+                                      }}
+                                      className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-xs font-bold text-[#344054] hover:bg-[#f4f5f8] cursor-pointer"
+                                    >
+                                      <Settings className="h-4 w-4 text-[#667085]" />
+                                      <span>Configuración</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setOpenDropdownId(null);
+                                        setShareTrip(trip);
+                                      }}
+                                      className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-xs font-bold text-[#344054] hover:bg-[#f4f5f8] cursor-pointer"
+                                    >
+                                      <ExternalLink className="h-4 w-4 text-[#667085]" />
+                                      <span>Compartir enlace</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setOpenDropdownId(null);
+                                        setChangeOwnerTrip(trip);
+                                      }}
+                                      className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-xs font-bold text-[#344054] hover:bg-[#f4f5f8] cursor-pointer"
+                                    >
+                                      <User className="h-4 w-4 text-[#667085]" />
+                                      <span>Cambiar propietario</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        setOpenDropdownId(null);
+                                        handleDuplicateTrip(trip, e);
+                                      }}
+                                      className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-xs font-bold text-[#344054] hover:bg-[#f4f5f8] cursor-pointer"
+                                    >
+                                      <Copy className="h-4 w-4 text-[#667085]" />
+                                      <span>Duplicar</span>
+                                    </button>
+
+                                    <div className="my-1 border-t border-[#eaecf0]" />
+
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenDropdownId(null);
+                                        setTripToDelete(trip);
+                                      }}
+                                      className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-xs font-bold text-[#d92d20] hover:bg-[#fef3f2] cursor-pointer"
+                                    >
+                                      <Trash2 className="h-4 w-4 text-[#d92d20]" />
+                                      <span>Eliminar viaje</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => setOpenDropdownId(null)}
+                                      className="mt-2 w-full rounded-2xl bg-[#f4f5f8] py-3 text-xs font-bold text-[#475467] hover:bg-[#eaecf0]"
+                                    >
+                                      Cancelar
+                                    </button>
+                                  </div>
+
+                                  {/* Desktop Floating Dropdown (hidden sm:block) */}
+                                  <div
+                                    onClick={(e) => e.stopPropagation()}
+                                    className={`hidden sm:block absolute right-2 ${
                                       isNearBottom ? 'bottom-full mb-1.5 origin-bottom-right' : 'top-full mt-1.5 origin-top-right'
                                     } z-50 w-52 rounded-2xl border border-[#eaecf0] bg-white p-1.5 shadow-2xl text-left animate-scale-in`}
                                   >

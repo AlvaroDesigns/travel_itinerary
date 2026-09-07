@@ -356,6 +356,7 @@ export default function ViajeDetalle({ params }: PageProps) {
 
   // Right Panel State (Bloques FIRST by default, then Agente IA)
   const [rightPanelTab, setRightPanelTab] = useState<'blocks' | 'agent'>('blocks');
+  const [isMobileRightPanelOpen, setIsMobileRightPanelOpen] = useState(false);
 
   // Itinerary View Mode: 'day' (per-day tab view) vs 'all' (full trip continuous view)
   const [itineraryViewMode, setItineraryViewMode] = useState<'day' | 'all'>('day');
@@ -1481,6 +1482,343 @@ export default function ViajeDetalle({ params }: PageProps) {
     { type: 'file', label: 'Documentos & Vouchers', desc: 'PDFs, pólizas y billetes', icon: Paperclip, color: 'text-zinc-600 bg-zinc-100' },
   ];
 
+  const renderRightPanelContent = (isMobile = false) => (
+    <div className="rounded-3xl border border-[#eaecf0] bg-white shadow-xl overflow-hidden flex flex-col h-full">
+      {/* Drawer Header with HeroUI Tab Switcher: BLOQUES FIRST, AGENTE IA SECOND */}
+      <div className="flex items-center justify-between border-b border-[#eaecf0] bg-[#fafafa] p-3.5">
+        <div className="flex items-center gap-1 rounded-full bg-[#f4f4f5] p-1 border border-[#e4e4e7]/70">
+          <button
+            type="button"
+            onClick={() => setRightPanelTab('blocks')}
+            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+              rightPanelTab === 'blocks'
+                ? 'bg-white text-[#101828] shadow-xs'
+                : 'text-[#71717a] hover:text-[#18181b]'
+            }`}
+          >
+            <Layers className="h-3.5 w-3.5 text-[#009688]" />
+            <span>Bloques</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setRightPanelTab('agent')}
+            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+              rightPanelTab === 'agent'
+                ? 'bg-white text-[#101828] shadow-xs'
+                : 'text-[#71717a] hover:text-[#18181b]'
+            }`}
+          >
+            <Sparkles className="h-3.5 w-3.5 text-[#009688]" />
+            <span>Agente IA</span>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#ecfdf3] px-2 py-0.5 text-[10px] font-bold text-[#027a48]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#12b76a] animate-pulse" />
+            Online
+          </span>
+          {isMobile && (
+            <button
+              type="button"
+              onClick={() => setIsMobileRightPanelOpen(false)}
+              className="rounded-full p-1 text-zinc-500 hover:bg-zinc-200 cursor-pointer ml-1"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* TAB 1: BLOQUES (Drag & Drop + Click to Add) */}
+      {rightPanelTab === 'blocks' && (
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 [scrollbar-width:thin]">
+          <div className="rounded-2xl border border-[#009688]/20 bg-[#e0f2f1]/40 p-3 flex items-start gap-2.5">
+            <Sparkles className="h-4 w-4 text-[#009688] shrink-0 mt-0.5" />
+            <p className="text-xs text-[#004d40]">
+              <strong>Arrastra</strong> cualquier bloque hacia el itinerario o <strong>haz clic</strong> sobre él para añadirlo al día seleccionado ({activeDate}).
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[#98a2b3]">Servicios de viaje</p>
+            <div className="grid grid-cols-1 gap-2.5">
+              {serviceBlocks.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={item.type}
+                    draggable={true}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', item.type);
+                      handleDragStartFromPalette(item.type as BlockType);
+                    }}
+                    onDragEnd={() => setDraggedBlockType(null)}
+                    onClick={() => {
+                      handleAddBlockDirectly(item.type as BlockType);
+                      if (isMobile) setIsMobileRightPanelOpen(false);
+                    }}
+                    className="flex items-center gap-3 rounded-2xl border border-[#eaecf0] bg-white p-3 text-left transition-all hover:border-[#009688] hover:shadow-md group cursor-grab active:cursor-grabbing select-none"
+                  >
+                    <GripVertical className="h-4 w-4 text-[#cbd5e1] group-hover:text-[#009688] transition-colors shrink-0" />
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-xs font-bold text-[#101828] group-hover:text-[#009688] transition-colors">
+                        {item.label}
+                      </h4>
+                      <p className="text-[11px] text-[#667085] truncate">{item.desc}</p>
+                    </div>
+                    <Plus className="h-4 w-4 text-[#98a2b3] group-hover:text-[#009688] shrink-0" />
+                  </div>
+                );
+              })}
+            </div>
+
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[#98a2b3] pt-2">Estructura & Gestión</p>
+            <div className="grid grid-cols-1 gap-2.5">
+              {structureBlocks.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={item.type}
+                    draggable={true}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', item.type);
+                      handleDragStartFromPalette(item.type as BlockType);
+                    }}
+                    onDragEnd={() => setDraggedBlockType(null)}
+                    onClick={() => {
+                      handleAddBlockDirectly(item.type as BlockType);
+                      if (isMobile) setIsMobileRightPanelOpen(false);
+                    }}
+                    className="flex items-center gap-3 rounded-2xl border border-[#eaecf0] bg-white p-3 text-left transition-all hover:border-[#009688] hover:shadow-md group cursor-grab active:cursor-grabbing select-none"
+                  >
+                    <GripVertical className="h-4 w-4 text-[#cbd5e1] group-hover:text-[#009688] transition-colors shrink-0" />
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-xs font-bold text-[#101828] group-hover:text-[#009688] transition-colors">
+                        {item.label}
+                      </h4>
+                      <p className="text-[11px] text-[#667085] truncate">{item.desc}</p>
+                    </div>
+                    <Plus className="h-4 w-4 text-[#98a2b3] group-hover:text-[#009688] shrink-0" />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: AGENTE IA (Interactive Chat) */}
+      {rightPanelTab === 'agent' && (
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Chat History */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 [scrollbar-width:thin]">
+            {chatMessages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
+              >
+                <div
+                  className={`max-w-[88%] rounded-2xl p-3.5 text-xs leading-relaxed ${
+                    msg.sender === 'user'
+                      ? 'bg-[#18181b] text-white rounded-br-xs'
+                      : 'bg-[#f4f5f8] text-[#101828] border border-[#eaecf0] rounded-bl-xs'
+                  }`}
+                >
+                  {msg.sender === 'agent' && (
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#009688] mb-1">
+                      <Bot className="h-3.5 w-3.5" />
+                      <span>Wanderlust Agent</span>
+                    </div>
+                  )}
+                  <p>{msg.text}</p>
+
+                  {/* Suggested Action Cards (Single or Multiple) */}
+                  {(() => {
+                    const actions: SuggestedActionItem[] = msg.suggestedActions && msg.suggestedActions.length > 0
+                      ? msg.suggestedActions
+                      : msg.suggestedAction
+                      ? [msg.suggestedAction]
+                      : [];
+
+                    if (actions.length === 0) return null;
+
+                    const allApplied = actions.every((_, idx) => appliedActionKeys.includes(`${msg.id}-${idx}`));
+
+                    return (
+                      <div className="mt-3 pt-3 border-t border-[#eaecf0] space-y-2">
+                        {actions.length > 1 && !allApplied && (
+                          <button
+                            type="button"
+                            onClick={() => handleApplyAllSuggestedActions(actions, msg.id)}
+                            className="w-full mb-2 flex items-center justify-center gap-1.5 rounded-xl bg-[#101828] px-3 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#1f2937] transition-all cursor-pointer"
+                          >
+                            <Sparkles className="h-3.5 w-3.5 text-[#14b8a6]" />
+                            <span>+ Añadir todas ({actions.length}) al itinerario</span>
+                          </button>
+                        )}
+
+                        {actions.map((act, idx) => {
+                          const actionKey = `${msg.id}-${idx}`;
+                          const isApplied = appliedActionKeys.includes(actionKey);
+
+                          return (
+                            <div
+                              key={actionKey}
+                              className={`rounded-xl border p-2.5 transition-all text-left ${
+                                isApplied
+                                  ? 'bg-[#f0fdf4] border-[#bbf7d0]'
+                                  : 'bg-white border-[#e5e7eb] shadow-2xs hover:border-[#009688]/40'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2 mb-1.5">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#e0f2f1] text-[#00796b]">
+                                    {act.type === 'food' && <Utensils className="h-3.5 w-3.5" />}
+                                    {act.type === 'hotel' && <Bed className="h-3.5 w-3.5" />}
+                                    {act.type === 'excursion' && <Compass className="h-3.5 w-3.5" />}
+                                    {act.type === 'flight' && <Plane className="h-3.5 w-3.5" />}
+                                    {act.type === 'transfer' && <Car className="h-3.5 w-3.5" />}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-bold text-[#101828] truncate">
+                                      {act.label || act.payload?.restaurantName || act.payload?.hotelName || act.payload?.title || 'Propuesta'}
+                                    </p>
+                                    {act.date && (
+                                      <p className="text-[10px] text-[#667085]">
+                                        📅 {act.date}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {act.payload?.price ? (
+                                  <span className="shrink-0 text-[11px] font-bold text-[#00796b] bg-[#e0f2f1] px-1.5 py-0.5 rounded-md">
+                                    {act.payload.price}€
+                                  </span>
+                                ) : null}
+                              </div>
+
+                              {act.payload?.description && (
+                                <p className="text-[11px] text-[#475467] line-clamp-2 mb-2">
+                                  {act.payload.description}
+                                </p>
+                              )}
+
+                              <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                                <div className="flex items-center gap-2 text-[10px] text-[#667085]">
+                                  {act.payload?.time && (
+                                    <span className="flex items-center gap-0.5">
+                                      <Clock className="h-3 w-3" />
+                                      {act.payload.time}
+                                    </span>
+                                  )}
+                                  {act.payload?.duration && (
+                                    <span>• {act.payload.duration}</span>
+                                  )}
+                                </div>
+
+                                {isApplied ? (
+                                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#059669]">
+                                    <Check className="h-3.5 w-3.5" />
+                                    Añadido
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleApplySuggestedAction(act, actionKey)}
+                                    className="inline-flex items-center gap-1 rounded-lg bg-[#009688] px-2.5 py-1 text-[11px] font-bold text-white shadow-xs hover:bg-[#00796b] transition-all cursor-pointer"
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                    Añadir
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+                <span className="text-[9px] text-[#98a2b3] mt-1 px-1">{msg.timestamp}</span>
+              </div>
+            ))}
+
+            {isAgentThinking && (
+              <div className="flex items-center gap-2 text-xs text-[#667085] bg-[#f4f5f8] rounded-2xl p-3 border border-[#eaecf0] max-w-[80%]">
+                <Sparkles className="h-3.5 w-3.5 animate-spin text-[#009688]" />
+                <span>Generando recomendaciones...</span>
+              </div>
+            )}
+            <div ref={chatBottomRef} />
+          </div>
+
+          {/* Suggested Prompt Chips */}
+          <div className="border-t border-[#eaecf0] px-3 pt-2 pb-1 bg-white">
+            <p className="text-[10px] font-bold text-[#98a2b3] uppercase tracking-wider mb-1.5">
+              Sugerencias rápidas
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                'Cena romántica',
+                'Excursión snorkel',
+                'Hotel 5 estrellas',
+                'Vuelo directo',
+              ].map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => handleSendMessage(`Recomienda un ${chip}`)}
+                  className="rounded-full bg-[#f4f5f8] px-2.5 py-1 text-[11px] font-semibold text-[#344054] hover:bg-[#e0f2f1] hover:text-[#00796b] transition-colors cursor-pointer"
+                >
+                  + {chip}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Chat Input Bar */}
+          <div className="p-3 bg-white border-t border-[#eaecf0]">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              className="relative flex items-center"
+            >
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Continúa la conversación..."
+                className="w-full rounded-full border border-[#d0d5dd] bg-white py-2 pl-4 pr-16 text-xs text-[#101828] placeholder-[#98a2b3] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+              />
+              <div className="absolute right-1.5 flex items-center gap-1">
+                <button
+                  type="submit"
+                  disabled={!chatInput.trim()}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-[#009688] text-white disabled:opacity-40 hover:bg-[#00796b] transition-colors cursor-pointer"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </form>
+            <p className="text-[10px] text-center text-[#98a2b3] mt-1.5">
+              La inteligencia artificial puede cometer errores.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <DashboardShell activeMenu="viajes" hideSidebar={true}>
       {/* Toast Notification */}
@@ -1491,27 +1829,37 @@ export default function ViajeDetalle({ params }: PageProps) {
         </div>
       )}
 
-      {/* Main Workspace: Fixed 2-Column Hostinger Layout */}
-      <div className="flex w-full h-[calc(100vh-6.5rem)] overflow-hidden gap-6">
+      {/* Main Workspace: Responsive Layout */}
+      <div className="flex flex-col xl:flex-row w-full h-auto xl:h-[calc(100vh-6.5rem)] xl:overflow-hidden gap-6 relative">
         {/* ============================================================= */}
-        {/* LEFT / CENTER: ITINERARY CANVAS (Scrolls independently)        */}
+        {/* LEFT / CENTER: ITINERARY CANVAS (Scrolls independently on xl)  */}
         {/* ============================================================= */}
-        <div className="flex-1 overflow-y-auto pr-1 pb-16 space-y-6 [scrollbar-width:thin] min-w-0">
+        <div className="flex-1 w-full overflow-y-visible xl:overflow-y-auto pr-0 xl:pr-1 pb-16 space-y-5 sm:space-y-6 [scrollbar-width:thin] min-w-0">
           {/* Breadcrumb Navigation & Top Action Pills */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <nav className="flex items-center gap-2 text-xs text-[#667085]">
-              <Link href="/viajes" className="hover:text-[#009688] transition-colors flex items-center gap-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <nav className="flex items-center gap-1.5 sm:gap-2 text-xs text-[#667085] flex-wrap">
+              <Link href="/viajes" className="hover:text-[#009688] transition-colors flex items-center gap-1 shrink-0">
                 <ArrowLeft className="h-3.5 w-3.5" />
                 <span>Mis viajes</span>
               </Link>
               <span>/</span>
-              <span className="font-bold text-[#101828] truncate max-w-[240px]">{activeTrip.name}</span>
-              <span className="rounded-full bg-[#e0f2f1] px-2.5 py-0.5 text-[10px] font-bold text-[#00796b]">
+              <span className="font-bold text-[#101828] truncate max-w-[140px] sm:max-w-[240px]">{activeTrip.name}</span>
+              <span className="rounded-full bg-[#e0f2f1] px-2.5 py-0.5 text-[10px] font-bold text-[#00796b] shrink-0">
                 Itinerario
               </span>
             </nav>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Mobile Drawer Trigger */}
+              <button
+                type="button"
+                onClick={() => setIsMobileRightPanelOpen(true)}
+                className="xl:hidden flex items-center gap-1.5 rounded-full border border-[#009688]/40 bg-[#e0f2f1] px-3.5 py-1.5 text-xs font-bold text-[#00796b] shadow-2xs hover:bg-[#b2dfdb] transition-all cursor-pointer"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-[#009688]" />
+                <span>Bloques & Agente IA</span>
+              </button>
+
               <button
                 type="button"
                 onClick={handleCopyClientLink}
@@ -1937,327 +2285,41 @@ export default function ViajeDetalle({ params }: PageProps) {
         </div>
 
         {/* ============================================================= */}
-        {/* RIGHT PANEL: FIXED HOSTINGER-STYLE AGENTE IA & BLOQUES        */}
+        {/* DESKTOP RIGHT PANEL: FIXED AGENTE IA & BLOQUES (xl:flex)       */}
         {/* ============================================================= */}
-        <aside className="w-full lg:w-[380px] shrink-0 h-full flex flex-col">
-          <div className="rounded-3xl border border-[#eaecf0] bg-white shadow-xl overflow-hidden flex flex-col h-full">
-            {/* Drawer Header with HeroUI Tab Switcher: BLOQUES FIRST, AGENTE IA SECOND */}
-            <div className="flex items-center justify-between border-b border-[#eaecf0] bg-[#fafafa] p-3.5">
-              <div className="flex items-center gap-1 rounded-full bg-[#f4f4f5] p-1 border border-[#e4e4e7]/70">
-                <button
-                  type="button"
-                  onClick={() => setRightPanelTab('blocks')}
-                  className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-                    rightPanelTab === 'blocks'
-                      ? 'bg-white text-[#101828] shadow-xs'
-                      : 'text-[#71717a] hover:text-[#18181b]'
-                  }`}
-                >
-                  <Layers className="h-3.5 w-3.5 text-[#009688]" />
-                  <span>Bloques</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRightPanelTab('agent')}
-                  className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-                    rightPanelTab === 'agent'
-                      ? 'bg-white text-[#101828] shadow-xs'
-                      : 'text-[#71717a] hover:text-[#18181b]'
-                  }`}
-                >
-                  <Sparkles className="h-3.5 w-3.5 text-[#009688]" />
-                  <span>Agente IA</span>
-                </button>
-              </div>
-
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#ecfdf3] px-2 py-0.5 text-[10px] font-bold text-[#027a48]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#12b76a] animate-pulse" />
-                Online
-              </span>
-            </div>
-
-            {/* TAB 1: BLOQUES (Drag & Drop + Click to Add) */}
-            {rightPanelTab === 'blocks' && (
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 [scrollbar-width:thin]">
-                <div className="rounded-2xl border border-[#009688]/20 bg-[#e0f2f1]/40 p-3 flex items-start gap-2.5">
-                  <Sparkles className="h-4 w-4 text-[#009688] shrink-0 mt-0.5" />
-                  <p className="text-xs text-[#004d40]">
-                    <strong>Arrastra</strong> cualquier bloque hacia el itinerario o <strong>haz clic</strong> sobre él para añadirlo al día seleccionado ({activeDate}).
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#98a2b3]">Servicios de viaje</p>
-                  <div className="grid grid-cols-1 gap-2.5">
-                    {serviceBlocks.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <div
-                          key={item.type}
-                          draggable={true}
-                          onDragStart={(e) => {
-                            e.dataTransfer.setData('text/plain', item.type);
-                            handleDragStartFromPalette(item.type as BlockType);
-                          }}
-                          onDragEnd={() => setDraggedBlockType(null)}
-                          onClick={() => handleAddBlockDirectly(item.type as BlockType)}
-                          className="flex items-center gap-3 rounded-2xl border border-[#eaecf0] bg-white p-3 text-left transition-all hover:border-[#009688] hover:shadow-md group cursor-grab active:cursor-grabbing select-none"
-                        >
-                          <GripVertical className="h-4 w-4 text-[#cbd5e1] group-hover:text-[#009688] transition-colors shrink-0" />
-                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
-                            <Icon className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-xs font-bold text-[#101828] group-hover:text-[#009688] transition-colors">
-                              {item.label}
-                            </h4>
-                            <p className="text-[11px] text-[#667085] truncate">{item.desc}</p>
-                          </div>
-                          <Plus className="h-4 w-4 text-[#98a2b3] group-hover:text-[#009688] shrink-0" />
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#98a2b3] pt-2">Estructura & Gestión</p>
-                  <div className="grid grid-cols-1 gap-2.5">
-                    {structureBlocks.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <div
-                          key={item.type}
-                          draggable={true}
-                          onDragStart={(e) => {
-                            e.dataTransfer.setData('text/plain', item.type);
-                            handleDragStartFromPalette(item.type as BlockType);
-                          }}
-                          onDragEnd={() => setDraggedBlockType(null)}
-                          onClick={() => handleAddBlockDirectly(item.type as BlockType)}
-                          className="flex items-center gap-3 rounded-2xl border border-[#eaecf0] bg-white p-3 text-left transition-all hover:border-[#009688] hover:shadow-md group cursor-grab active:cursor-grabbing select-none"
-                        >
-                          <GripVertical className="h-4 w-4 text-[#cbd5e1] group-hover:text-[#009688] transition-colors shrink-0" />
-                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
-                            <Icon className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-xs font-bold text-[#101828] group-hover:text-[#009688] transition-colors">
-                              {item.label}
-                            </h4>
-                            <p className="text-[11px] text-[#667085] truncate">{item.desc}</p>
-                          </div>
-                          <Plus className="h-4 w-4 text-[#98a2b3] group-hover:text-[#009688] shrink-0" />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 2: AGENTE IA (Interactive Chat) */}
-            {rightPanelTab === 'agent' && (
-              <div className="flex flex-1 flex-col overflow-hidden">
-                {/* Chat History */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-3.5 [scrollbar-width:thin]">
-                  {chatMessages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
-                    >
-                      <div
-                        className={`max-w-[88%] rounded-2xl p-3.5 text-xs leading-relaxed ${
-                          msg.sender === 'user'
-                            ? 'bg-[#18181b] text-white rounded-br-xs'
-                            : 'bg-[#f4f5f8] text-[#101828] border border-[#eaecf0] rounded-bl-xs'
-                        }`}
-                      >
-                        {msg.sender === 'agent' && (
-                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#009688] mb-1">
-                            <Bot className="h-3.5 w-3.5" />
-                            <span>Wanderlust Agent</span>
-                          </div>
-                        )}
-                        <p>{msg.text}</p>
-
-                        {/* Suggested Action Cards (Single or Multiple) */}
-                        {(() => {
-                          const actions: SuggestedActionItem[] = msg.suggestedActions && msg.suggestedActions.length > 0
-                            ? msg.suggestedActions
-                            : msg.suggestedAction
-                            ? [msg.suggestedAction]
-                            : [];
-
-                          if (actions.length === 0) return null;
-
-                          const allApplied = actions.every((_, idx) => appliedActionKeys.includes(`${msg.id}-${idx}`));
-
-                          return (
-                            <div className="mt-3 pt-3 border-t border-[#eaecf0] space-y-2">
-                              {actions.length > 1 && !allApplied && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleApplyAllSuggestedActions(actions, msg.id)}
-                                  className="w-full mb-2 flex items-center justify-center gap-1.5 rounded-xl bg-[#101828] px-3 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#1f2937] transition-all cursor-pointer"
-                                >
-                                  <Sparkles className="h-3.5 w-3.5 text-[#14b8a6]" />
-                                  <span>+ Añadir todas ({actions.length}) al itinerario</span>
-                                </button>
-                              )}
-
-                              {actions.map((act, idx) => {
-                                const actionKey = `${msg.id}-${idx}`;
-                                const isApplied = appliedActionKeys.includes(actionKey);
-
-                                return (
-                                  <div
-                                    key={actionKey}
-                                    className={`rounded-xl border p-2.5 transition-all text-left ${
-                                      isApplied
-                                        ? 'bg-[#f0fdf4] border-[#bbf7d0]'
-                                        : 'bg-white border-[#e5e7eb] shadow-2xs hover:border-[#009688]/40'
-                                    }`}
-                                  >
-                                    <div className="flex items-start justify-between gap-2 mb-1.5">
-                                      <div className="flex items-center gap-1.5 min-w-0">
-                                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#e0f2f1] text-[#00796b]">
-                                          {act.type === 'food' && <Utensils className="h-3.5 w-3.5" />}
-                                          {act.type === 'hotel' && <Bed className="h-3.5 w-3.5" />}
-                                          {act.type === 'excursion' && <Compass className="h-3.5 w-3.5" />}
-                                          {act.type === 'flight' && <Plane className="h-3.5 w-3.5" />}
-                                          {act.type === 'transfer' && <Car className="h-3.5 w-3.5" />}
-                                        </div>
-                                        <div className="min-w-0">
-                                          <p className="text-xs font-bold text-[#101828] truncate">
-                                            {act.label || act.payload?.restaurantName || act.payload?.hotelName || act.payload?.title || 'Propuesta'}
-                                          </p>
-                                          {act.date && (
-                                            <p className="text-[10px] text-[#667085]">
-                                              📅 {act.date}
-                                            </p>
-                                          )}
-                                        </div>
-                                      </div>
-
-                                      {act.payload?.price ? (
-                                        <span className="shrink-0 text-[11px] font-bold text-[#00796b] bg-[#e0f2f1] px-1.5 py-0.5 rounded-md">
-                                          {act.payload.price}€
-                                        </span>
-                                      ) : null}
-                                    </div>
-
-                                    {act.payload?.description && (
-                                      <p className="text-[11px] text-[#475467] line-clamp-2 mb-2">
-                                        {act.payload.description}
-                                      </p>
-                                    )}
-
-                                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
-                                      <div className="flex items-center gap-2 text-[10px] text-[#667085]">
-                                        {act.payload?.time && (
-                                          <span className="flex items-center gap-0.5">
-                                            <Clock className="h-3 w-3" />
-                                            {act.payload.time}
-                                          </span>
-                                        )}
-                                        {act.payload?.duration && (
-                                          <span>• {act.payload.duration}</span>
-                                        )}
-                                      </div>
-
-                                      {isApplied ? (
-                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#059669]">
-                                          <Check className="h-3.5 w-3.5" />
-                                          Añadido
-                                        </span>
-                                      ) : (
-                                        <button
-                                          type="button"
-                                          onClick={() => handleApplySuggestedAction(act, actionKey)}
-                                          className="inline-flex items-center gap-1 rounded-lg bg-[#009688] px-2.5 py-1 text-[11px] font-bold text-white shadow-xs hover:bg-[#00796b] transition-all cursor-pointer"
-                                        >
-                                          <Plus className="h-3 w-3" />
-                                          Añadir
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                      <span className="text-[9px] text-[#98a2b3] mt-1 px-1">{msg.timestamp}</span>
-                    </div>
-                  ))}
-
-                  {isAgentThinking && (
-                    <div className="flex items-center gap-2 text-xs text-[#667085] bg-[#f4f5f8] rounded-2xl p-3 border border-[#eaecf0] max-w-[80%]">
-                      <Sparkles className="h-3.5 w-3.5 animate-spin text-[#009688]" />
-                      <span>Generando recomendaciones...</span>
-                    </div>
-                  )}
-                  <div ref={chatBottomRef} />
-                </div>
-
-                {/* Suggested Prompt Chips */}
-                <div className="border-t border-[#eaecf0] px-3 pt-2 pb-1 bg-white">
-                  <p className="text-[10px] font-bold text-[#98a2b3] uppercase tracking-wider mb-1.5">
-                    Sugerencias rápidas
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      'Cena romántica',
-                      'Excursión snorkel',
-                      'Hotel 5 estrellas',
-                      'Vuelo directo',
-                    ].map((chip) => (
-                      <button
-                        key={chip}
-                        type="button"
-                        onClick={() => handleSendMessage(`Recomienda un ${chip}`)}
-                        className="rounded-full bg-[#f4f5f8] px-2.5 py-1 text-[11px] font-semibold text-[#344054] hover:bg-[#e0f2f1] hover:text-[#00796b] transition-colors cursor-pointer"
-                      >
-                        + {chip}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Chat Input Bar */}
-                <div className="p-3 bg-white border-t border-[#eaecf0]">
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }}
-                    className="relative flex items-center"
-                  >
-                    <input
-                      type="text"
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      placeholder="Continúa la conversación..."
-                      className="w-full rounded-full border border-[#d0d5dd] bg-white py-2 pl-4 pr-16 text-xs text-[#101828] placeholder-[#98a2b3] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
-                    />
-                    <div className="absolute right-1.5 flex items-center gap-1">
-                      <button
-                        type="submit"
-                        disabled={!chatInput.trim()}
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-[#009688] text-white disabled:opacity-40 hover:bg-[#00796b] transition-colors cursor-pointer"
-                      >
-                        <Send className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </form>
-                  <p className="text-[10px] text-center text-[#98a2b3] mt-1.5">
-                    La inteligencia artificial puede cometer errores.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
+        <aside className="hidden xl:flex w-80 2xl:w-96 shrink-0 h-full flex-col">
+          {renderRightPanelContent(false)}
         </aside>
+
+        {/* ============================================================= */}
+        {/* MOBILE SLIDE-OVER DRAWER (Visible when open on <xl)            */}
+        {/* ============================================================= */}
+        {isMobileRightPanelOpen && (
+          <div className="fixed inset-0 z-50 xl:hidden">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-fade-in"
+              onClick={() => setIsMobileRightPanelOpen(false)}
+            />
+
+            {/* Slide-out Menu Panel */}
+            <aside className="fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-slide-left p-3 sm:p-4">
+              {renderRightPanelContent(true)}
+            </aside>
+          </div>
+        )}
+      </div>
+
+      {/* Floating Mobile Action Trigger */}
+      <div className="fixed bottom-5 right-5 z-40 xl:hidden">
+        <button
+          type="button"
+          onClick={() => setIsMobileRightPanelOpen(true)}
+          className="flex items-center gap-2 rounded-full bg-[#101828] px-4 py-3 text-xs font-bold text-white shadow-2xl border border-white/20 hover:bg-zinc-800 transition-all cursor-pointer active:scale-95"
+        >
+          <Sparkles className="h-4 w-4 text-[#14b8a6]" />
+          <span>Bloques & Agente IA</span>
+        </button>
       </div>
 
       {/* ============================================================= */}

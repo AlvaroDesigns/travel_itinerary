@@ -26,6 +26,8 @@ import {
   Luggage,
   BarChart3,
   LayoutDashboard,
+  Menu,
+  X,
 } from 'lucide-react';
 
 interface DashboardShellProps {
@@ -59,6 +61,7 @@ export function DashboardShell({
 
   const [isToolsExpanded, setIsToolsExpanded] = useState(true);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const getUserDisplayName = () => {
     if (user?.email) return user.email.split('@')[0];
@@ -73,17 +76,226 @@ export function DashboardShell({
     }
   };
 
+  const renderNavLinks = (onItemClick?: () => void) => (
+    <>
+      {/* Primary Travel Navigation Group */}
+      <div className="space-y-1">
+        {/* Dashboard */}
+        <Link
+          href="/"
+          onClick={onItemClick}
+          className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
+            activeMenu === 'dashboard' || activeMenu === 'inicio'
+              ? 'bg-white text-[#101828] shadow-xs'
+              : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
+          }`}
+        >
+          <LayoutDashboard className="h-4 w-4 text-[#009688]" />
+          <span>Dashboard</span>
+        </Link>
+
+        {/* Agente IA (Gratis) */}
+        <button
+          type="button"
+          onClick={() => {
+            onItemClick?.();
+            handleCreateTripClick();
+          }}
+          className={`flex w-full items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all cursor-pointer ${
+            activeMenu === 'agente'
+              ? 'bg-white text-[#101828] shadow-xs'
+              : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <Sparkles className="h-4 w-4 text-[#009688]" />
+            <span>Agente IA</span>
+          </div>
+          <span className="rounded-full bg-[#e0f2f1] px-1.5 py-0.5 text-[10px] font-bold text-[#00796b]">
+            Gratis
+          </span>
+        </button>
+
+        {/* Mis Viajes */}
+        <Link
+          href="/viajes"
+          onClick={onItemClick}
+          className={`flex w-full items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
+            activeMenu === 'viajes' || activeMenu === 'configuracion'
+              ? 'bg-white text-[#101828] shadow-xs'
+              : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <Plane className="h-4 w-4 text-[#009688]" />
+            <span>Mis viajes</span>
+          </div>
+          <span className="rounded-full bg-[#e0f2f1] px-2 py-0.5 text-[10px] font-bold text-[#00796b]">
+            {trips.length}
+          </span>
+        </Link>
+
+        {/* Clientes */}
+        <Link
+          href="/clientes"
+          onClick={onItemClick}
+          className={`flex w-full items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
+            activeMenu === 'clientes'
+              ? 'bg-white text-[#101828] shadow-xs'
+              : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <Users className="h-4 w-4 text-[#009688]" />
+            <span>Clientes</span>
+          </div>
+          <span className="rounded-full bg-[#e0f2f1] px-2 py-0.5 text-[10px] font-bold text-[#00796b]">
+            {clients.length}
+          </span>
+        </Link>
+
+        {/* Usuarios */}
+        {user?.role === 'admin' && (
+          <Link
+            href="/admin/usuarios"
+            onClick={onItemClick}
+            className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
+              activeMenu === 'admin_usuarios'
+                ? 'bg-white text-[#101828] shadow-xs font-bold'
+                : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
+            }`}
+          >
+            <UserCog className="h-4 w-4 text-[#009688]" />
+            <span>Usuarios</span>
+          </Link>
+        )}
+
+        {/* Destinos */}
+        <Link
+          href="/"
+          onClick={onItemClick}
+          className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
+            activeMenu === 'destinos'
+              ? 'bg-white text-[#101828] shadow-xs'
+              : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
+          }`}
+        >
+          <Globe className="h-4 w-4 text-[#667085]" />
+          <span>Destinos & Rutas</span>
+        </Link>
+
+        {/* Notificaciones & Emails */}
+        <Link
+          href="/"
+          onClick={onItemClick}
+          className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
+            activeMenu === 'notificaciones'
+              ? 'bg-white text-[#101828] shadow-xs'
+              : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
+          }`}
+        >
+          <Mail className="h-4 w-4 text-[#667085]" />
+          <span>Notificaciones de viaje</span>
+        </Link>
+
+        {/* Compartir / Para clientes */}
+        <Link
+          href="/"
+          onClick={onItemClick}
+          className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
+            activeMenu === 'compartir'
+              ? 'bg-white text-[#101828] shadow-xs'
+              : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
+          }`}
+        >
+          <Share2 className="h-4 w-4 text-[#667085]" />
+          <span>Enlaces públicos</span>
+        </Link>
+      </div>
+
+      {/* Section: Aplicaciones de Itinerarios */}
+      <div className="mt-6 pt-4 border-t border-[#e4e7ec]">
+        <button
+          type="button"
+          onClick={() => setIsToolsExpanded(!isToolsExpanded)}
+          className="flex w-full items-center justify-between px-2 pb-2 text-[11px] font-semibold text-[#667085] hover:text-[#101828] cursor-pointer"
+        >
+          <span>Herramientas Wanderlust</span>
+          <ChevronDown
+            className={`h-3.5 w-3.5 transition-transform ${
+              isToolsExpanded ? 'rotate-0' : '-rotate-90'
+            }`}
+          />
+        </button>
+
+        {isToolsExpanded && (
+          <div className="space-y-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                onItemClick?.();
+                handleCreateTripClick();
+              }}
+              className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2 text-xs text-[#475467] hover:bg-white/60 hover:text-[#009688] cursor-pointer"
+            >
+              <Sparkles className="h-4 w-4 text-[#009688]" />
+              <span>Generador de Itinerarios IA</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onItemClick?.();
+                router.push('/');
+              }}
+              className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2 text-xs text-[#475467] hover:bg-white/60 hover:text-[#009688] cursor-pointer"
+            >
+              <FileText className="h-4 w-4 text-[#667085]" />
+              <span>Exportador PDF & Vouchers</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onItemClick?.();
+                router.push('/');
+              }}
+              className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2 text-xs text-[#475467] hover:bg-white/60 hover:text-[#009688] cursor-pointer"
+            >
+              <TrendingUp className="h-4 w-4 text-[#667085]" />
+              <span>Control de Presupuestos</span>
+            </button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <div
-      onClick={() => setIsUserMenuOpen(false)}
+      onClick={() => {
+        setIsUserMenuOpen(false);
+      }}
       className="flex min-h-screen w-full flex-col bg-[#140b2a] font-sans text-[#18181b] selection:bg-[#009688] selection:text-white"
     >
       {/* ============================================================= */}
       {/* 1. TOP HEADER (Deep Purple hPanel Header with White Logo)     */}
       {/* ============================================================= */}
-      <header className="sticky top-0 z-50 flex h-16 w-full items-center justify-between bg-[#140b2a] px-6 text-white border-b border-transparent">
-        {/* Left: White Brand Logo + Loyalty/Badge Pill */}
-        <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between bg-[#140b2a] px-3 sm:px-6 text-white border-b border-transparent">
+        {/* Left: Mobile Menu Toggle + White Brand Logo + Loyalty Pill */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          {!hideSidebar && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMobileSidebarOpen(!isMobileSidebarOpen);
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-white hover:bg-white/10 lg:hidden cursor-pointer"
+              aria-label="Abrir menú de navegación"
+            >
+              {isMobileSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          )}
+
           <Link href="/" className="flex items-center group" aria-label="Inicio">
             <Image
               src="/wanderlust_horizontal_blanco.png"
@@ -91,7 +303,7 @@ export function DashboardShell({
               width={115}
               height={28}
               style={{ width: 'auto', height: 'auto' }}
-              className="h-6 w-auto object-contain transition-transform group-hover:scale-105"
+              className="h-5 sm:h-6 w-auto object-contain transition-transform group-hover:scale-105"
               priority
             />
           </Link>
@@ -104,15 +316,16 @@ export function DashboardShell({
         </div>
 
         {/* Right Actions: AI Agent Button, Admin, Search & User */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* AI Agent Button */}
           <button
             type="button"
             onClick={handleCreateTripClick}
-            className="flex items-center gap-1.5 rounded-full border border-[#009688]/60 bg-gradient-to-r from-[#004d40] to-[#00796b] px-4 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:border-[#80cbc4] hover:brightness-110 active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 rounded-full border border-[#009688]/60 bg-gradient-to-r from-[#004d40] to-[#00796b] px-3 sm:px-4 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:border-[#80cbc4] hover:brightness-110 active:scale-95 cursor-pointer"
           >
             <Sparkles className="h-3.5 w-3.5 text-[#80cbc4]" />
-            <span>Agente IA</span>
+            <span className="hidden xs:inline">Agente IA</span>
+            <span className="xs:hidden">IA</span>
           </button>
 
           {user?.role === 'admin' && (
@@ -134,6 +347,7 @@ export function DashboardShell({
             type="button"
             onClick={() => router.push('/')}
             className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-300 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+            aria-label="Buscar"
           >
             <Search className="h-4 w-4" />
           </button>
@@ -204,7 +418,7 @@ export function DashboardShell({
                         alert('Crea un viaje para previsualizar el portal del viajero.');
                       }
                     }}
-                    className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors"
+                    className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors cursor-pointer"
                   >
                     <Luggage className="h-4 w-4 text-[#667085]" />
                     <span>Portal del viajero</span>
@@ -219,7 +433,7 @@ export function DashboardShell({
                       setIsUserMenuOpen(false);
                       await logout();
                     }}
-                    className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#d92d20] hover:bg-[#fef3f2] transition-colors"
+                    className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#d92d20] hover:bg-[#fef3f2] transition-colors cursor-pointer"
                   >
                     <LogOut className="h-4 w-4 text-[#d92d20]" />
                     <span>Cerrar sesión</span>
@@ -234,191 +448,67 @@ export function DashboardShell({
       {/* ============================================================= */}
       {/* 2. BODY LAYOUT: CURVED TOP BORDER                             */}
       {/* ============================================================= */}
-      <div className="flex flex-1 overflow-hidden rounded-t-[28px] border-t border-white/10 bg-[#f4f5f8] shadow-2xl">
+      <div className="flex flex-1 overflow-hidden rounded-t-[28px] border-t border-white/10 bg-[#f4f5f8] shadow-2xl relative">
         {/* ----------------------------------------------------------- */}
-        {/* LEFT SIDEBAR                                                */}
+        {/* DESKTOP SIDEBAR (Visible on lg+)                            */}
         {/* ----------------------------------------------------------- */}
         {!hideSidebar && (
-          <aside className="flex h-[calc(100vh-4rem)] w-64 shrink-0 flex-col overflow-y-auto border-r border-[#eaecf0] bg-[#f4f5f8] px-3 py-5 text-[#344054]">
-            {/* Primary Travel Navigation Group */}
-            <div className="space-y-1">
-              {/* Dashboard */}
-              <Link
-                href="/"
-                className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-                  activeMenu === 'dashboard' || activeMenu === 'inicio'
-                    ? 'bg-white text-[#101828] shadow-xs'
-                    : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
-                }`}
-              >
-                <LayoutDashboard className="h-4 w-4 text-[#009688]" />
-                <span>Dashboard</span>
-              </Link>
-
-              {/* Agente IA (Gratis) */}
-              <button
-                type="button"
-                onClick={handleCreateTripClick}
-                className={`flex w-full items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all cursor-pointer ${
-                  activeMenu === 'agente'
-                    ? 'bg-white text-[#101828] shadow-xs'
-                    : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Sparkles className="h-4 w-4 text-[#009688]" />
-                  <span>Agente IA</span>
-                </div>
-                <span className="rounded-full bg-[#e0f2f1] px-1.5 py-0.5 text-[10px] font-bold text-[#00796b]">
-                  Gratis
-                </span>
-              </button>
-
-              {/* Mis Viajes */}
-              <Link
-                href="/viajes"
-                className={`flex w-full items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-                  activeMenu === 'viajes' || activeMenu === 'configuracion'
-                    ? 'bg-white text-[#101828] shadow-xs'
-                    : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Plane className="h-4 w-4 text-[#009688]" />
-                  <span>Mis viajes</span>
-                </div>
-                <span className="rounded-full bg-[#e0f2f1] px-2 py-0.5 text-[10px] font-bold text-[#00796b]">
-                  {trips.length}
-                </span>
-              </Link>
-
-              {/* Clientes */}
-              <Link
-                href="/clientes"
-                className={`flex w-full items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-                  activeMenu === 'clientes'
-                    ? 'bg-white text-[#101828] shadow-xs'
-                    : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Users className="h-4 w-4 text-[#009688]" />
-                  <span>Clientes</span>
-                </div>
-                <span className="rounded-full bg-[#e0f2f1] px-2 py-0.5 text-[10px] font-bold text-[#00796b]">
-                  {clients.length}
-                </span>
-              </Link>
-
-              {/* Usuarios */}
-              {user?.role === 'admin' && (
-                <Link
-                  href="/admin/usuarios"
-                  className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-                    activeMenu === 'admin_usuarios'
-                      ? 'bg-white text-[#101828] shadow-xs font-bold'
-                      : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
-                  }`}
-                >
-                  <UserCog className="h-4 w-4 text-[#009688]" />
-                  <span>Usuarios</span>
-                </Link>
-              )}
-
-              {/* Destinos */}
-              <Link
-                href="/"
-                className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-                  activeMenu === 'destinos'
-                    ? 'bg-white text-[#101828] shadow-xs'
-                    : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
-                }`}
-              >
-                <Globe className="h-4 w-4 text-[#667085]" />
-                <span>Destinos & Rutas</span>
-              </Link>
-
-              {/* Notificaciones & Emails */}
-              <Link
-                href="/"
-                className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-                  activeMenu === 'notificaciones'
-                    ? 'bg-white text-[#101828] shadow-xs'
-                    : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
-                }`}
-              >
-                <Mail className="h-4 w-4 text-[#667085]" />
-                <span>Notificaciones de viaje</span>
-              </Link>
-
-              {/* Compartir / Para clientes */}
-              <Link
-                href="/"
-                className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-                  activeMenu === 'compartir'
-                    ? 'bg-white text-[#101828] shadow-xs'
-                    : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
-                }`}
-              >
-                <Share2 className="h-4 w-4 text-[#667085]" />
-                <span>Enlaces públicos</span>
-              </Link>
-            </div>
-
-            {/* Section: Aplicaciones de Itinerarios */}
-            <div className="mt-6 pt-4 border-t border-[#e4e7ec]">
-              <button
-                type="button"
-                onClick={() => setIsToolsExpanded(!isToolsExpanded)}
-                className="flex w-full items-center justify-between px-2 pb-2 text-[11px] font-semibold text-[#667085] hover:text-[#101828] cursor-pointer"
-              >
-                <span>Herramientas Wanderlust</span>
-                <ChevronDown
-                  className={`h-3.5 w-3.5 transition-transform ${
-                    isToolsExpanded ? 'rotate-0' : '-rotate-90'
-                  }`}
-                />
-              </button>
-
-              {isToolsExpanded && (
-                <div className="space-y-0.5">
-                  <button
-                    type="button"
-                    onClick={handleCreateTripClick}
-                    className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2 text-xs text-[#475467] hover:bg-white/60 hover:text-[#009688] cursor-pointer"
-                  >
-                    <Sparkles className="h-4 w-4 text-[#009688]" />
-                    <span>Generador de Itinerarios IA</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => router.push('/')}
-                    className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2 text-xs text-[#475467] hover:bg-white/60 hover:text-[#009688] cursor-pointer"
-                  >
-                    <FileText className="h-4 w-4 text-[#667085]" />
-                    <span>Exportador PDF & Vouchers</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => router.push('/')}
-                    className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2 text-xs text-[#475467] hover:bg-white/60 hover:text-[#009688] cursor-pointer"
-                  >
-                    <TrendingUp className="h-4 w-4 text-[#667085]" />
-                    <span>Control de Presupuestos</span>
-                  </button>
-                </div>
-              )}
-            </div>
+          <aside className="hidden lg:flex h-[calc(100vh-4rem)] w-64 shrink-0 flex-col overflow-y-auto border-r border-[#eaecf0] bg-[#f4f5f8] px-3 py-5 text-[#344054]">
+            {renderNavLinks()}
           </aside>
         )}
 
         {/* ----------------------------------------------------------- */}
-        {/* MAIN CONTENT CANVAS                                         */}
+        {/* MOBILE OFF-CANVAS DRAWER (Visible when open on <lg)        */}
         {/* ----------------------------------------------------------- */}
-        <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+        {!hideSidebar && isMobileSidebarOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-fade-in"
+              onClick={() => setIsMobileSidebarOpen(false)}
+            />
+
+            {/* Slide-out Menu Panel */}
+            <aside
+              className="fixed inset-y-0 left-0 z-50 flex h-full w-72 max-w-[85vw] flex-col bg-[#f4f5f8] p-4 shadow-2xl overflow-y-auto border-r border-[#eaecf0] animate-slide-right"
+            >
+              <div className="flex items-center justify-between pb-4 mb-2 border-b border-[#eaecf0]">
+                <div className="flex items-center gap-2">
+                  <Image
+                    src="/wanderlust_horizontal_negro.png"
+                    alt="Wanderlust"
+                    width={120}
+                    height={28}
+                    style={{ width: 'auto', height: 'auto' }}
+                    className="h-6 w-auto object-contain"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  className="rounded-full p-2 text-zinc-500 hover:bg-zinc-200 transition-colors"
+                  aria-label="Cerrar menú"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="flex-1 pb-6">
+                {renderNavLinks(() => setIsMobileSidebarOpen(false))}
+              </div>
+            </aside>
+          </div>
+        )}
+
+        {/* ----------------------------------------------------------- */}
+        {/* MAIN CONTENT CANVAS (Full width on mobile, fills space)     */}
+        {/* ----------------------------------------------------------- */}
+        <main className="w-full flex-1 overflow-y-auto px-3 py-5 sm:px-6 lg:px-8 sm:py-6">
           {children}
         </main>
       </div>
     </div>
   );
 }
+
