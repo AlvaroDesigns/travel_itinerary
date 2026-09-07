@@ -15,12 +15,17 @@ import {
   Share2,
   ShieldCheck,
   Sparkles,
+  User,
+  Users,
+  Luggage,
+  LogOut,
   UtensilsCrossed,
   X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
+import { useTravel } from "@/context/TravelContext";
 
 interface PageProps {
   params: Promise<{ token: string }>;
@@ -560,6 +565,7 @@ function PublicActivityCardItem({
 
 export default function PublicTripPage({ params }: PageProps) {
   const { token } = use(params);
+  const { user, logout } = useTravel();
   const [data, setData] = useState<PublicTripResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -569,6 +575,22 @@ export default function PublicTripPage({ params }: PageProps) {
   const [selectedActivity, setSelectedActivity] =
     useState<PublicActivity | null>(null);
   const [copiedToast, setCopiedToast] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOutsideClick = () => setIsUserMenuOpen(false);
+    if (isUserMenuOpen) {
+      window.addEventListener("click", handleOutsideClick);
+    }
+    return () => {
+      window.removeEventListener("click", handleOutsideClick);
+    };
+  }, [isUserMenuOpen]);
+
+  const getUserDisplayName = () => {
+    if (user?.email) return user.email.split("@")[0];
+    return "Usuario";
+  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -784,9 +806,9 @@ export default function PublicTripPage({ params }: PageProps) {
       {/* ----------------------------------------------------------- */}
       {/* 1. IMMERSIVE HERO BANNER WITH INTEGRATED WHITE LOGO & ACTIONS*/}
       {/* ----------------------------------------------------------- */}
-      <div className="relative w-full overflow-hidden bg-[#0c111d] text-white rounded-b-[2rem] sm:rounded-b-[3rem] lg:rounded-b-[3.5rem] shadow-xl">
+      <div className="relative w-full bg-[#0c111d] text-white rounded-b-[2rem] sm:rounded-b-[3rem] lg:rounded-b-[3.5rem] shadow-xl">
         {/* Cover Photo */}
-        <div className="relative h-72 sm:h-84 md:h-[420px] lg:h-[460px] w-full">
+        <div className="relative h-72 sm:h-84 md:h-[420px] lg:h-[460px] w-full overflow-hidden rounded-b-[2rem] sm:rounded-b-[3rem] lg:rounded-b-[3.5rem]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={
@@ -800,7 +822,7 @@ export default function PublicTripPage({ params }: PageProps) {
         </div>
 
         {/* Top Floating Glass Bar inside Hero */}
-        <div className="absolute top-0 inset-x-0 z-20 mx-auto max-w-7xl px-4 sm:px-8 pt-5 sm:pt-6 flex items-center justify-between">
+        <div className="absolute top-0 inset-x-0 z-30 mx-auto max-w-7xl px-4 sm:px-8 pt-5 sm:pt-6 flex items-center justify-between">
           {/* Left: White Logo */}
           <Link
             href="/"
@@ -818,7 +840,7 @@ export default function PublicTripPage({ params }: PageProps) {
             />
           </Link>
 
-          {/* Right: Actions (Share icon button) */}
+          {/* Right: Actions (Share icon button + User Avatar Dropdown if logged in) */}
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -829,6 +851,109 @@ export default function PublicTripPage({ params }: PageProps) {
             >
               <Share2 className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
+
+            {user && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsUserMenuOpen(!isUserMenuOpen);
+                  }}
+                  title={`Opciones de ${getUserDisplayName()}`}
+                  className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full transition-all cursor-pointer ${
+                    isUserMenuOpen
+                      ? "bg-white text-[#101828] ring-2 ring-[#009688] shadow-lg"
+                      : "bg-white/20 hover:bg-white/30 text-white backdrop-blur-md border border-white/20 shadow-md"
+                  }`}
+                >
+                  <span className="text-xs sm:text-sm font-black uppercase">
+                    {user.email ? (
+                      user.email.charAt(0).toUpperCase()
+                    ) : (
+                      <User className="h-4 w-4 sm:h-5 sm:w-5" />
+                    )}
+                  </span>
+                </button>
+
+                {/* Profile Dropdown Menu */}
+                {isUserMenuOpen && (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute right-0 top-12 sm:top-14 z-50 w-64 rounded-3xl border border-[#eaecf0] bg-white p-2 shadow-2xl text-left animate-scale-in text-[#101828]"
+                  >
+                    {/* Header: User Name + Role */}
+                    <div className="px-3 py-3 border-b border-[#eaecf0]">
+                      <p className="text-sm font-bold text-[#101828] truncate">
+                        {getUserDisplayName()}
+                      </p>
+                      <p className="text-xs text-[#667085] mt-0.5 truncate">
+                        {user.email}
+                      </p>
+                      <span className="mt-1.5 inline-block rounded-full bg-[#e0f2f1] px-2.5 py-0.5 text-[10px] font-bold text-[#00796b]">
+                        {user.role === "admin" ? "Administrador" : "Propietario"}
+                      </span>
+                    </div>
+
+                    {/* Navigation Items */}
+                    <div className="pt-2 pb-1 space-y-0.5">
+                      <Link
+                        href="/viajes"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors"
+                      >
+                        <Luggage className="h-4 w-4 text-[#009688]" />
+                        <span>Mis Viajes</span>
+                      </Link>
+
+                      <Link
+                        href="/clientes"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors"
+                      >
+                        <Users className="h-4 w-4 text-[#009688]" />
+                        <span>Clientes</span>
+                      </Link>
+
+                      <Link
+                        href="/cuenta"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors"
+                      >
+                        <User className="h-4 w-4 text-[#667085]" />
+                        <span>Mi cuenta</span>
+                      </Link>
+
+                      {user.role === "admin" && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors"
+                        >
+                          <ShieldCheck className="h-4 w-4 text-[#009688]" />
+                          <span>Panel Admin</span>
+                        </Link>
+                      )}
+                    </div>
+
+                    {/* Logout Item */}
+                    <div className="pt-1 border-t border-[#eaecf0]">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setIsUserMenuOpen(false);
+                          await logout();
+                        }}
+                        className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#d92d20] hover:bg-[#fef3f2] transition-colors cursor-pointer"
+                      >
+                        <LogOut className="h-4 w-4 text-[#d92d20]" />
+                        <span>Cerrar sesión</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -860,11 +985,11 @@ export default function PublicTripPage({ params }: PageProps) {
       </div>
 
       {/* ----------------------------------------------------------- */}
-      {/* 2. NAVIGATION TABS (HeroUI Segmented Tabs Style)            */}
+      {/* 2. NAVIGATION TABS (Segmented Tabs Style - Spacious & Touch-friendly) */}
       {/* ----------------------------------------------------------- */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-8 pt-5">
+      <div className="mx-auto max-w-7xl px-4 sm:px-8 pt-5 sm:pt-7">
         <div className="w-full overflow-x-auto pb-1 [scrollbar-width:none]">
-          <div className="inline-flex items-center gap-1 rounded-full bg-[#f4f4f5] p-1 border border-[#e4e4e7]/70 shadow-2xs">
+          <div className="flex sm:inline-flex items-center gap-1.5 rounded-2xl sm:rounded-full bg-[#f1f3f5] p-1.5 border border-[#e4e7ec] shadow-xs w-full sm:w-auto">
             {[
               { id: "itinerario", label: "Itinerario" },
               { id: "resumen", label: "Resumen de servicios" },
@@ -876,10 +1001,10 @@ export default function PublicTripPage({ params }: PageProps) {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap select-none ${
+                  className={`flex-1 sm:flex-initial text-center rounded-xl sm:rounded-full px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-extrabold transition-all duration-200 cursor-pointer whitespace-nowrap select-none ${
                     isSelected
-                      ? "bg-white text-[#18181b] shadow-sm font-bold"
-                      : "text-[#71717a] hover:text-[#18181b] hover:bg-black/[0.02]"
+                      ? "bg-white text-[#101828] shadow-md ring-1 ring-black/5"
+                      : "text-[#667085] hover:text-[#101828] hover:bg-white/60"
                   }`}
                 >
                   {tab.label}
