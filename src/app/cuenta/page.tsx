@@ -59,7 +59,7 @@ interface PaymentProviderStatus {
   };
 }
 
-export default function MiCuentaConfiguracionPage() {
+function MiCuentaConfiguracionContent() {
   const { user, isLoading: isAuthLoading } = useTravel();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1552,5 +1552,13 @@ export default function MiCuentaConfiguracionPage() {
         variant={confirmModal.variant || 'danger'}
       />
     </DashboardShell>
+  );
+}
+
+export default function MiCuentaConfiguracionPage() {
+  return (
+    <React.Suspense fallback={<WanderlustLoader />}>
+      <MiCuentaConfiguracionContent />
+    </React.Suspense>
   );
 }
