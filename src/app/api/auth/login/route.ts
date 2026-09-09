@@ -17,9 +17,13 @@ export async function POST(request: Request) {
       id: number;
       email: string;
       password: string;
-      role: 'admin' | 'user';
+      role: 'superuser' | 'superadmin' | 'admin' | 'user';
+      name: string | null;
+      tenant_id: string | null;
+      agency_name: string | null;
+      plan_type: string | null;
       is_active: boolean;
-    }>('SELECT id, email, password, role, is_active FROM users WHERE email = $1', [email.toLowerCase().trim()]);
+    }>('SELECT id, email, password, role, name, tenant_id, agency_name, plan_type, is_active FROM users WHERE email = $1', [email.toLowerCase().trim()]);
     const user = res.rows[0];
     if (!user || !user.is_active || !(await bcryptjs.compare(password, user.password))) {
       return NextResponse.json({ error: 'Credenciales incorrectas' }, { status: 401 });
@@ -43,6 +47,10 @@ export async function POST(request: Request) {
         id: user.id,
         email: user.email,
         role: user.role,
+        name: user.name || undefined,
+        tenantId: user.tenant_id || undefined,
+        agencyName: user.agency_name || undefined,
+        planType: user.plan_type || undefined,
       }
     });
 

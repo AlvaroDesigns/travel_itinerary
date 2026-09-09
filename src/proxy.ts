@@ -42,11 +42,22 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isSessionValid = await verifySession(request.cookies.get('travel_session')?.value ?? '');
 
-  if (pathname === '/login') {
-    return isSessionValid ? NextResponse.redirect(new URL('/', request.url)) : NextResponse.next();
+  if (pathname === '/login' || pathname === '/registro' || pathname === '/crear-cuenta' || pathname === '/register') {
+    return isSessionValid ? NextResponse.redirect(new URL('/viajes', request.url)) : NextResponse.next();
   }
 
-  if (pathname === '/' || pathname.startsWith('/viaje') || pathname.startsWith('/admin') || pathname.startsWith('/api/trips') || pathname.startsWith('/api/admin') || pathname.startsWith('/api/assistant')) {
+  if (
+    pathname.startsWith('/viaje') ||
+    pathname.startsWith('/viajes') ||
+    pathname.startsWith('/oportunidades') ||
+    pathname.startsWith('/clientes') ||
+    pathname.startsWith('/cuenta') ||
+    pathname.startsWith('/usuarios') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/api/trips') ||
+    pathname.startsWith('/api/admin') ||
+    pathname.startsWith('/api/assistant')
+  ) {
     if (!isSessionValid) {
       return pathname.startsWith('/api/')
         ? NextResponse.json({ error: 'No autorizado' }, { status: 401 })

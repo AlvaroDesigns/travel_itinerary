@@ -149,7 +149,12 @@ async function runNotifications() {
 
 function isAuthorized(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
-  return Boolean(secret) && request.headers.get('authorization') === `Bearer ${secret}`;
+  const isVercelCron = request.headers.get('x-vercel-cron') === '1';
+  const authHeader = request.headers.get('authorization');
+  if (secret && authHeader === `Bearer ${secret}`) return true;
+  if (isVercelCron) return true;
+  if (process.env.NODE_ENV === 'development') return true;
+  return false;
 }
 
 async function handleCron(request: NextRequest) {

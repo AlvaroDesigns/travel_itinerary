@@ -25,11 +25,14 @@ export async function GET() {
                 '[]'::json
               ) as assigned_trips
        FROM clients c
+       JOIN users u ON u.id = c.user_id
        LEFT JOIN trips t ON t.client_id = c.id
        WHERE c.user_id = $1
+          OR ($2 <> 'particular' AND u.tenant_id = $2)
+          OR ($3 = 'superuser' OR $3 = 'superadmin')
        GROUP BY c.id
        ORDER BY c.created_at DESC`,
-      [session.userId]
+      [session.userId, session.tenantId || 'particular', session.role]
     );
 
     const clients = clientsRes.rows.map((row) => ({

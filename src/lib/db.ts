@@ -12,7 +12,7 @@ async function resolveInitialAdminPasswordHash(value: string): Promise<string> {
 }
 
 // Keep a single pool during development hot reloads.
-const globalForDb = global as unknown as { pool: Pool | undefined };
+const globalForDb = global as unknown as { pool: Pool | undefined; isInitialized: boolean | undefined };
 
 export const pool = globalForDb.pool || new Pool({
   connectionString,
@@ -25,10 +25,8 @@ if (process.env.NODE_ENV !== 'production') {
   globalForDb.pool = pool;
 }
 
-let isInitialized = false;
-
 export async function initDb() {
-  if (isInitialized) return;
+  if (globalForDb.isInitialized) return;
   if (!connectionString) {
     throw new Error('DATABASE_URL no está configurada');
   }
@@ -42,7 +40,10 @@ export async function initDb() {
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
-        role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user')),
+        role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('superuser', 'superadmin', 'admin', 'user')),
+        tenant_id VARCHAR(100) NOT NULL DEFAULT 'particular',
+        agency_name VARCHAR(255) NOT NULL DEFAULT 'Particular',
+        plan_type VARCHAR(50) NOT NULL DEFAULT 'particular',
         is_active BOOLEAN NOT NULL DEFAULT TRUE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
@@ -50,10 +51,15 @@ export async function initDb() {
     await client.query(`
       ALTER TABLE users
         ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'user',
+        ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(100) NOT NULL DEFAULT 'particular',
+        ADD COLUMN IF NOT EXISTS agency_name VARCHAR(255) NOT NULL DEFAULT 'Particular',
+        ADD COLUMN IF NOT EXISTS plan_type VARCHAR(50) NOT NULL DEFAULT 'particular',
         ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE,
         ADD COLUMN IF NOT EXISTS name VARCHAR(255) DEFAULT '',
         ADD COLUMN IF NOT EXISTS phone VARCHAR(50) DEFAULT '',
         ADD COLUMN IF NOT EXISTS company VARCHAR(255) DEFAULT '',
+        ADD COLUMN IF NOT EXISTS google_id VARCHAR(255) DEFAULT '',
+        ADD COLUMN IF NOT EXISTS avatar_url TEXT DEFAULT '',
         ADD COLUMN IF NOT EXISTS preferences JSONB DEFAULT '{}'::jsonb;
     `);
     await client.query(`
@@ -62,7 +68,7 @@ export async function initDb() {
     `);
     await client.query(`
       ALTER TABLE users
-        ADD CONSTRAINT users_role_check CHECK (role IN ('admin', 'user'));
+        ADD CONSTRAINT users_role_check CHECK (role IN ('superuser', 'superadmin', 'admin', 'user'));
     `);
 
     await client.query(`
@@ -168,6 +174,30 @@ export async function initDb() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS opportunities (
+        id VARCHAR(255) PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        client_id VARCHAR(255) REFERENCES clients(id) ON DELETE SET NULL,
+        title VARCHAR(255) NOT NULL,
+        stage VARCHAR(50) NOT NULL DEFAULT 'nuevo' CHECK (stage IN ('nuevo', 'contactado', 'propuesta', 'ganada', 'perdido')),
+        amount NUMERIC NOT NULL DEFAULT 0,
+        currency VARCHAR(10) NOT NULL DEFAULT 'EUR',
+        agent_name VARCHAR(255) DEFAULT '',
+        start_date VARCHAR(10),
+        end_date VARCHAR(10),
+        destination VARCHAR(255),
+        travelers_count INTEGER DEFAULT 1,
+        initial_notes TEXT DEFAULT '',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS opportunities_user_id_idx ON opportunities(user_id);
+      CREATE INDEX IF NOT EXISTS opportunities_client_id_idx ON opportunities(client_id);
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS site_content (
         content_key VARCHAR(100) PRIMARY KEY,
         content JSONB NOT NULL,
@@ -191,17 +221,59 @@ export async function initDb() {
     if (initialAdminEmail && configuredInitialAdminPassword) {
       const initialAdminPasswordHash = await resolveInitialAdminPasswordHash(configuredInitialAdminPassword);
       await client.query(
-        `INSERT INTO users (email, password, role, is_active)
-         VALUES ($1, $2, 'admin', TRUE)
+        `INSERT INTO users (email, password, role, is_active, tenant_id, agency_name, plan_type)
+         VALUES ($1, $2, 'admin', TRUE, 'particular', 'Particular', 'particular')
          ON CONFLICT (email) DO UPDATE SET
-           role = 'admin',
            is_active = TRUE`,
         [initialAdminEmail, initialAdminPasswordHash]
       );
     }
 
+    // Ensure hello@alvarodesigns.com is superuser and owns the 'alvarodesigns' agency tenant
+    const defaultPasswordHash = await bcryptjs.hash('Password12345!', 10);
+    await client.query(`
+      INSERT INTO users (email, password, role, name, is_active, tenant_id, agency_name, plan_type)
+      VALUES ('hello@alvarodesigns.com', $1, 'superuser', 'Alvaro Designs Admin', TRUE, 'alvarodesigns', 'Alvaro Designs Agency', 'agency_enterprise')
+      ON CONFLICT (email) DO UPDATE SET
+        role = 'superuser',
+        tenant_id = 'alvarodesigns',
+        agency_name = 'Alvaro Designs Agency',
+        plan_type = 'agency_enterprise',
+        is_active = TRUE
+    `, [defaultPasswordHash]);
+
+    // Ensure alvaro.bonilla@me.com is inside the 'alvarodesigns' agency plan
+    await client.query(`
+      INSERT INTO users (email, password, role, name, is_active, tenant_id, agency_name, plan_type)
+      VALUES ('alvaro.bonilla@me.com', $1, 'user', 'Álvaro Bonilla', TRUE, 'alvarodesigns', 'Alvaro Designs Agency', 'agency_enterprise')
+      ON CONFLICT (email) DO UPDATE SET
+        tenant_id = 'alvarodesigns',
+        agency_name = 'Alvaro Designs Agency',
+        plan_type = 'agency_enterprise'
+    `, [defaultPasswordHash]);
+
+    // Ensure daviidjd@gmail.com is a particular user
+    await client.query(`
+      INSERT INTO users (email, password, role, name, is_active, tenant_id, agency_name, plan_type)
+      VALUES ('daviidjd@gmail.com', $1, 'user', 'David JD', TRUE, 'particular', 'Particular', 'particular')
+      ON CONFLICT (email) DO UPDATE SET
+        tenant_id = 'particular',
+        agency_name = 'Particular',
+        plan_type = 'particular'
+    `, [defaultPasswordHash]);
+
+    // Ensure aina is a particular user
+    await client.query(`
+      INSERT INTO users (email, password, role, name, is_active, tenant_id, agency_name, plan_type)
+      VALUES ('aina@wanderlust.com', $1, 'user', 'Aina', TRUE, 'particular', 'Particular', 'particular')
+      ON CONFLICT (email) DO UPDATE SET
+        tenant_id = 'particular',
+        agency_name = 'Particular',
+        plan_type = 'particular'
+    `, [defaultPasswordHash]);
+
     await client.query('COMMIT');
-    isInitialized = true;
+    globalForDb.isInitialized = true;
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Failed to initialize database tables:', error);

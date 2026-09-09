@@ -1,11 +1,18 @@
 import type { Metadata } from 'next';
-import { Outfit } from 'next/font/google';
+import { Outfit, Instrument_Serif } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 
 const outfit = Outfit({
   subsets: ['latin'],
   variable: '--font-outfit',
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+  variable: '--font-serif',
 });
 
 export const metadata: Metadata = {
@@ -15,10 +22,11 @@ export const metadata: Metadata = {
   authors: [{ name: 'Wanderlust' }],
   icons: {
     icon: [
-      { url: '/favicon.ico' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
       { url: '/wanderlust_icono_negro.png', type: 'image/png' },
     ],
     apple: '/wanderlust_icono_negro.png',
+    shortcut: '/icon.svg',
   },
 };
 
@@ -28,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${outfit.variable} h-full antialiased`}>
+    <html lang="es" className={`${outfit.variable} ${instrumentSerif.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans bg-white text-ink-900 antialiased">
         <Providers>
           {children}

@@ -17,15 +17,27 @@ import {
   Sparkles,
   User,
   Users,
+  UserCog,
   Luggage,
   LogOut,
   UtensilsCrossed,
   X,
+  CreditCard,
+  CalendarCheck,
+  CheckCircle2,
+  Lock,
+  Zap,
+  ArrowRight,
+  LayoutDashboard,
+  Star,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { useTravel } from "@/context/TravelContext";
+import { RedsysLogo } from "@/components/RedsysLogo";
+import { UserAvatarDisplay } from "@/components/AvatarPickerModal";
+import { WanderlustLoader } from "@/components/WanderlustLoader";
 
 interface PageProps {
   params: Promise<{ token: string }>;
@@ -36,6 +48,7 @@ type PublicActivity = {
   type: string;
   date: string;
   time: string;
+  title?: string;
   price?: number;
   isCheckout?: boolean;
   originalId?: string;
@@ -43,6 +56,16 @@ type PublicActivity = {
   checkIn?: string;
   checkOut?: string;
   hotelName?: string;
+  totalAmount?: number;
+  depositAmount?: number;
+  depositPercentage?: number;
+  secondPaymentAmount?: number;
+  secondPaymentDate?: string;
+  finalPaymentAmount?: number;
+  finalPaymentDate?: string;
+  paymentProvider?: "redsys" | "stripe";
+  cancellationPolicy?: string;
+  autoPaymentEnabled?: boolean;
   [key: string]: unknown;
 };
 
@@ -53,6 +76,7 @@ type PublicTrip = {
   imageUrl: string | null;
   description: string | null;
   showExpenses: boolean;
+  paymentProviders?: { redsys?: boolean; stripe?: boolean; inespay?: boolean };
   activities: PublicActivity[];
 };
 
@@ -343,6 +367,7 @@ function PublicActivityIcon({ act }: { act: PublicActivity }) {
   const isFood = act.type === "food";
   const isTransfer = act.type === "transfer";
   const isExcursion = act.type === "excursion";
+  const isBooking = act.type === "booking" || act.type === "pago";
 
   useEffect(() => {
     setImgError(false);
@@ -368,11 +393,14 @@ function PublicActivityIcon({ act }: { act: PublicActivity }) {
       {isFood && <UtensilsCrossed className="h-5 w-5" />}
       {isTransfer && <Car className="h-5 w-5" />}
       {isExcursion && <MapPin className="h-5 w-5" />}
+      {isBooking && <CalendarCheck className="h-5 w-5" />}
+      {act.type === "flight" && <Plane className="h-5 w-5" />}
     </div>
   );
 }
 
 function hasActivityDetails(act: PublicActivity): boolean {
+  if (act.type === "booking" || act.type === "pago") return true;
   if (typeof act.description === "string" && act.description.trim().length > 0)
     return true;
   if (typeof act.notes === "string" && act.notes.trim().length > 0) return true;
@@ -385,10 +413,12 @@ function PublicActivityCardItem({
   act,
   trip,
   onSelect,
+  onNavigateToPayments,
 }: {
   act: PublicActivity;
   trip: PublicTrip;
   onSelect: (act: PublicActivity) => void;
+  onNavigateToPayments?: () => void;
 }) {
   const [imgError, setImgError] = useState(false);
   const customUrl =
@@ -399,6 +429,7 @@ function PublicActivityCardItem({
   const isFood = act.type === "food";
   const isTransfer = act.type === "transfer";
   const isExcursion = act.type === "excursion";
+  const isBooking = act.type === "booking" || act.type === "pago";
   const isClickable = hasActivityDetails(act);
   const showFullImage = Boolean(customUrl && !imgError);
 
@@ -434,6 +465,7 @@ function PublicActivityCardItem({
             {isFood && <UtensilsCrossed className="h-5 w-5" />}
             {isTransfer && <Car className="h-5 w-5" />}
             {isExcursion && <MapPin className="h-5 w-5" />}
+            {isBooking && <CalendarCheck className="h-5 w-5" />}
             {act.type === "flight" && <Plane className="h-5 w-5" />}
           </div>
         </div>
@@ -476,12 +508,20 @@ function PublicActivityCardItem({
             </h3>
           )}
 
+          {isBooking && (
+            <h3 className="text-sm sm:text-base font-extrabold text-[#101828] leading-tight">
+              {(act.title as string) || "Condiciones de Reserva y Plazos de Pago"}
+            </h3>
+          )}
+
           {/* 2. Category & Time Badges */}
           <div className="flex flex-wrap items-center gap-2 mt-1.5 mb-1.5">
             <span
               className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                 act.isCheckout
                   ? "bg-rose-50 border border-rose-200 text-rose-700"
+                  : isBooking
+                  ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
                   : "bg-[#f2f4f7] text-[#475467]"
               }`}
             >
@@ -490,6 +530,7 @@ function PublicActivityCardItem({
               {isFood && "Restaurante & Gastronomía"}
               {isTransfer && "Traslado Privado"}
               {isExcursion && "Actividad Guiada"}
+              {isBooking && "Módulo de Pago & Reserva"}
               {act.type === "flight" && "Vuelo"}
             </span>
             <span className="flex items-center gap-1 text-xs font-bold text-[#009688]">
@@ -537,12 +578,44 @@ function PublicActivityCardItem({
                 : "Traslado confirmado"}
             </p>
           )}
+
+          {isBooking && (
+            <div className="space-y-1 mt-1">
+              <p className="text-xs text-[#667085]">
+                Pasarela: <strong className="text-[#101828] uppercase font-bold">{(act.paymentProvider as string) || "Redsys"}</strong> · Depósito inicial: <strong className="text-[#009688] font-bold">{Number(act.depositAmount || 250)} €</strong>
+              </p>
+              {Boolean(act.cancellationPolicy || act.description) && (
+                <p className="text-xs text-[#475467] line-clamp-2">
+                  {String(act.cancellationPolicy || act.description)}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {(Boolean(trip.showExpenses && act.price && act.price > 0) ||
-          isClickable) && (
-          <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-[#f2f4f7]">
-            {trip.showExpenses && act.price && act.price > 0 ? (
+          isClickable ||
+          isBooking) && (
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-2 pt-2 border-t border-[#f2f4f7]">
+            {isBooking ? (
+              onNavigateToPayments ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onNavigateToPayments();
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[#009688] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[#00796b] shadow-xs cursor-pointer transition-all"
+                >
+                  <CreditCard className="h-3.5 w-3.5" />
+                  <span>Ver plazos y pagar depósito</span>
+                </button>
+              ) : (
+                <span className="rounded-full bg-[#e0f2f1] px-2.5 py-0.5 text-xs font-bold text-[#00796b]">
+                  Depósito: {formatCurrency(Number(act.depositAmount || 250))}
+                </span>
+              )
+            ) : trip.showExpenses && act.price && act.price > 0 ? (
               <span className="rounded-full bg-[#f8fafc] px-2.5 py-0.5 text-xs font-black text-[#101828] border border-[#eaecf0]">
                 {formatCurrency(act.price)}
               </span>
@@ -570,12 +643,97 @@ export default function PublicTripPage({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "itinerario" | "resumen" | "notas"
+    "itinerario" | "resumen" | "pagos" | "notas"
   >("itinerario");
-  const [selectedActivity, setSelectedActivity] =
-    useState<PublicActivity | null>(null);
+  const [isProcessingRedsys, setIsProcessingRedsys] = useState(false);
+  const [redsysError, setRedsysError] = useState<string | null>(null);
+  const [pagoStatus, setPagoStatus] = useState<"ok" | "ko" | null>(null);
+  const [selectedActivity, setSelectedActivity] = useState<PublicActivity | null>(null);
   const [copiedToast, setCopiedToast] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [paymentPlan, setPaymentPlan] = useState<"full" | "deposit">("deposit");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "redsys_card" | "redsys_bizum" | "stripe_card" | "stripe_apple_pay" | "stripe_google_pay" | "stripe_paypal"
+  >("redsys_card");
+  const [tempPaymentMethod, setTempPaymentMethod] = useState<
+    "redsys_card" | "redsys_bizum" | "stripe_card" | "stripe_apple_pay" | "stripe_google_pay" | "stripe_paypal"
+  >("redsys_card");
+  const [isPaymentMethodModalOpen, setIsPaymentMethodModalOpen] = useState(false);
+  const [isPolicyInfoOpen, setIsPolicyInfoOpen] = useState(false);
+  const [isPriceDetailModalOpen, setIsPriceDetailModalOpen] = useState(false);
+  const [activePaymentProviders, setActivePaymentProviders] = useState<{ redsys: boolean; stripe: boolean }>({
+    redsys: true,
+    stripe: false,
+  });
+
+  useEffect(() => {
+    fetch("/api/user/profile")
+      .then((res) => res.json())
+      .then((profile) => {
+        if (profile?.preferences?.paymentProviders) {
+          const pp = profile.preferences.paymentProviders;
+          setActivePaymentProviders({
+            redsys: pp.redsys?.connected !== false,
+            stripe: Boolean(pp.stripe?.connected),
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pago = urlParams.get("pago");
+      if (pago === "ok") {
+        setPagoStatus("ok");
+        setActiveTab("pagos");
+      } else if (pago === "ko") {
+        setPagoStatus("ko");
+        setActiveTab("pagos");
+      }
+    }
+  }, []);
+
+  const handlePayWithRedsys = async (depositAmount: number, tripName: string) => {
+    setIsProcessingRedsys(true);
+    setRedsysError(null);
+    try {
+      const res = await fetch("/api/payments/redsys/create-charge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          amount: depositAmount,
+          description: `Depósito Reserva: ${tripName.slice(0, 50)}`,
+        }),
+      });
+
+      const chargeData = await res.json();
+      if (!res.ok || !chargeData.formUrl) {
+        throw new Error(chargeData.error || "Error al conectar con la pasarela Redsys");
+      }
+
+      // Auto-create and submit form to Redsys SIS endpoint
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = chargeData.formUrl;
+
+      Object.entries(chargeData.params).forEach(([key, val]) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = String(val);
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+    } catch (err: unknown) {
+      setIsProcessingRedsys(false);
+      setRedsysError(err instanceof Error ? err.message : "Error al iniciar el pago con Redsys");
+    }
+  };
 
   useEffect(() => {
     const handleOutsideClick = () => setIsUserMenuOpen(false);
@@ -610,7 +768,15 @@ export default function PublicTripPage({ params }: PageProps) {
             payload.error || "No se ha podido abrir el itinerario",
           );
         setData(payload);
-        if (payload.available) setSelectedDate(payload.trip.startDate);
+        if (payload.available) {
+          setSelectedDate(payload.trip.startDate);
+          if (payload.trip.paymentProviders) {
+            setActivePaymentProviders({
+              redsys: payload.trip.paymentProviders.redsys !== false,
+              stripe: Boolean(payload.trip.paymentProviders.stripe),
+            });
+          }
+        }
       } catch (loadError) {
         if ((loadError as Error).name !== "AbortError") {
           setError(
@@ -648,23 +814,7 @@ export default function PublicTripPage({ params }: PageProps) {
   }
 
   if (!data) {
-    return (
-      <main className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-[#090e1a] px-5 font-sans text-white">
-        <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-white/10 p-2 backdrop-blur-md animate-pulse border border-white/10">
-          <Image
-            src="/wanderlust_icono_blanco.png"
-            alt="Wanderlust"
-            width={48}
-            height={48}
-            className="h-10 w-10 object-contain"
-          />
-        </div>
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
-          <Clock3 className="h-4 w-4 animate-spin text-[#009688]" />
-          <span>Cargando tu experiencia de viaje...</span>
-        </div>
-      </main>
-    );
+    return <WanderlustLoader />;
   }
 
   if (!data.available) {
@@ -762,6 +912,28 @@ export default function PublicTripPage({ params }: PageProps) {
     0,
   );
 
+  const bookingActivities = trip.activities.filter(
+    (a) =>
+      a.type === "booking" ||
+      a.type === "pago" ||
+      (typeof a.depositAmount === "number" && a.depositAmount > 0) ||
+      (a.paymentProvider !== undefined && a.paymentProvider !== null),
+  );
+  const hasPaymentModule = bookingActivities.length > 0;
+  const primaryBooking = bookingActivities[0] || null;
+
+  const navTabs: {
+    id: "itinerario" | "resumen" | "pagos" | "notas";
+    label: string;
+  }[] = [
+    { id: "itinerario", label: "Itinerario" },
+    { id: "resumen", label: "Resumen de servicios" },
+    ...(hasPaymentModule
+      ? [{ id: "pagos" as const, label: "Pagos & Depósito" }]
+      : []),
+    { id: "notas", label: "Notas" },
+  ];
+
   const handleShare = async () => {
     if (typeof window === "undefined") return;
 
@@ -852,7 +1024,22 @@ export default function PublicTripPage({ params }: PageProps) {
               <Share2 className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
 
-            {user && (
+            {!user ? (
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/login?redirect=/publico/${token}`}
+                  className="rounded-full bg-white/20 hover:bg-white/30 text-white backdrop-blur-md border border-white/20 shadow-md px-3 sm:px-4 py-1.5 text-xs font-bold transition-all hover:scale-102"
+                >
+                  Inicia sesión
+                </Link>
+                <Link
+                  href="/registro"
+                  className="hidden sm:inline-flex rounded-full bg-[#009688] hover:bg-[#00796b] text-white shadow-md px-3.5 py-1.5 text-xs font-bold transition-all hover:scale-102"
+                >
+                  Regístrate gratis
+                </Link>
+              </div>
+            ) : (
               <div className="relative">
                 <button
                   type="button"
@@ -861,19 +1048,17 @@ export default function PublicTripPage({ params }: PageProps) {
                     setIsUserMenuOpen(!isUserMenuOpen);
                   }}
                   title={`Opciones de ${getUserDisplayName()}`}
-                  className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full transition-all cursor-pointer ${
+                  className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full transition-all cursor-pointer overflow-hidden ${
                     isUserMenuOpen
-                      ? "bg-white text-[#101828] ring-2 ring-[#009688] shadow-lg"
-                      : "bg-white/20 hover:bg-white/30 text-white backdrop-blur-md border border-white/20 shadow-md"
+                      ? "ring-2 ring-[#009688] shadow-lg"
+                      : "hover:ring-2 hover:ring-white/40 shadow-md"
                   }`}
                 >
-                  <span className="text-xs sm:text-sm font-black uppercase">
-                    {user.email ? (
-                      user.email.charAt(0).toUpperCase()
-                    ) : (
-                      <User className="h-4 w-4 sm:h-5 sm:w-5" />
-                    )}
-                  </span>
+                  <UserAvatarDisplay
+                    avatar={user?.avatar || "traveler-girl-teal"}
+                    name={getUserDisplayName()}
+                    size="sm"
+                  />
                 </button>
 
                 {/* Profile Dropdown Menu */}
@@ -891,18 +1076,31 @@ export default function PublicTripPage({ params }: PageProps) {
                         {user.email}
                       </p>
                       <span className="mt-1.5 inline-block rounded-full bg-[#e0f2f1] px-2.5 py-0.5 text-[10px] font-bold text-[#00796b]">
-                        {user.role === "admin" ? "Administrador" : "Propietario"}
+                        {user.role === "superuser" || user.role === "superadmin"
+                          ? "SUPERUSER"
+                          : user.role === "admin"
+                          ? "Administrador"
+                          : "Usuario"}
                       </span>
                     </div>
 
                     {/* Navigation Items */}
                     <div className="pt-2 pb-1 space-y-0.5">
                       <Link
+                        href="/dashboard"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors"
+                      >
+                        <LayoutDashboard className="h-4 w-4 text-[#009688]" />
+                        <span>Dashboard</span>
+                      </Link>
+
+                      <Link
                         href="/viajes"
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors"
                       >
-                        <Luggage className="h-4 w-4 text-[#009688]" />
+                        <Plane className="h-4 w-4 text-[#009688]" />
                         <span>Mis Viajes</span>
                       </Link>
 
@@ -924,14 +1122,17 @@ export default function PublicTripPage({ params }: PageProps) {
                         <span>Mi cuenta</span>
                       </Link>
 
-                      {user.role === "admin" && (
+                      {(user.role === "admin" ||
+                        user.role === "superadmin" ||
+                        user.role === "superuser" ||
+                        (user.tenantId && user.tenantId !== "particular")) && (
                         <Link
-                          href="/admin"
+                          href="/usuarios"
                           onClick={() => setIsUserMenuOpen(false)}
                           className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors"
                         >
-                          <ShieldCheck className="h-4 w-4 text-[#009688]" />
-                          <span>Panel Admin</span>
+                          <UserCog className="h-4 w-4 text-[#009688]" />
+                          <span>Usuarios</span>
                         </Link>
                       )}
                     </div>
@@ -990,17 +1191,13 @@ export default function PublicTripPage({ params }: PageProps) {
       <div className="mx-auto max-w-7xl px-4 sm:px-8 pt-5 sm:pt-7">
         <div className="w-full overflow-x-auto pb-1 [scrollbar-width:none]">
           <div className="flex sm:inline-flex items-center gap-1.5 rounded-2xl sm:rounded-full bg-[#f1f3f5] p-1.5 border border-[#e4e7ec] shadow-xs w-full sm:w-auto">
-            {[
-              { id: "itinerario", label: "Itinerario" },
-              { id: "resumen", label: "Resumen de servicios" },
-              { id: "notas", label: "Notas" },
-            ].map((tab) => {
+            {navTabs.map((tab) => {
               const isSelected = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                  onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 sm:flex-initial text-center rounded-xl sm:rounded-full px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-extrabold transition-all duration-200 cursor-pointer whitespace-nowrap select-none ${
                     isSelected
                       ? "bg-white text-[#101828] shadow-md ring-1 ring-black/5"
@@ -1016,46 +1213,48 @@ export default function PublicTripPage({ params }: PageProps) {
       </div>
 
       {/* ----------------------------------------------------------- */}
-      {/* 3. DÍAS SELECTOR (Seamless, larger day badges)             */}
+      {/* 3. DÍAS SELECTOR (Solo visible en pestaña Itinerario)       */}
       {/* ----------------------------------------------------------- */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-8 pt-4 sm:pt-6">
-        <div className="flex items-center gap-2.5 sm:gap-3.5 overflow-x-auto py-2 px-1 [scrollbar-width:none] justify-start">
-          {dates.map((dateStr) => {
-            const isSelected = activeDate === dateStr;
-            const { weekday, dayNum } = formatDayLabel(dateStr);
+      {activeTab === "itinerario" && (
+        <div className="mx-auto max-w-7xl px-4 sm:px-8 pt-4 sm:pt-6">
+          <div className="flex items-center gap-2.5 sm:gap-3.5 overflow-x-auto py-2 px-1 [scrollbar-width:none] justify-start">
+            {dates.map((dateStr) => {
+              const isSelected = activeDate === dateStr;
+              const { weekday, dayNum } = formatDayLabel(dateStr);
 
-            return (
-              <button
-                key={dateStr}
-                onClick={() => setSelectedDate(dateStr)}
-                className={`group flex shrink-0 flex-col items-center justify-center min-w-[62px] sm:min-w-[72px] py-3 sm:py-3.5 px-3.5 sm:px-4 rounded-2xl transition-all duration-200 cursor-pointer ${
-                  isSelected
-                    ? "bg-[#009688] text-white shadow-lg shadow-[#009688]/30 scale-105 ring-2 ring-[#009688]/20"
-                    : "bg-white text-[#475467] border border-[#eaecf0] shadow-xs hover:border-[#009688]/50 hover:bg-slate-50"
-                }`}
-                title={`${weekday} ${dayNum}`}
-              >
-                <span
-                  className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider ${
+              return (
+                <button
+                  key={dateStr}
+                  onClick={() => setSelectedDate(dateStr)}
+                  className={`group flex shrink-0 flex-col items-center justify-center min-w-[62px] sm:min-w-[72px] py-3 sm:py-3.5 px-3.5 sm:px-4 rounded-2xl transition-all duration-200 cursor-pointer ${
                     isSelected
-                      ? "text-white/90"
-                      : "text-[#667085] group-hover:text-[#101828]"
+                      ? "bg-[#009688] text-white shadow-lg shadow-[#009688]/30 scale-105 ring-2 ring-[#009688]/20"
+                      : "bg-white text-[#475467] border border-[#eaecf0] shadow-xs hover:border-[#009688]/50 hover:bg-slate-50"
                   }`}
+                  title={`${weekday} ${dayNum}`}
                 >
-                  {weekday}
-                </span>
-                <span
-                  className={`text-lg sm:text-xl font-black leading-tight mt-0.5 ${
-                    isSelected ? "text-white" : "text-[#101828]"
-                  }`}
-                >
-                  {dayNum}
-                </span>
-              </button>
-            );
-          })}
+                  <span
+                    className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider ${
+                      isSelected
+                        ? "text-white/90"
+                        : "text-[#667085] group-hover:text-[#101828]"
+                    }`}
+                  >
+                    {weekday}
+                  </span>
+                  <span
+                    className={`text-lg sm:text-xl font-black leading-tight mt-0.5 ${
+                      isSelected ? "text-white" : "text-[#101828]"
+                    }`}
+                  >
+                    {dayNum}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ----------------------------------------------------------- */}
       {/* 4. MAIN CONTENT: 2-COLUMN RESPONSIVE LAYOUT                 */}
@@ -1414,6 +1613,7 @@ export default function PublicTripPage({ params }: PageProps) {
                         act={act}
                         trip={trip}
                         onSelect={setSelectedActivity}
+                        onNavigateToPayments={() => setActiveTab("pagos")}
                       />
                     );
                   })}
@@ -1555,6 +1755,876 @@ export default function PublicTripPage({ params }: PageProps) {
         )}
 
         {/* ----------------------------------------------------------- */}
+        {/* TAB: CONFIRMAR Y PAGAR (AIRBNB STYLE 2-COLUMN CHECKOUT)     */}
+        {/* ----------------------------------------------------------- */}
+        {activeTab === "pagos" && (() => {
+          const baseTripAmount = Number(
+            primaryBooking?.totalAmount ??
+              (trip.showExpenses && primaryBooking?.price ? primaryBooking.price : 1250)
+          );
+          const depositPercentage = primaryBooking?.depositPercentage || 20;
+          const depositAmount = Number(
+            primaryBooking?.depositAmount ?? Math.round(baseTripAmount * (depositPercentage / 100))
+          );
+
+          const amountDueToday = paymentPlan === "full" ? baseTripAmount : depositAmount;
+          const remainingBalance = Math.max(0, baseTripAmount - amountDueToday);
+
+          return (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              {/* Payment Feedback Banners */}
+              {pagoStatus === "ok" && (
+                <div className="rounded-3xl border border-emerald-300 bg-emerald-50/90 p-5 sm:p-6 text-emerald-950 shadow-md flex items-start gap-3.5 animate-fade-in">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-xs">
+                    <CheckCircle2 className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-base font-extrabold text-emerald-950">
+                      ¡Pago confirmado con éxito!
+                    </h3>
+                    <p className="text-xs text-emerald-800 mt-0.5 leading-relaxed">
+                      Tu transacción ha sido procesada correctamente a través de la pasarela bancaria oficial. La reserva de tu viaje queda confirmada y hemos enviado el recibo formal a tu correo.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {pagoStatus === "ko" && (
+                <div className="rounded-3xl border border-rose-200 bg-rose-50/90 p-5 sm:p-6 text-rose-900 shadow-md flex items-start gap-3.5 animate-fade-in">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-500 text-white shadow-xs">
+                    <X className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-base font-extrabold text-rose-950">
+                      Pago cancelado o no completado
+                    </h3>
+                    <p className="text-xs text-rose-800 mt-0.5 leading-relaxed">
+                      La operación no se ha completado en la pasarela. Puedes volver a intentarlo cuando desees o utilizar otra tarjeta bancaria.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Main 2-Column Split */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start pt-1">
+                {/* ======================================================== */}
+                {/* LEFT COLUMN: PAYMENT OPTIONS, METHOD & GREEN CTA         */}
+                {/* ======================================================== */}
+                <div className="lg:col-span-7 space-y-6">
+                  {/* Main Heading */}
+                  <div className="flex items-center gap-3 pb-1">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("itinerario")}
+                      className="p-2 -ml-2 rounded-full hover:bg-zinc-100 text-zinc-700 transition-colors cursor-pointer"
+                      title="Volver al itinerario"
+                    >
+                      <ChevronRight className="w-6 h-6 rotate-180" />
+                    </button>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-[#101828] tracking-tight">
+                      Confirmar y pagar
+                    </h1>
+                  </div>
+
+                  {/* Card 1: Elige cuándo quieres pagar */}
+                  <div className="rounded-3xl border border-[#eaecf0] bg-white shadow-xs overflow-hidden">
+                    <div className="p-6 pb-4">
+                      <h3 className="text-base font-semibold text-[#101828]">
+                        Elige cuándo quieres pagar
+                      </h3>
+                    </div>
+
+                    {/* Option 1: Pagar todo ahora */}
+                    <div
+                      onClick={() => setPaymentPlan("full")}
+                      className={`p-6 border-t border-[#f2f4f7] flex items-center justify-between gap-4 cursor-pointer transition-colors ${
+                        paymentPlan === "full" ? "bg-zinc-50/60" : "hover:bg-zinc-50/30"
+                      }`}
+                    >
+                      <div>
+                        <span className="text-sm sm:text-base font-normal text-[#101828]">
+                          Paga <span className="font-semibold">{formatCurrency(baseTripAmount)}</span> ahora
+                        </span>
+                      </div>
+                      <div className="shrink-0 flex items-center justify-center">
+                        <div
+                          className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                            paymentPlan === "full"
+                              ? "border-[#101828]"
+                              : "border-[#d0d5dd] bg-white"
+                          }`}
+                        >
+                          {paymentPlan === "full" && (
+                            <div className="h-2.5 w-2.5 rounded-full bg-[#101828]" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Option 2: Depósito + Resto más adelante (Default) */}
+                    <div
+                      onClick={() => setPaymentPlan("deposit")}
+                      className={`p-6 border-t border-[#f2f4f7] flex items-start justify-between gap-4 cursor-pointer transition-colors ${
+                        paymentPlan === "deposit" ? "bg-zinc-50/60" : "hover:bg-zinc-50/30"
+                      }`}
+                    >
+                      <div className="space-y-1">
+                        <span className="text-sm sm:text-base font-normal text-[#101828] block">
+                          Paga una parte ahora y otra más adelante
+                        </span>
+                        <p className="text-xs sm:text-sm font-normal text-[#667085] leading-relaxed">
+                          Paga <span className="font-medium text-[#101828]">{formatCurrency(depositAmount)}</span> ahora y{" "}
+                          <span className="font-medium text-[#101828]">{formatCurrency(baseTripAmount - depositAmount)}</span> el{" "}
+                          {primaryBooking?.finalPaymentDate
+                            ? formatDate(primaryBooking.finalPaymentDate)
+                            : "24 sept"}{" "}
+                          Sin cargos adicionales.{" "}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsPolicyInfoOpen(true);
+                            }}
+                            className="underline font-medium text-[#101828] hover:text-[#009688] cursor-pointer"
+                          >
+                            Más información
+                          </button>
+                        </p>
+                      </div>
+                      <div className="shrink-0 pt-0.5 flex items-center justify-center">
+                        <div
+                          className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                            paymentPlan === "deposit"
+                              ? "border-[#101828]"
+                              : "border-[#d0d5dd] bg-white"
+                          }`}
+                        >
+                          {paymentPlan === "deposit" && (
+                            <div className="h-2.5 w-2.5 rounded-full bg-[#101828]" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 2: Método de pago */}
+                  <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-base font-semibold text-[#101828]">
+                        Método de pago
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTempPaymentMethod(paymentMethod);
+                          setIsPaymentMethodModalOpen(true);
+                        }}
+                        className="px-3.5 py-1.5 rounded-xl border border-[#d0d5dd] bg-[#f8fafc] hover:bg-[#eaecf0] text-xs font-semibold text-[#344054] transition-colors cursor-pointer"
+                      >
+                        Cambiar
+                      </button>
+                    </div>
+
+                    {/* Selected Payment Method Display */}
+                    <div className="flex items-center gap-3 py-1">
+                      {paymentMethod === "redsys_card" && (
+                        <>
+                          <div className="flex items-center -space-x-1.5">
+                            <span className="h-4 w-4 rounded-full bg-[#eb001b] inline-block shadow-2xs" />
+                            <span className="h-4 w-4 rounded-full bg-[#f79e1b] inline-block shadow-2xs opacity-90" />
+                          </div>
+                          <span className="font-semibold text-sm text-[#101828]">
+                            3418
+                          </span>
+                          <span className="text-xs text-[#667085] font-normal">
+                            · Redsys TPV Seguro (Tarjeta de Crédito / Débito)
+                          </span>
+                        </>
+                      )}
+
+                      {paymentMethod === "redsys_bizum" && (
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-md bg-[#009688] px-2 py-0.5 text-[11px] font-bold text-white">
+                            BIZUM
+                          </span>
+                          <span className="font-semibold text-sm text-[#101828]">
+                            Pago instantáneo con Bizum (Redsys)
+                          </span>
+                        </div>
+                      )}
+
+                      {paymentMethod === "stripe_apple_pay" && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-base font-bold text-black"> Pay</span>
+                          <span className="font-semibold text-sm text-[#101828]">
+                            Apple Pay Seguro
+                          </span>
+                        </div>
+                      )}
+
+                      {paymentMethod === "stripe_card" && (
+                        <div className="flex items-center gap-2.5">
+                          <CreditCard className="h-4 w-4 text-[#009688]" />
+                          <span className="font-semibold text-sm text-[#101828]">
+                            Tarjeta de crédito o débito
+                          </span>
+                          <span className="text-xs text-[#667085] font-normal">· Visa, Mastercard, Amex</span>
+                        </div>
+                      )}
+
+                      {paymentMethod === "stripe_google_pay" && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-[#5f6368] bg-slate-100 px-2 py-0.5 rounded">
+                            G Pay
+                          </span>
+                          <span className="font-semibold text-sm text-[#101828]">
+                            Google Pay
+                          </span>
+                        </div>
+                      )}
+
+                      {paymentMethod === "stripe_paypal" && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-[#003087] bg-slate-100 px-2 py-0.5 rounded">
+                            PayPal
+                          </span>
+                          <span className="font-semibold text-sm text-[#101828]">
+                            PayPal Express
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Logos Strip (Dynamic based on active payment providers) */}
+                    <div className="pt-2 border-t border-[#f2f4f7] flex flex-wrap items-center gap-2.5 text-[#98a2b3]">
+                      <span className="text-[11px] font-bold tracking-wider text-[#1a1f71] bg-slate-100 px-2 py-0.5 rounded">
+                        VISA
+                      </span>
+                      <span className="text-[11px] font-bold tracking-wider text-[#eb001b] bg-slate-100 px-2 py-0.5 rounded">
+                        MC
+                      </span>
+                      {activePaymentProviders.stripe && (
+                        <>
+                          <span className="text-[11px] font-bold tracking-wider text-[#006fcf] bg-slate-100 px-2 py-0.5 rounded">
+                            AMEX
+                          </span>
+                          <span className="text-[11px] font-bold text-black bg-slate-100 px-2 py-0.5 rounded">
+                             Pay
+                          </span>
+                          <span className="text-[11px] font-bold text-[#003087] bg-slate-100 px-2 py-0.5 rounded">
+                            PayPal
+                          </span>
+                          <span className="text-[11px] font-bold text-[#5f6368] bg-slate-100 px-2 py-0.5 rounded">
+                            G Pay
+                          </span>
+                        </>
+                      )}
+                      {activePaymentProviders.redsys && (
+                        <span className="text-[11px] font-bold text-[#00a896] bg-emerald-50 px-2 py-0.5 rounded">
+                          bizum
+                        </span>
+                      )}
+                      {activePaymentProviders.redsys && (
+                        <div className="ml-auto">
+                          <RedsysLogo size="sm" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Error Message if Redsys fails */}
+                  {redsysError && (
+                    <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-700 font-medium">
+                      {redsysError}
+                    </div>
+                  )}
+
+                  {/* Terms Text & Green Action CTA */}
+                  <div className="space-y-4 pt-2">
+                    <p className="text-xs text-[#475467] font-normal">
+                      Al seleccionar el botón, acepto{" "}
+                      <button
+                        type="button"
+                        onClick={() => setIsPolicyInfoOpen(true)}
+                        className="underline font-medium text-[#101828] hover:text-[#009688] cursor-pointer"
+                      >
+                        los términos de la reserva
+                      </button>
+                      .
+                    </p>
+
+                    {/* WANDERLUST GREEN BUTTON (Matching the rest of the web app) */}
+                    <button
+                      type="button"
+                      onClick={() => handlePayWithRedsys(amountDueToday, trip.name)}
+                      disabled={isProcessingRedsys}
+                      className="w-full sm:w-auto min-w-[280px] rounded-2xl bg-[#009688] hover:bg-[#00796b] py-3.5 px-8 text-sm sm:text-base font-bold text-white shadow-lg shadow-[#009688]/30 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2.5"
+                    >
+                      {isProcessingRedsys ? (
+                        <>
+                          <span className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                          <span>Conectando con pasarela segura...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-4 h-4" />
+                          <span>Confirmar y pagar</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* ======================================================== */}
+                {/* RIGHT COLUMN: URGENCY BANNER & SUMMARY CARD             */}
+                {/* ======================================================== */}
+                <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-24">
+                  {/* Pink Urgency Banner */}
+                  <div className="rounded-2xl border border-pink-200/80 bg-[#fdf2f8] p-4 text-pink-950 flex items-start gap-3 shadow-2xs">
+                    <span className="text-base shrink-0 pt-0.5">💎</span>
+                    <p className="text-xs sm:text-[13px] font-normal text-[#831843] leading-snug">
+                      ¡Qué suerte! Tienes una oportunidad única de hacerte con este viaje, que suele estar reservado.
+                    </p>
+                  </div>
+
+                  {/* Clean Summary Card */}
+                  <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 sm:p-7 shadow-lg shadow-black/5 space-y-5">
+                    {/* Top Row: Thumbnail + Title + Rating */}
+                    <div className="flex items-center gap-4">
+                      <div className="h-18 w-20 sm:h-20 sm:w-24 shrink-0 rounded-2xl overflow-hidden bg-slate-200 shadow-xs relative">
+                        {trip.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={trip.imageUrl}
+                            alt={trip.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center text-[#009688]">
+                            <Plane className="h-7 w-7" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 space-y-1">
+                        <h4 className="font-bold text-base sm:text-lg text-[#101828] leading-tight line-clamp-2">
+                          {trip.name}
+                        </h4>
+                        <p className="text-xs text-[#475467] flex items-center gap-1 font-normal">
+                          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                          <span className="font-medium text-[#101828]">5,0</span>
+                          <span>(48)</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="border-t border-[#f2f4f7]" />
+
+                    {/* Cancelación gratuita */}
+                    <div className="space-y-1">
+                      <h5 className="font-semibold text-sm text-[#101828]">
+                        Cancelación gratuita
+                      </h5>
+                      <p className="text-xs font-normal text-[#667085] leading-relaxed">
+                        Si cancelas la reserva en un plazo de 24 horas, recibirás un reembolso completo.{" "}
+                        <button
+                          type="button"
+                          onClick={() => setIsPolicyInfoOpen(true)}
+                          className="underline font-medium text-[#101828] hover:text-[#009688] cursor-pointer"
+                        >
+                          Política entera
+                        </button>
+                      </p>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="border-t border-[#f2f4f7]" />
+
+                    {/* Fechas */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold text-sm text-[#101828] block">
+                          Fechas
+                        </span>
+                        <span className="text-xs font-normal text-[#667085]">
+                          {formatDate(trip.startDate)} — {formatDate(trip.endDate)}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("itinerario")}
+                        className="px-3 py-1 rounded-xl border border-[#d0d5dd] bg-[#f8fafc] hover:bg-[#eaecf0] text-xs font-semibold text-[#344054] transition-colors cursor-pointer"
+                      >
+                        Cambiar
+                      </button>
+                    </div>
+
+                    {/* Viajeros */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold text-sm text-[#101828] block">
+                          Viajeros
+                        </span>
+                        <span className="text-xs font-normal text-[#667085]">2 adultos</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("resumen")}
+                        className="px-3 py-1 rounded-xl border border-[#d0d5dd] bg-[#f8fafc] hover:bg-[#eaecf0] text-xs font-semibold text-[#344054] transition-colors cursor-pointer"
+                      >
+                        Cambiar
+                      </button>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="border-t border-[#f2f4f7]" />
+
+                    {/* Detalles del precio */}
+                    <div className="space-y-2 text-xs sm:text-sm text-[#475467]">
+                      <h5 className="font-semibold text-sm text-[#101828] mb-1">
+                        Detalles del precio
+                      </h5>
+                      <div className="flex justify-between font-normal">
+                        <span>{tripDuration(trip.startDate, trip.endDate)} días de itinerario</span>
+                        <span className="font-medium text-[#101828]">
+                          {formatCurrency(baseTripAmount)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between font-normal">
+                        <span>Gastos de gestión y tasas</span>
+                        <span className="font-medium text-emerald-700">Incluidos (0,00 €)</span>
+                      </div>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="border-t border-[#f2f4f7]" />
+
+                    {/* Total EUR */}
+                    <div className="space-y-1">
+                      <div className="flex items-baseline justify-between">
+                        <span className="font-semibold text-sm text-[#101828]">
+                          Total <span className="underline">EUR</span>
+                        </span>
+                        <span className="font-bold text-base sm:text-lg text-[#101828]">
+                          {formatCurrency(baseTripAmount)}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsPriceDetailModalOpen(true)}
+                        className="underline text-xs font-medium text-[#101828] hover:text-[#009688] cursor-pointer"
+                      >
+                        Desglose del precio
+                      </button>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="border-t border-[#f2f4f7]" />
+
+                    {/* Fecha límite: hoy & Saldo restante */}
+                    <div className="space-y-2 text-xs sm:text-sm">
+                      <div className="flex justify-between font-medium text-[#101828]">
+                        <span>Fecha límite: hoy</span>
+                        <span className="font-semibold">{formatCurrency(amountDueToday)}</span>
+                      </div>
+                      {remainingBalance > 0 && (
+                        <div className="flex justify-between text-[#667085] font-normal">
+                          <button
+                            type="button"
+                            onClick={() => setIsPolicyInfoOpen(true)}
+                            className="underline text-left hover:text-[#101828] cursor-pointer"
+                          >
+                            Abonarás el importe restante antes de la salida
+                          </button>
+                          <span className="font-semibold text-[#101828]">
+                            {formatCurrency(remainingBalance)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ======================================================== */}
+              {/* MODAL: MÉTODO DE PAGO (IMAGE 2 DESIGN)                    */}
+              {/* ======================================================== */}
+              {isPaymentMethodModalOpen && (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in"
+                  onClick={() => setIsPaymentMethodModalOpen(false)}
+                >
+                  <div
+                    className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-7 shadow-2xl space-y-5 animate-scale-in"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Header with Close X */}
+                    <div className="flex items-center justify-between pb-3 border-b border-[#eaecf0]">
+                      <h3 className="text-base sm:text-lg font-semibold text-[#101828]">
+                        Método de pago
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => setIsPaymentMethodModalOpen(false)}
+                        className="p-1.5 rounded-full hover:bg-zinc-100 text-zinc-500 transition-colors cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Payment Options List */}
+                    <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                      {/* Redsys Primary Card (if Redsys is connected) */}
+                      {activePaymentProviders.redsys && (
+                        <div
+                          onClick={() => setTempPaymentMethod("redsys_card")}
+                          className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
+                            tempPaymentMethod === "redsys_card"
+                              ? "border-[#101828] bg-zinc-50/50 shadow-xs"
+                              : "border-[#eaecf0] hover:bg-zinc-50/30"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center -space-x-1.5">
+                              <span className="h-5 w-5 rounded-full bg-[#eb001b] inline-block shadow-2xs" />
+                              <span className="h-5 w-5 rounded-full bg-[#f79e1b] inline-block shadow-2xs opacity-90" />
+                            </div>
+                            <div>
+                              <span className="font-semibold text-sm text-[#101828] block">
+                                3418
+                              </span>
+                              <span className="text-xs text-[#667085] font-normal">
+                                Tarjeta Bancaria (Redsys TPV Seguro)
+                              </span>
+                            </div>
+                          </div>
+                          <div className="shrink-0 flex items-center justify-center">
+                            <div
+                              className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                tempPaymentMethod === "redsys_card"
+                                  ? "border-[#101828]"
+                                  : "border-[#d0d5dd] bg-white"
+                              }`}
+                            >
+                              {tempPaymentMethod === "redsys_card" && (
+                                <div className="h-2.5 w-2.5 rounded-full bg-[#101828]" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Section: O paga con */}
+                      {(activePaymentProviders.stripe || activePaymentProviders.redsys) && (
+                        <div className="pt-2">
+                          <span className="text-xs font-semibold text-[#667085] uppercase tracking-wider block mb-2 px-1">
+                            O paga con
+                          </span>
+
+                          <div className="space-y-2">
+                            {/* STRIPE METHODS: Only shown if Stripe is active/connected */}
+                            {activePaymentProviders.stripe && (
+                              <>
+                                {/* Apple Pay */}
+                                <div
+                                  onClick={() => setTempPaymentMethod("stripe_apple_pay")}
+                                  className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                                    tempPaymentMethod === "stripe_apple_pay"
+                                      ? "border-[#101828] bg-zinc-50/50 shadow-xs"
+                                      : "border-[#eaecf0] hover:bg-zinc-50/30"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-lg font-bold text-black w-6 text-center"></span>
+                                    <span className="font-medium text-sm text-[#101828]">Apple Pay</span>
+                                  </div>
+                                  <div className="shrink-0 flex items-center justify-center">
+                                    <div
+                                      className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                        tempPaymentMethod === "stripe_apple_pay"
+                                          ? "border-[#101828]"
+                                          : "border-[#d0d5dd] bg-white"
+                                      }`}
+                                    >
+                                      {tempPaymentMethod === "stripe_apple_pay" && (
+                                        <div className="h-2.5 w-2.5 rounded-full bg-[#101828]" />
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Tarjeta de crédito o débito (Stripe) */}
+                                <div
+                                  onClick={() => setTempPaymentMethod("stripe_card")}
+                                  className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                                    tempPaymentMethod === "stripe_card"
+                                      ? "border-[#101828] bg-zinc-50/50 shadow-xs"
+                                      : "border-[#eaecf0] hover:bg-zinc-50/30"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <CreditCard className="h-5 w-5 text-[#344054]" />
+                                    <div>
+                                      <span className="font-medium text-sm text-[#101828] block">
+                                        Tarjeta de crédito o débito
+                                      </span>
+                                      <div className="flex items-center gap-1.5 mt-0.5">
+                                        <span className="text-[10px] font-bold text-[#1a1f71]">VISA</span>
+                                        <span className="text-[10px] font-bold text-[#eb001b]">MC</span>
+                                        <span className="text-[10px] font-bold text-[#006fcf]">AMEX</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="shrink-0 flex items-center justify-center">
+                                    <div
+                                      className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                        tempPaymentMethod === "stripe_card"
+                                          ? "border-[#101828]"
+                                          : "border-[#d0d5dd] bg-white"
+                                      }`}
+                                    >
+                                      {tempPaymentMethod === "stripe_card" && (
+                                        <div className="h-2.5 w-2.5 rounded-full bg-[#101828]" />
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* PayPal */}
+                                <div
+                                  onClick={() => setTempPaymentMethod("stripe_paypal")}
+                                  className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                                    tempPaymentMethod === "stripe_paypal"
+                                      ? "border-[#101828] bg-zinc-50/50 shadow-xs"
+                                      : "border-[#eaecf0] hover:bg-zinc-50/30"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-base font-bold text-[#003087]">🅿️</span>
+                                    <span className="font-medium text-sm text-[#101828]">PayPal</span>
+                                  </div>
+                                  <div className="shrink-0 flex items-center justify-center">
+                                    <div
+                                      className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                        tempPaymentMethod === "stripe_paypal"
+                                          ? "border-[#101828]"
+                                          : "border-[#d0d5dd] bg-white"
+                                      }`}
+                                    >
+                                      {tempPaymentMethod === "stripe_paypal" && (
+                                        <div className="h-2.5 w-2.5 rounded-full bg-[#101828]" />
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Google Pay */}
+                                <div
+                                  onClick={() => setTempPaymentMethod("stripe_google_pay")}
+                                  className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                                    tempPaymentMethod === "stripe_google_pay"
+                                      ? "border-[#101828] bg-zinc-50/50 shadow-xs"
+                                      : "border-[#eaecf0] hover:bg-zinc-50/30"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-xs font-semibold text-[#5f6368] bg-slate-100 px-2 py-0.5 rounded">G Pay</span>
+                                    <span className="font-medium text-sm text-[#101828]">Google Pay</span>
+                                  </div>
+                                  <div className="shrink-0 flex items-center justify-center">
+                                    <div
+                                      className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                        tempPaymentMethod === "stripe_google_pay"
+                                          ? "border-[#101828]"
+                                          : "border-[#d0d5dd] bg-white"
+                                      }`}
+                                    >
+                                      {tempPaymentMethod === "stripe_google_pay" && (
+                                        <div className="h-2.5 w-2.5 rounded-full bg-[#101828]" />
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </>
+                            )}
+
+                            {/* BIZUM: Redsys Direct Mobile */}
+                            {activePaymentProviders.redsys && (
+                              <div
+                                onClick={() => setTempPaymentMethod("redsys_bizum")}
+                                className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                                  tempPaymentMethod === "redsys_bizum"
+                                    ? "border-[#101828] bg-zinc-50/50 shadow-xs"
+                                    : "border-[#eaecf0] hover:bg-zinc-50/30"
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="rounded-md bg-[#009688] px-2 py-0.5 text-[10px] font-bold text-white">bizum</span>
+                                  <span className="font-medium text-sm text-[#101828]">Bizum (Pago móvil directo)</span>
+                                </div>
+                                <div className="shrink-0 flex items-center justify-center">
+                                  <div
+                                    className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                      tempPaymentMethod === "redsys_bizum"
+                                        ? "border-[#101828]"
+                                        : "border-[#d0d5dd] bg-white"
+                                    }`}
+                                  >
+                                    {tempPaymentMethod === "redsys_bizum" && (
+                                      <div className="h-2.5 w-2.5 rounded-full bg-[#101828]" />
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Section: No disponible */}
+                      <div className="pt-2">
+                        <span className="text-xs font-semibold text-[#98a2b3] uppercase tracking-wider block mb-2 px-1">
+                          No disponible
+                        </span>
+                        <div className="flex items-center justify-between p-3.5 rounded-2xl border border-dashed border-[#eaecf0] bg-zinc-50/40 opacity-60">
+                          <div className="flex items-center gap-3">
+                            <span className="text-[11px] font-bold text-[#1a1f71] bg-slate-100 px-2 py-0.5 rounded">VISA</span>
+                            <div>
+                              <span className="font-medium text-sm text-zinc-500 block">Débito 9309</span>
+                              <span className="text-[11px] text-zinc-400 font-normal">Caducada</span>
+                            </div>
+                          </div>
+                          <div className="h-5 w-5 rounded-full border border-zinc-300 bg-zinc-100" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer: Cancelar & Listo */}
+                    <div className="flex items-center justify-between pt-3 border-t border-[#eaecf0]">
+                      <button
+                        type="button"
+                        onClick={() => setIsPaymentMethodModalOpen(false)}
+                        className="text-sm font-medium text-[#101828] hover:underline cursor-pointer"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPaymentMethod(tempPaymentMethod);
+                          setIsPaymentMethodModalOpen(false);
+                        }}
+                        className="rounded-xl bg-[#222222] hover:bg-black px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all cursor-pointer"
+                      >
+                        Listo
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 2. Modal Términos y Política Entera */}
+              {isPolicyInfoOpen && (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
+                  onClick={() => setIsPolicyInfoOpen(false)}
+                >
+                  <div
+                    className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-7 shadow-2xl space-y-4 animate-scale-in"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between pb-3 border-b border-[#eaecf0]">
+                      <h3 className="text-base font-extrabold text-[#101828]">
+                        Política de Reserva y Plazos
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => setIsPolicyInfoOpen(false)}
+                        className="p-1 rounded-full hover:bg-zinc-100 text-zinc-500 cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                    <div className="space-y-3 text-xs sm:text-sm text-[#475467] max-h-[60vh] overflow-y-auto pr-1">
+                      <p className="leading-relaxed">
+                        {(primaryBooking?.cancellationPolicy as string) ||
+                          "Cancelación 100% gratuita dentro de las primeras 24 horas tras formalizar la reserva. Si cancelas con al menos 30 días de antelación al inicio del viaje, se devolverá todo el importe abonado salvo gastos de gestión de terceros."}
+                      </p>
+                      <div className="p-3.5 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-1 text-xs">
+                        <span className="font-bold text-zinc-900 block">Estructura de Plazos Oficial:</span>
+                        <ul className="list-disc pl-4 space-y-1 text-zinc-600">
+                          <li>1er Pago: Depósito del {depositPercentage}% hoy para bloquear vuelos y hoteles.</li>
+                          <li>2º Pago: {primaryBooking?.secondPaymentDate ? formatDate(primaryBooking.secondPaymentDate) : '30-45 días antes de la salida'}.</li>
+                          <li>Saldo Restante: {primaryBooking?.finalPaymentDate ? formatDate(primaryBooking.finalPaymentDate) : '15 días antes de viajar'}.</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsPolicyInfoOpen(false)}
+                      className="w-full py-3 rounded-2xl bg-[#009688] text-white font-bold text-xs hover:bg-[#00796b] cursor-pointer"
+                    >
+                      Cerrar
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. Modal Desglose del Precio */}
+              {isPriceDetailModalOpen && (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
+                  onClick={() => setIsPriceDetailModalOpen(false)}
+                >
+                  <div
+                    className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-7 shadow-2xl space-y-4 animate-scale-in"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between pb-3 border-b border-[#eaecf0]">
+                      <h3 className="text-base font-extrabold text-[#101828]">
+                        Desglose del Precio
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => setIsPriceDetailModalOpen(false)}
+                        className="p-1 rounded-full hover:bg-zinc-100 text-zinc-500 cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                    <div className="space-y-2.5 text-xs sm:text-sm text-[#475467]">
+                      <div className="flex justify-between">
+                        <span>Paquete de viaje e itinerario completo:</span>
+                        <span className="font-bold text-[#101828]">{formatCurrency(baseTripAmount)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Tasas de emisión y carburante:</span>
+                        <span className="font-semibold text-emerald-700">Incluidas</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Atención y soporte 24/7 en destino:</span>
+                        <span className="font-semibold text-emerald-700">Gratis</span>
+                      </div>
+                      <div className="pt-2 border-t border-[#eaecf0] flex justify-between font-black text-base text-[#101828]">
+                        <span>Total:</span>
+                        <span>{formatCurrency(baseTripAmount)}</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsPriceDetailModalOpen(false)}
+                      className="w-full py-3 rounded-2xl bg-[#009688] text-white font-bold text-xs hover:bg-[#00796b] cursor-pointer"
+                    >
+                      Cerrar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+        
+        {/* ----------------------------------------------------------- */}
         {/* TAB 3: NOTAS DEL VIAJE                                      */}
         {/* ----------------------------------------------------------- */}
         {activeTab === "notas" && (
@@ -1671,6 +2741,54 @@ export default function PublicTripPage({ params }: PageProps) {
             </div>
 
             <div className="mt-5 space-y-3.5 text-xs text-[#475467]">
+              {(selectedActivity.type === "booking" || selectedActivity.type === "pago") && (
+                <div className="rounded-2xl bg-[#f0fdfa] p-4 border border-[#ccfbf1] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#009688]">
+                      Condiciones de Pago & Reserva
+                    </span>
+                    <span className="rounded-md bg-white border border-[#ccfbf1] px-2 py-0.5 text-[10px] font-black uppercase text-[#009688]">
+                      {(selectedActivity.paymentProvider as string) || "Redsys"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-white p-2.5 rounded-xl border border-[#ccfbf1]/60">
+                      <span className="text-[#667085] block text-[10px]">Depósito inicial:</span>
+                      <span className="font-extrabold text-[#009688] text-sm">
+                        {Number(selectedActivity.depositAmount || 250)} € ({Number(selectedActivity.depositPercentage || 20)}%)
+                      </span>
+                    </div>
+                    <div className="bg-white p-2.5 rounded-xl border border-[#ccfbf1]/60">
+                      <span className="text-[#667085] block text-[10px]">Importe total:</span>
+                      <span className="font-extrabold text-[#101828] text-sm">
+                        {Number(selectedActivity.totalAmount || selectedActivity.price || 1250)} €
+                      </span>
+                    </div>
+                  </div>
+                  {Boolean(selectedActivity.cancellationPolicy) && (
+                    <div className="pt-2 border-t border-[#ccfbf1]/60">
+                      <span className="text-[10px] font-bold text-[#009688] uppercase block mb-1">
+                        Política de cancelación:
+                      </span>
+                      <p className="text-[11px] text-[#475467] leading-relaxed">
+                        {String(selectedActivity.cancellationPolicy)}
+                      </p>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedActivity(null);
+                      setActiveTab("pagos");
+                    }}
+                    className="w-full mt-2 rounded-xl bg-[#009688] py-2.5 text-xs font-bold text-white hover:bg-[#00796b] transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
+                  >
+                    <CreditCard className="h-3.5 w-3.5" />
+                    <span>Ir a la sección de Pagos & Depósito</span>
+                  </button>
+                </div>
+              )}
+
               {selectedActivity.type === "flight" && (
                 <div className="rounded-2xl bg-[#f0fdfa] p-4 border border-[#ccfbf1] space-y-3">
                   <div className="flex items-center justify-between">

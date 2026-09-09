@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTravel, Client, Trip } from '@/context/TravelContext';
 import { DashboardShell } from '@/components/DashboardShell';
+import { TableSkeleton } from '@/components/TableSkeleton';
 import { WanderlustLoader } from '@/components/WanderlustLoader';
 import {
   Search,
@@ -274,7 +275,18 @@ export default function ClientesPage() {
   };
 
   if (isLoading) {
-    return <WanderlustLoader />;
+    return (
+      <DashboardShell activeMenu="clientes">
+        <div className="w-full space-y-5">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#101828]">
+              Clientes & Contactos
+            </h1>
+          </div>
+          <TableSkeleton rows={6} columns={4} showFilters={true} />
+        </div>
+      </DashboardShell>
+    );
   }
 
   return (
@@ -286,11 +298,8 @@ export default function ClientesPage() {
         {/* View Title */}
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[#101828]">
-            Clientes
+            Clientes & Contactos
           </h1>
-          <p className="text-xs text-[#667085] mt-0.5">
-            Gestiona tu cartera de clientes, contactos y sus itinerarios asignados.
-          </p>
         </div>
 
         {/* HeroUI Tabs Segmented Filter */}

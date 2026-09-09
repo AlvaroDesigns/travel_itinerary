@@ -20,6 +20,7 @@ export async function GET() {
     }
 
     const row = userRes.rows[0];
+    const prefs = row.preferences || {};
     return NextResponse.json({
       id: row.id,
       email: row.email,
@@ -27,16 +28,23 @@ export async function GET() {
       name: row.name || '',
       phone: row.phone || '',
       company: row.company || '',
-      preferences: row.preferences || {
-        language: 'es',
-        timezone: 'Europe/Madrid',
-        weekStart: 'lunes',
-        timeFormat: '24h',
-        dateFormat: 'dd/mm/yyyy',
-        decimals: 'coma',
-        currencyPosition: 'fin',
-        currency: 'EUR',
-        notifications: {
+      avatar: prefs.avatar || 'traveler-girl-teal',
+      preferences: {
+        language: prefs.language || 'es',
+        timezone: prefs.timezone || 'Europe/Madrid',
+        weekStart: prefs.weekStart || 'lunes',
+        timeFormat: prefs.timeFormat || '24h',
+        dateFormat: prefs.dateFormat || 'dd/mm/yyyy',
+        decimals: prefs.decimals || 'coma',
+        currencyPosition: prefs.currencyPosition || 'fin',
+        currency: prefs.currency || 'EUR',
+        avatar: prefs.avatar || 'traveler-girl-teal',
+        paymentProviders: prefs.paymentProviders || {
+          stripe: { status: 'in_progress', connected: false, email: '' },
+          redsys: { status: 'not_connected', connected: false },
+          inespay: { status: 'not_connected', connected: false },
+        },
+        notifications: prefs.notifications || {
           newTrips: true,
           vouchers: true,
           clientReminders: true,

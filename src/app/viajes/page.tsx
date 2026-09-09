@@ -8,6 +8,8 @@ import { useTravel, Trip } from '@/context/TravelContext';
 import { WanderlustLoader } from '@/components/WanderlustLoader';
 import { HeroUIDateRangePicker } from '@/components/HeroUIDateRangePicker';
 import { DashboardShell } from '@/components/DashboardShell';
+import { TableSkeleton } from '@/components/TableSkeleton';
+import { CreateTripModal } from '@/components/CreateTripModal';
 import {
   Search,
   Plus,
@@ -22,6 +24,8 @@ import {
   MoreVertical,
   ExternalLink,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Trash2,
   Copy,
   Check,
@@ -121,6 +125,22 @@ export default function MisViajesPage() {
   const [isAssigningClient, setIsAssigningClient] = useState(false);
   // Modal State for Delete Confirmation
   const [tripToDelete, setTripToDelete] = useState<Trip | null>(null);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
+  const handleBulkDeleteTrips = async () => {
+    if (selectedTrips.length === 0) return;
+    setIsBulkDeleting(true);
+    try {
+      await Promise.all(selectedTrips.map((id) => deleteTrip(id)));
+      setSelectedTrips([]);
+      setIsBulkDeleteModalOpen(false);
+    } catch (err) {
+      console.error('Failed to bulk delete trips:', err);
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
 
   // Filtered trips
   const filteredTrips = useMemo(() => {
@@ -237,7 +257,19 @@ export default function MisViajesPage() {
   };
 
   if (isLoading) {
-    return <WanderlustLoader />;
+    return (
+      <DashboardShell activeMenu="viajes">
+        <div className="w-full space-y-5">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#101828]">Mis viajes</h1>
+            <p className="text-xs text-[#667085] mt-0.5">
+              Gestiona y personaliza tus itinerarios, actividades y presupuestos de viaje.
+            </p>
+          </div>
+          <TableSkeleton rows={6} columns={4} showFilters={true} />
+        </div>
+      </DashboardShell>
+    );
   }
 
   return (
@@ -349,6 +381,39 @@ export default function MisViajesPage() {
             </button>
           </div>
         </div>
+
+        {/* Bulk Selection Bar */}
+        {selectedTrips.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-teal-200/90 bg-teal-50/90 px-4 py-2.5 text-xs shadow-xs animate-scale-in">
+            <div className="flex items-center gap-2 text-[#004d40] font-bold">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#009688] text-[10px] text-white shadow-xs">
+                {selectedTrips.length}
+              </span>
+              <span>
+                {selectedTrips.length === 1
+                  ? '1 viaje seleccionado'
+                  : `${selectedTrips.length} viajes seleccionados`}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-rose-700 transition-all cursor-pointer"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>Eliminar seleccionados ({selectedTrips.length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedTrips([])}
+                className="rounded-full border border-teal-300 bg-white px-3 py-1.5 text-xs font-semibold text-teal-800 hover:bg-teal-100 transition-all cursor-pointer"
+              >
+                Deseleccionar
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Dynamic Table / Grid Content */}
         {viewMode === 'table' ? (
@@ -739,32 +804,34 @@ export default function MisViajesPage() {
 
             {/* Pagination Footer */}
             <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[#eaecf0] px-4 py-3 sm:px-6">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
+                  title="Página anterior"
                   disabled
-                  className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#d0d5dd] bg-white text-xs text-[#98a2b3] opacity-50"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#d0d5dd] bg-white text-[#667085] hover:bg-zinc-50 hover:text-[#101828] disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-[#667085] transition-colors cursor-pointer"
                 >
-                  ‹
+                  <ChevronLeft className="h-4 w-4 stroke-[2.5]" />
                 </button>
                 <button
                   type="button"
-                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#009688] text-xs font-bold text-white shadow-xs"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#009688] text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition-colors cursor-pointer"
                 >
                   1
                 </button>
                 <button
                   type="button"
+                  title="Página siguiente"
                   disabled
-                  className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#d0d5dd] bg-white text-xs text-[#98a2b3] opacity-50"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#d0d5dd] bg-white text-[#667085] hover:bg-zinc-50 hover:text-[#101828] disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-[#667085] transition-colors cursor-pointer"
                 >
-                  ›
+                  <ChevronRight className="h-4 w-4 stroke-[2.5]" />
                 </button>
               </div>
 
               <div className="flex items-center gap-2 text-xs text-[#475467]">
                 <span>Elementos por página</span>
-                <select className="rounded-xl border border-[#d0d5dd] bg-white px-2.5 py-1 text-xs font-semibold text-[#101828] focus:border-[#009688] focus:outline-hidden">
+                <select className="rounded-xl border border-[#d0d5dd] bg-white px-2.5 py-1.5 text-xs font-semibold text-[#101828] focus:border-[#009688] focus:outline-hidden cursor-pointer">
                   <option>25</option>
                   <option>50</option>
                   <option>100</option>
@@ -824,107 +891,11 @@ export default function MisViajesPage() {
       {/* ============================================================= */}
       {/* MODALS (Create Trip, Share, Owner, Client Assign)             */}
       {/* ============================================================= */}
-      {/* 1. Modal: Crear Viaje */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-lg rounded-3xl border border-white/20 bg-white p-6 shadow-2xl text-left">
-            <div className="flex items-center justify-between border-b border-[#eaecf0] pb-4">
-              <div className="flex items-center gap-2">
-                <Plane className="h-5 w-5 text-[#009688]" />
-                <h3 className="text-base font-bold text-[#101828]">Crear nuevo itinerario</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsCreateModalOpen(false)}
-                className="rounded-full p-1 text-[#667085] hover:bg-[#f4f5f8] cursor-pointer"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateTripSubmit} className="mt-4 space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-[#344054] mb-1">Nombre del destino o viaje *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="ej. Escapada a Bali y Komodo"
-                  value={tripName}
-                  onChange={(e) => setTripName(e.target.value)}
-                  className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#344054] mb-1">Fechas del viaje</label>
-                <HeroUIDateRangePicker
-                  startDate={startDate}
-                  endDate={endDate}
-                  onChange={({ startDate: s, endDate: e }) => {
-                    setStartDate(s);
-                    setEndDate(e);
-                  }}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#344054] mb-1">Presupuesto aproximado (€)</label>
-                <input
-                  type="number"
-                  value={budget}
-                  onChange={(e) => setBudget(Number(e.target.value))}
-                  className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#344054] mb-1">Descripción breve</label>
-                <textarea
-                  rows={2}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe brevemente el viaje..."
-                  className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#344054] mb-1.5">Imagen de portada</label>
-                <div className="grid grid-cols-5 gap-2">
-                  {PRESET_IMAGES.map((img) => (
-                    <button
-                      key={img.url}
-                      type="button"
-                      onClick={() => setImageUrl(img.url)}
-                      className={`relative h-14 overflow-hidden rounded-xl border-2 transition-all cursor-pointer ${
-                        imageUrl === img.url ? 'border-[#009688] ring-2 ring-[#009688]/30 scale-95' : 'border-transparent opacity-70 hover:opacity-100'
-                      }`}
-                    >
-                      <Image src={img.url} alt={img.name} fill unoptimized className="object-cover" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-[#eaecf0]">
-                <button
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="rounded-full border border-[#d0d5dd] px-4 py-2 text-xs font-bold text-[#344054] hover:bg-[#f9fafb] cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-full bg-[#009688] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] cursor-pointer"
-                >
-                  Crear itinerario
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* 1. Modal: Crear Viaje con 3 opciones y galería de plantillas  */}
+      <CreateTripModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
 
       {/* 2. Modal: Compartir Enlace Público */}
       {shareTrip && (
@@ -1287,6 +1258,71 @@ export default function MisViajesPage() {
                 className="flex-1 rounded-full bg-rose-600 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-rose-700 cursor-pointer transition-all"
               >
                 Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Floating Bulk Action Bar (fixed bottom pill) */}
+      {selectedTrips.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 rounded-full border border-[#eaecf0] bg-white/95 px-5 py-3 shadow-2xl backdrop-blur-md animate-slide-up">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-50 text-xs font-bold text-[#00796b]">
+            {selectedTrips.length}
+          </span>
+          <span className="text-xs font-bold text-[#101828]">
+            {selectedTrips.length === 1 ? '1 viaje seleccionado' : `${selectedTrips.length} viajes seleccionados`}
+          </span>
+          <div className="h-4 w-[1px] bg-[#eaecf0]" />
+          <button
+            type="button"
+            onClick={() => setIsBulkDeleteModalOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-4 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-rose-700 transition-all cursor-pointer"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            <span>Eliminar</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedTrips([])}
+            className="inline-flex items-center gap-1 rounded-full border border-[#d0d5dd] bg-white px-3 py-1.5 text-xs font-semibold text-[#344054] hover:bg-[#f9fafb] transition-all cursor-pointer"
+          >
+            <X className="h-3.5 w-3.5" />
+            <span>Cancelar</span>
+          </button>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Modal */}
+      {isBulkDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-sm rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-2xl animate-scale-in text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 mb-4 border border-rose-100">
+              <Trash2 className="h-7 w-7" />
+            </div>
+
+            <h3 className="text-base font-bold text-[#101828]">
+              ¿Eliminar {selectedTrips.length} {selectedTrips.length === 1 ? 'viaje' : 'viajes'}?
+            </h3>
+            <p className="text-xs text-[#667085] mt-1.5 mb-6 leading-relaxed">
+              ¿Estás seguro de que deseas eliminar permanentemente los <strong>{selectedTrips.length} viajes</strong> seleccionados? Esta acción no se puede deshacer.
+            </p>
+
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                disabled={isBulkDeleting}
+                onClick={() => setIsBulkDeleteModalOpen(false)}
+                className="flex-1 rounded-full border border-[#d0d5dd] bg-white py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f9fafb] cursor-pointer transition-all disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={isBulkDeleting}
+                onClick={handleBulkDeleteTrips}
+                className="flex-1 rounded-full bg-rose-600 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-rose-700 cursor-pointer transition-all disabled:opacity-50"
+              >
+                {isBulkDeleting ? 'Eliminando...' : 'Eliminar'}
               </button>
             </div>
           </div>

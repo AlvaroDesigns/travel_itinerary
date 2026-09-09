@@ -3,7 +3,7 @@
 import React, { createContext, useCallback, useContext, useState, useEffect } from 'react';
 
 // Activity Types
-export type ActivityType = 'flight' | 'transfer' | 'hotel' | 'excursion' | 'food';
+export type ActivityType = 'flight' | 'transfer' | 'hotel' | 'excursion' | 'food' | 'booking';
 
 export interface BaseActivity {
   id: string;
@@ -72,12 +72,29 @@ export interface FoodActivity extends BaseActivity {
   description?: string;
 }
 
+export interface BookingActivity extends BaseActivity {
+  type: 'booking';
+  title: string;
+  description?: string;
+  totalAmount?: number;
+  depositAmount?: number;
+  depositPercentage?: number;
+  secondPaymentAmount?: number;
+  secondPaymentDate?: string;
+  finalPaymentAmount?: number;
+  finalPaymentDate?: string;
+  paymentProvider?: 'redsys' | 'stripe';
+  cancellationPolicy?: string;
+  autoPaymentEnabled?: boolean;
+}
+
 export type Activity =
   | FlightActivity
   | TransferActivity
   | HotelActivity
   | ExcursionActivity
-  | FoodActivity;
+  | FoodActivity
+  | BookingActivity;
 
 export interface Trip {
   id: string;
@@ -92,6 +109,28 @@ export interface Trip {
   clientName?: string | null;
   clientEmail?: string | null;
   activities: Activity[];
+}
+
+export type OpportunityStage = 'nuevo' | 'contactado' | 'propuesta' | 'ganada' | 'perdido';
+
+export interface Opportunity {
+  id: string;
+  clientId?: string | null;
+  clientName?: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  title: string;
+  stage: OpportunityStage;
+  amount: number;
+  currency: string;
+  agentName: string;
+  startDate?: string;
+  endDate?: string;
+  destination?: string;
+  travelersCount?: number;
+  initialNotes?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Client {
@@ -111,18 +150,24 @@ export interface Client {
 export interface AuthUser {
   userId: number;
   email: string;
-  role: 'admin' | 'user';
+  role: 'superuser' | 'superadmin' | 'admin' | 'user';
+  name?: string;
+  avatar?: string;
+  tenantId?: string;
+  agencyName?: string;
+  planType?: string;
 }
 
 interface TravelContextType {
   trips: Trip[];
   activeTrip: Trip | null;
   clients: Client[];
+  opportunities: Opportunity[];
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   setActiveTripById: (id: string) => void;
-  addTrip: (trip: Omit<Trip, 'id' | 'activities'>) => Promise<void>;
+  addTrip: (trip: Omit<Trip, 'id' | 'activities'>, initialActivities?: Omit<Activity, 'id'>[]) => Promise<Trip | undefined>;
   updateTrip: (trip: Trip) => Promise<void>;
   deleteTrip: (id: string) => Promise<void>;
   addActivity: (tripId: string, activity: Omit<Activity, 'id'>) => Promise<Activity | undefined>;
@@ -136,6 +181,25 @@ interface TravelContextType {
   updateClient: (client: Client, assignedTripIds?: string[]) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
   assignTripClient: (tripId: string, clientId: string | null) => Promise<void>;
+  fetchOpportunities: () => Promise<void>;
+  addOpportunity: (
+    data: {
+      title: string;
+      stage?: OpportunityStage;
+      amount?: number;
+      currency?: string;
+      agentName?: string;
+      clientId?: string | null;
+      newClient?: { name: string; email?: string; phone?: string };
+      startDate?: string;
+      endDate?: string;
+      destination?: string;
+      travelersCount?: number;
+      initialNotes?: string;
+    }
+  ) => Promise<Opportunity | null>;
+  updateOpportunity: (id: string, changes: Partial<Opportunity>) => Promise<Opportunity | null>;
+  deleteOpportunity: (id: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -144,6 +208,7 @@ const TravelContext = createContext<TravelContextType | undefined>(undefined);
 export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [activeTrip, setActiveTrip] = useState<Trip | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -158,6 +223,18 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     } catch (e) {
       console.error('Failed to load clients:', e);
+    }
+  }, []);
+
+  const fetchOpportunities = useCallback(async () => {
+    try {
+      const res = await fetch('/api/opportunities');
+      if (res.ok) {
+        const data = await res.json();
+        setOpportunities(data);
+      }
+    } catch (e) {
+      console.error('Failed to load opportunities:', e);
     }
   }, []);
 
@@ -178,7 +255,7 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, []);
 
-  // Check auth and fetch initial trips & clients
+  // Check auth and fetch initial trips & clients & opportunities
   useEffect(() => {
     async function checkAuthAndLoadData() {
       try {
@@ -188,21 +265,22 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (authData.isAuthenticated && authData.user) {
           setUser(authData.user);
           setIsAuthenticated(true);
+          setIsLoading(false);
 
-          await Promise.all([fetchTrips(), fetchClients()]);
+          void Promise.all([fetchTrips(), fetchClients(), fetchOpportunities()]);
         } else {
           setUser(null);
           setIsAuthenticated(false);
+          setIsLoading(false);
         }
       } catch (err) {
         console.error('Failed to load user and trips data:', err);
-      } finally {
         setIsLoading(false);
       }
     }
 
     checkAuthAndLoadData();
-  }, [fetchTrips, fetchClients]);
+  }, [fetchTrips, fetchClients, fetchOpportunities]);
 
   const setActiveTripById = useCallback((id: string) => {
     const trip = trips.find((t) => t.id === id) || null;
@@ -212,7 +290,10 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [trips]);
 
-  const addTrip = async (newTripData: Omit<Trip, 'id' | 'activities'>) => {
+  const addTrip = async (
+    newTripData: Omit<Trip, 'id' | 'activities'>,
+    initialActivities?: Omit<Activity, 'id'>[]
+  ): Promise<Trip | undefined> => {
     try {
       const res = await fetch('/api/trips', {
         method: 'POST',
@@ -223,13 +304,33 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (!res.ok) throw new Error('Error al añadir viaje en base de datos');
 
       const addedTrip = await res.json();
-      const updatedTrips = [...trips, addedTrip];
-      setTrips(updatedTrips);
+
+      // If initial activities were provided (e.g. from template)
+      if (Array.isArray(initialActivities) && initialActivities.length > 0) {
+        for (const act of initialActivities) {
+          try {
+            await fetch(`/api/trips/${addedTrip.id}/activities`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(act),
+            });
+          } catch (e) {
+            console.error('Error adding template activity:', e);
+          }
+        }
+        await fetchTrips();
+      } else {
+        const updatedTrips = [...trips, addedTrip];
+        setTrips(updatedTrips);
+      }
+
       setActiveTrip(addedTrip);
       localStorage.setItem('last_active_trip_id', addedTrip.id);
+      return addedTrip;
     } catch (error) {
       console.error(error);
       alert('Hubo un error al guardar el viaje en la base de datos.');
+      return undefined;
     }
   };
 
@@ -476,6 +577,95 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  const addOpportunity = async (data: {
+    title: string;
+    stage?: OpportunityStage;
+    amount?: number;
+    currency?: string;
+    agentName?: string;
+    clientId?: string | null;
+    newClient?: { name: string; email?: string; phone?: string };
+    startDate?: string;
+    endDate?: string;
+    destination?: string;
+    travelersCount?: number;
+    initialNotes?: string;
+  }): Promise<Opportunity | null> => {
+    try {
+      const res = await fetch('/api/opportunities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Error al crear la oportunidad');
+      }
+
+      const created = await res.json();
+      setOpportunities((prev) => [created, ...prev]);
+      if (data.newClient) {
+        await fetchClients();
+      }
+      return created;
+    } catch (error) {
+      console.error('addOpportunity error:', error);
+      alert(error instanceof Error ? error.message : 'Error al crear la oportunidad');
+      return null;
+    }
+  };
+
+  const updateOpportunity = async (
+    id: string,
+    changes: Partial<Opportunity>
+  ): Promise<Opportunity | null> => {
+    try {
+      // Optimistic update
+      setOpportunities((prev) =>
+        prev.map((o) => (o.id === id ? { ...o, ...changes, updatedAt: new Date().toISOString() } : o))
+      );
+
+      const res = await fetch(`/api/opportunities/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(changes),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Error al actualizar la oportunidad');
+      }
+
+      const updated = await res.json();
+      setOpportunities((prev) => prev.map((o) => (o.id === id ? updated : o)));
+      return updated;
+    } catch (error) {
+      console.error('updateOpportunity error:', error);
+      await fetchOpportunities();
+      alert(error instanceof Error ? error.message : 'Error al actualizar la oportunidad');
+      return null;
+    }
+  };
+
+  const deleteOpportunity = async (id: string) => {
+    try {
+      setOpportunities((prev) => prev.filter((o) => o.id !== id));
+      const res = await fetch(`/api/opportunities/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Error al eliminar la oportunidad');
+      }
+    } catch (error) {
+      console.error('deleteOpportunity error:', error);
+      await fetchOpportunities();
+      alert(error instanceof Error ? error.message : 'Error al eliminar la oportunidad');
+    }
+  };
+
   const logout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
@@ -486,6 +676,7 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsAuthenticated(false);
       setTrips([]);
       setClients([]);
+      setOpportunities([]);
       setActiveTrip(null);
       localStorage.removeItem('last_active_trip_id');
       window.location.href = '/login';
@@ -498,6 +689,7 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         trips,
         activeTrip,
         clients,
+        opportunities,
         user,
         isAuthenticated,
         isLoading,
@@ -513,6 +705,10 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         updateClient,
         deleteClient,
         assignTripClient,
+        fetchOpportunities,
+        addOpportunity,
+        updateOpportunity,
+        deleteOpportunity,
         logout,
       }}
     >

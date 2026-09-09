@@ -153,6 +153,17 @@ export async function GET(
       ...activity.details,
     }));
 
+    const userResult = await pool.query<{ preferences: Record<string, unknown> }>(
+      'SELECT preferences FROM users WHERE id = $1',
+      [trip.user_id]
+    );
+    const userPrefs = (userResult.rows[0]?.preferences as Record<string, any>) || {};
+    const paymentProviders = {
+      redsys: userPrefs.paymentProviders?.redsys?.connected !== false,
+      stripe: Boolean(userPrefs.paymentProviders?.stripe?.connected),
+      inespay: Boolean(userPrefs.paymentProviders?.inespay?.connected),
+    };
+
     return NextResponse.json({
       available: true,
       trip: {
@@ -162,6 +173,7 @@ export async function GET(
         imageUrl: trip.image_url,
         description: trip.description,
         showExpenses: trip.public_show_expenses,
+        paymentProviders,
         activities,
       },
     });

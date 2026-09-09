@@ -4,11 +4,13 @@ import { type UserRole } from '@/lib/auth';
 import { requireAdmin } from '@/lib/admin';
 import { pool } from '@/lib/db';
 
+export const runtime = 'nodejs';
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_MIN_LENGTH = 12;
 
 function isUserRole(value: unknown): value is UserRole {
-  return value === 'admin' || value === 'user';
+  return value === 'superuser' || value === 'superadmin' || value === 'admin' || value === 'user';
 }
 
 export async function PATCH(request: Request, { params }: RouteContext<'/api/admin/users/[id]'>) {
@@ -22,7 +24,16 @@ export async function PATCH(request: Request, { params }: RouteContext<'/api/adm
   }
 
   try {
-    const body = await request.json() as { email?: unknown; password?: unknown; role?: unknown; isActive?: unknown };
+    const body = (await request.json()) as {
+      email?: unknown;
+      name?: unknown;
+      password?: unknown;
+      role?: unknown;
+      isActive?: unknown;
+      tenantId?: unknown;
+      agencyName?: unknown;
+      planType?: unknown;
+    };
     const assignments: string[] = [];
     const values: unknown[] = [];
 
@@ -33,6 +44,11 @@ export async function PATCH(request: Request, { params }: RouteContext<'/api/adm
       }
       assignments.push(`email = $${values.length + 1}`);
       values.push(email);
+    }
+    if (body.name !== undefined) {
+      const name = typeof body.name === 'string' ? body.name.trim() : '';
+      assignments.push(`name = $${values.length + 1}`);
+      values.push(name);
     }
     if (body.password !== undefined) {
       if (typeof body.password !== 'string' || body.password.length < PASSWORD_MIN_LENGTH || body.password.length > 128) {
@@ -45,11 +61,32 @@ export async function PATCH(request: Request, { params }: RouteContext<'/api/adm
       if (!isUserRole(body.role)) {
         return NextResponse.json({ error: 'El rol indicado no es válido' }, { status: 400 });
       }
-      if (id === admin.userId && body.role !== 'admin') {
-        return NextResponse.json({ error: 'No puedes retirar tus propios permisos de administrador' }, { status: 400 });
+      if ((body.role === 'superadmin' || body.role === 'superuser') && admin.role !== 'superadmin' && admin.role !== 'superuser') {
+        return NextResponse.json({ error: 'Solo un superusuario puede otorgar este rol' }, { status: 403 });
+      }
+      if (id === admin.userId && body.role !== admin.role) {
+        return NextResponse.json({ error: 'No puedes alterar tus propios permisos' }, { status: 400 });
       }
       assignments.push(`role = $${values.length + 1}`);
       values.push(body.role);
+    }
+    if (body.tenantId !== undefined) {
+      if (admin.role !== 'superadmin' && admin.role !== 'superuser') {
+        return NextResponse.json({ error: 'Solo un superusuario puede cambiar la agencia de un usuario' }, { status: 403 });
+      }
+      const tenantId = typeof body.tenantId === 'string' && body.tenantId.trim() ? body.tenantId.trim() : 'particular';
+      assignments.push(`tenant_id = $${values.length + 1}`);
+      values.push(tenantId);
+    }
+    if (body.agencyName !== undefined) {
+      const agencyName = typeof body.agencyName === 'string' && body.agencyName.trim() ? body.agencyName.trim() : 'Particular';
+      assignments.push(`agency_name = $${values.length + 1}`);
+      values.push(agencyName);
+    }
+    if (body.planType !== undefined) {
+      const planType = typeof body.planType === 'string' && body.planType.trim() ? body.planType.trim() : 'particular';
+      assignments.push(`plan_type = $${values.length + 1}`);
+      values.push(planType);
     }
     if (body.isActive !== undefined) {
       if (typeof body.isActive !== 'boolean') {
@@ -63,47 +100,49 @@ export async function PATCH(request: Request, { params }: RouteContext<'/api/adm
     }
 
     if (assignments.length === 0) {
-      return NextResponse.json({ error: 'No hay cambios para guardar' }, { status: 400 });
+      return NextResponse.json({ error: 'No se han especificado cambios' }, { status: 400 });
     }
 
     values.push(id);
     const result = await pool.query<{
       id: number;
       email: string;
+      name: string | null;
       role: UserRole;
       is_active: boolean;
+      tenant_id: string;
+      agency_name: string;
+      plan_type: string;
       created_at: string;
-      trip_count: string;
     }>(
-      `WITH updated AS (
-        UPDATE users SET ${assignments.join(', ')} WHERE id = $${values.length}
-        RETURNING id, email, role, is_active, created_at
-       )
-       SELECT updated.*, COUNT(trips.id)::text AS trip_count
-       FROM updated LEFT JOIN trips ON trips.user_id = updated.id
-       GROUP BY updated.id, updated.email, updated.role, updated.is_active, updated.created_at`,
+      `UPDATE users SET ${assignments.join(', ')} WHERE id = $${values.length} RETURNING id, email, name, role, is_active, tenant_id, agency_name, plan_type, created_at`,
       values
     );
-    const user = result.rows[0];
-    if (!user) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+
+    const updated = result.rows[0];
+    if (!updated) {
+      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+    }
 
     return NextResponse.json({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      isActive: user.is_active,
-      createdAt: user.created_at,
-      tripCount: Number(user.trip_count),
+      id: updated.id,
+      email: updated.email,
+      name: updated.name ?? '',
+      role: updated.role,
+      isActive: updated.is_active,
+      tenantId: updated.tenant_id,
+      agencyName: updated.agency_name,
+      planType: updated.plan_type,
+      createdAt: updated.created_at,
     });
   } catch (error) {
-    if ((error as { code?: string }).code === '23505') {
-      return NextResponse.json({ error: 'Ya existe una cuenta con ese correo' }, { status: 409 });
+    if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
+      return NextResponse.json({ error: 'Ya existe un usuario con este correo electrónico' }, { status: 409 });
     }
     console.error('Update user error:', error);
     return NextResponse.json({ error: 'No se pudo actualizar el usuario' }, { status: 500 });
   }
 }
-
 
 export async function DELETE(_request: Request, { params }: RouteContext<'/api/admin/users/[id]'>) {
   const admin = await requireAdmin();
@@ -121,14 +160,19 @@ export async function DELETE(_request: Request, { params }: RouteContext<'/api/a
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const activeAdmins = await client.query<{ id: number }>("SELECT id FROM users WHERE role = 'admin' AND is_active = TRUE FOR UPDATE");
-    const targetResult = await client.query<{ id: number; role: UserRole; is_active: boolean }>('SELECT id, role, is_active FROM users WHERE id = $1 FOR UPDATE', [id]);
+    const activeSuperAdmins = await client.query<{ id: number }>(
+      "SELECT id FROM users WHERE (role = 'superuser' OR role = 'superadmin' OR role = 'admin') AND is_active = TRUE FOR UPDATE"
+    );
+    const targetResult = await client.query<{ id: number; role: UserRole; is_active: boolean }>(
+      'SELECT id, role, is_active FROM users WHERE id = $1 FOR UPDATE',
+      [id]
+    );
     const target = targetResult.rows[0];
     if (!target) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
     }
-    if (target.role === 'admin' && target.is_active && activeAdmins.rows.length <= 1) {
+    if ((target.role === 'admin' || target.role === 'superadmin' || target.role === 'superuser') && target.is_active && activeSuperAdmins.rows.length <= 1) {
       await client.query('ROLLBACK');
       return NextResponse.json({ error: 'Debe permanecer al menos un administrador activo' }, { status: 409 });
     }

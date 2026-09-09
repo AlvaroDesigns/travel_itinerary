@@ -12,11 +12,15 @@ import {
   HotelActivity,
   ExcursionActivity,
   FoodActivity,
+  BookingActivity,
   Trip,
 } from '@/context/TravelContext';
 import { DashboardShell } from '@/components/DashboardShell';
 import { WanderlustLoader } from '@/components/WanderlustLoader';
 import { HeroUIDateRangePicker } from '@/components/HeroUIDateRangePicker';
+import { TRIP_TEMPLATES, TripTemplate } from '@/lib/templates-data';
+import { TripEditorSidebar } from '@/components/TripEditorSidebar';
+import { BookingPaymentModal } from '@/components/BookingPaymentModal';
 import {
   ArrowLeft,
   Calendar,
@@ -53,6 +57,10 @@ import {
   Users,
   Palette,
   Globe,
+  Languages,
+  BookOpen,
+  Image as ImageIcon,
+  Video,
   X,
   Copy,
   Check,
@@ -82,6 +90,7 @@ import {
   Minimize2,
   Bot,
   UserCheck,
+  Lock,
 } from 'lucide-react';
 
 interface PageProps {
@@ -103,7 +112,12 @@ export type BlockType =
   | 'cruise'
   | 'transport'
   | 'train'
-  | 'info';
+  | 'info'
+  | 'gallery'
+  | 'video'
+  | 'notes'
+  | 'emergency'
+  | 'weather';
 
 export interface EditorBlock {
   id: string;
@@ -112,6 +126,53 @@ export interface EditorBlock {
   content?: string;
   data?: Record<string, any>;
 }
+
+export interface PersonalizationSettings {
+  useAccountTheme: boolean;
+  selectedTheme: 'classic' | 'elegant' | 'bold' | 'minimal';
+  logoUrl?: string;
+  showLogoInPublic: boolean;
+  primaryColor: string;
+  fontFamily: string;
+  headerStyle: 'compact' | 'standard' | 'immersive';
+}
+
+export interface LanguageSettings {
+  selectedLanguage: 'es' | 'en' | 'fr' | 'de' | 'it' | 'pt';
+  currency: 'EUR' | 'USD' | 'GBP';
+  dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD';
+  autoTranslate: boolean;
+}
+
+export interface ThemeConfig {
+  id: 'classic' | 'elegant' | 'bold' | 'minimal';
+  name: string;
+  isAccountTheme?: boolean;
+  previewType: 'classic' | 'elegant' | 'bold' | 'minimal';
+}
+
+const THEMES: ThemeConfig[] = [
+  { id: 'classic', name: 'Classic', isAccountTheme: true, previewType: 'classic' },
+  { id: 'elegant', name: 'Elegant', previewType: 'elegant' },
+  { id: 'bold', name: 'Bold', previewType: 'bold' },
+  { id: 'minimal', name: 'Minimal', previewType: 'minimal' },
+];
+
+const COLOR_PALETTES = [
+  { name: 'Teal Wanderlust', value: '#009688', bg: 'bg-[#009688]' },
+  { name: 'Índigo Royal', value: '#140b2a', bg: 'bg-[#140b2a]' },
+  { name: 'Esmeralda', value: '#059669', bg: 'bg-[#059669]' },
+  { name: 'Océano', value: '#0284c7', bg: 'bg-[#0284c7]' },
+  { name: 'Rosa Coral', value: '#e11d48', bg: 'bg-[#e11d48]' },
+  { name: 'Púrpura Profundo', value: '#7c3aed', bg: 'bg-[#7c3aed]' },
+];
+
+const FONTS = [
+  { name: 'Outfit (Predeterminada)', value: 'var(--font-outfit), sans-serif' },
+  { name: 'Inter (Moderna & Limpia)', value: 'Inter, sans-serif' },
+  { name: 'Playfair Display (Editorial)', value: 'Playfair Display, serif' },
+  { name: 'Plus Jakarta Sans (Geométrica)', value: 'Plus Jakarta Sans, sans-serif' },
+];
 
 const AIRLINE_PREFIX_MAP: Record<string, string> = {
   FR: 'Ryanair',
@@ -299,6 +360,7 @@ function ActivityCardIcon({ act, isDraft }: { act: Activity; isDraft: boolean })
           {act.type === 'excursion' && <MapPin className="h-5 w-5" />}
           {act.type === 'food' && <Utensils className="h-5 w-5" />}
           {act.type === 'transfer' && <Car className="h-5 w-5" />}
+          {act.type === 'booking' && <CalendarCheck className="h-5 w-5 text-[#009688]" />}
         </>
       )}
     </div>
@@ -354,9 +416,34 @@ export default function ViajeDetalle({ params }: PageProps) {
 
   const router = useRouter();
 
-  // Right Panel State (Bloques FIRST by default, then Agente IA)
-  const [rightPanelTab, setRightPanelTab] = useState<'blocks' | 'agent'>('blocks');
+  // Right Panel State (Bloques, Agente IA, Plantillas, Personalización, Idioma, Viajeros, Documento)
+  const [rightPanelTab, setRightPanelTab] = useState<'blocks' | 'agent' | 'templates' | 'personalization' | 'languages' | 'clients' | 'document'>('blocks');
   const [isMobileRightPanelOpen, setIsMobileRightPanelOpen] = useState(false);
+
+  // Block Category Accordions
+  const [blockCategoriesOpen, setBlockCategoriesOpen] = useState<{
+    esenciales: boolean;
+    servicios: boolean;
+    multimedia: boolean;
+    otros: boolean;
+  }>({
+    esenciales: true,
+    servicios: true,
+    multimedia: true,
+    otros: true,
+  });
+
+  const toggleBlockCategory = (cat: 'esenciales' | 'servicios' | 'multimedia' | 'otros') => {
+    setBlockCategoriesOpen((prev) => ({ ...prev, [cat]: !prev[cat] }));
+  };
+
+  // Language settings state
+  const [languageSettings, setLanguageSettings] = useState<LanguageSettings>({
+    selectedLanguage: 'es',
+    currency: 'EUR',
+    dateFormat: 'DD/MM/YYYY',
+    autoTranslate: true,
+  });
 
   // Itinerary View Mode: 'day' (per-day tab view) vs 'all' (full trip continuous view)
   const [itineraryViewMode, setItineraryViewMode] = useState<'day' | 'all'>('day');
@@ -407,6 +494,108 @@ export default function ViajeDetalle({ params }: PageProps) {
   const [photoUrlInput, setPhotoUrlInput] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Personalization settings State
+  const [themeSettings, setThemeSettings] = useState<PersonalizationSettings>({
+    useAccountTheme: true,
+    selectedTheme: 'classic',
+    logoUrl: '/wanderlust_horizontal_negro.png',
+    showLogoInPublic: true,
+    primaryColor: '#009688',
+    fontFamily: 'var(--font-outfit), sans-serif',
+    headerStyle: 'standard',
+  });
+
+  const handleUpdateThemeSettings = (newSettings: Partial<PersonalizationSettings>) => {
+    setThemeSettings((prev) => ({ ...prev, ...newSettings }));
+    showToast('🎨 Personalización actualizada');
+  };
+
+  const handleApplyTemplate = async (template: TripTemplate) => {
+    if (!activeTrip) return;
+    const tripDatesList = getDatesBetween(activeTrip.startDate, activeTrip.endDate);
+
+    const newActivities: Activity[] = template.activities.map((item, idx) => {
+      const targetDate = tripDatesList[item.dayOffset] || tripDatesList[0];
+      const baseId = `tpl-${Date.now()}-${idx}`;
+      if (item.type === 'flight') {
+        const flightAct: FlightActivity = {
+          id: baseId,
+          type: 'flight',
+          date: targetDate,
+          time: item.time,
+          price: item.price,
+          flightNumber: item.details?.flightNumber || '',
+          airline: item.details?.airline || '',
+          origin: item.details?.origin || '',
+          destination: item.details?.destination || '',
+          arrivalTime: item.details?.arrivalTime || '12:30',
+          description: item.details?.description || item.title || '',
+        };
+        return flightAct;
+      } else if (item.type === 'hotel') {
+        const hotelAct: HotelActivity = {
+          id: baseId,
+          type: 'hotel',
+          date: targetDate,
+          time: item.time,
+          price: item.price,
+          hotelName: item.details?.hotelName || item.title,
+          address: item.details?.address || '',
+          checkIn: item.details?.checkIn || '14:00',
+          checkOut: item.details?.checkOut || '11:00',
+          description: item.details?.roomType || item.details?.description || '',
+        };
+        return hotelAct;
+      } else if (item.type === 'food') {
+        const foodAct: FoodActivity = {
+          id: baseId,
+          type: 'food',
+          date: targetDate,
+          time: item.time,
+          price: item.price,
+          restaurantName: item.details?.restaurantName || item.title,
+          mealType: 'dinner',
+          description: item.details?.notes || item.details?.description || '',
+        };
+        return foodAct;
+      } else if (item.type === 'transfer') {
+        const transferAct: TransferActivity = {
+          id: baseId,
+          type: 'transfer',
+          date: targetDate,
+          time: item.time,
+          price: item.price,
+          transportType: 'taxi',
+          origin: item.details?.from || item.details?.pickupLocation || item.details?.origin || '',
+          destination: item.details?.to || item.details?.destination || '',
+          duration: item.details?.duration || '45 min',
+          description: item.details?.vehicleType || item.details?.description || '',
+        };
+        return transferAct;
+      } else {
+        const excursionAct: ExcursionActivity = {
+          id: baseId,
+          type: 'excursion',
+          date: targetDate,
+          time: item.time,
+          price: item.price,
+          title: item.details?.title || item.title,
+          duration: item.details?.duration || '3 horas',
+          description: item.details?.location ? `Ubicación: ${item.details.location}` : item.details?.description || '',
+        };
+        return excursionAct;
+      }
+    });
+
+    await updateTrip({
+      ...activeTrip,
+      imageUrl: activeTrip.imageUrl || template.imageUrl,
+      budget: template.estimatedBudget || activeTrip.budget,
+      activities: [...activeTrip.activities, ...newActivities],
+    });
+    showToast(`✨ Plantilla "${template.title}" aplicada (+${newActivities.length} actividades)`);
+  };
+
   // Selected Day in Itinerary
   const [selectedDayDate, setSelectedDayDate] = useState<string>('');
 
@@ -417,6 +606,10 @@ export default function ViajeDetalle({ params }: PageProps) {
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
   const [activityType, setActivityType] = useState<ActivityType>('flight');
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+
+  // Booking / Payment Conditions Modal State
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [editingBookingActivity, setEditingBookingActivity] = useState<BookingActivity | null>(null);
 
   // Activity Form Fields
   const [actTime, setActTime] = useState('10:00');
@@ -617,16 +810,73 @@ export default function ViajeDetalle({ params }: PageProps) {
   const tripDates = getDatesBetween(activeTrip.startDate, activeTrip.endDate);
   const activeDate = tripDates.includes(selectedDayDate) ? selectedDayDate : tripDates[0];
 
-  // Helper date formatters
+  // Dynamic Currency & Price Formatters (reacts to languageSettings.currency)
+  const getCurrencySymbol = () => {
+    switch (languageSettings.currency) {
+      case 'USD':
+        return '$';
+      case 'GBP':
+        return '£';
+      case 'EUR':
+      default:
+        return '€';
+    }
+  };
+
+  const formatPrice = (amount?: number | string | null) => {
+    if (amount === undefined || amount === null || amount === '') return '';
+    const num = Number(amount);
+    const displayNum = isNaN(num) ? amount : num.toLocaleString();
+    if (languageSettings.currency === 'USD') return `$ ${displayNum}`;
+    if (languageSettings.currency === 'GBP') return `£ ${displayNum}`;
+    return `${displayNum} €`;
+  };
+
+  // Dynamic Date Formatters (reacts to languageSettings.dateFormat & selectedLanguage)
   const formatDayDate = (dateStr: string) => {
+    if (!dateStr) return '';
     const parts = dateStr.split('-');
-    return parts.length === 3 ? `${parts[2]}/${parts[1]}` : dateStr;
+    if (parts.length !== 3) return dateStr;
+    const [y, m, d] = parts;
+    if (languageSettings.dateFormat === 'MM/DD/YYYY') {
+      return `${m}/${d}`;
+    }
+    if (languageSettings.dateFormat === 'YYYY-MM-DD') {
+      return `${m}-${d}`;
+    }
+    return `${d}/${m}`;
   };
 
   const formatFullDate = (dateStr: string) => {
     if (!dateStr) return '';
     const parts = dateStr.split('-');
-    return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr;
+    if (parts.length !== 3) return dateStr;
+    const [y, m, d] = parts;
+    if (languageSettings.dateFormat === 'MM/DD/YYYY') {
+      return `${m}/${d}/${y}`;
+    }
+    if (languageSettings.dateFormat === 'YYYY-MM-DD') {
+      return `${y}-${m}-${d}`;
+    }
+    return `${d}/${m}/${y}`;
+  };
+
+  const getLanguageLocale = () => {
+    switch (languageSettings.selectedLanguage) {
+      case 'en':
+        return 'en-US';
+      case 'fr':
+        return 'fr-FR';
+      case 'de':
+        return 'de-DE';
+      case 'it':
+        return 'it-IT';
+      case 'pt':
+        return 'pt-PT';
+      case 'es':
+      default:
+        return 'es-ES';
+    }
   };
 
   const getDayIndex = (dateStr: string) => {
@@ -638,11 +888,11 @@ export default function ViajeDetalle({ params }: PageProps) {
     try {
       const d = parseLocalDate(dateStr);
       if (isNaN(d.getTime())) return dateStr;
-      const weekday = new Intl.DateTimeFormat('es-ES', { weekday: 'long' }).format(d);
+      const locale = getLanguageLocale();
+      const weekday = new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(d);
       const capitalizedWd = weekday.charAt(0).toUpperCase() + weekday.slice(1);
-      const day = d.getDate().toString().padStart(2, '0');
-      const month = (d.getMonth() + 1).toString().padStart(2, '0');
-      return `${capitalizedWd}, ${day}/${month}`;
+      const formattedDate = formatDayDate(dateStr);
+      return `${capitalizedWd}, ${formattedDate}`;
     } catch {
       return dateStr;
     }
@@ -921,6 +1171,12 @@ export default function ViajeDetalle({ params }: PageProps) {
       : rawAct;
     const act = originalAct;
 
+    if (act.type === 'booking') {
+      setEditingBookingActivity(act as BookingActivity);
+      setIsBookingModalOpen(true);
+      return;
+    }
+
     setEditingActivity(act);
     setTargetModalDate(act.date);
     setActivityType(act.type);
@@ -1176,15 +1432,10 @@ export default function ViajeDetalle({ params }: PageProps) {
         description: 'Recomendaciones, huso horario, documentación y moneda.',
       };
     } else if (type === 'booking') {
-      newPayload = {
-        type: 'excursion',
-        date: dateToUse,
-        time: '11:00',
-        price: 0,
-        title: 'Condiciones de Reserva',
-        duration: '-',
-        description: 'Calendario de pagos, política de cambios y cancelaciones.',
-      };
+      setEditingBookingActivity(null);
+      setTargetModalDate(dateToUse);
+      setIsBookingModalOpen(true);
+      return;
     } else if (type === 'file') {
       newPayload = {
         type: 'excursion',
@@ -1194,6 +1445,120 @@ export default function ViajeDetalle({ params }: PageProps) {
         title: 'Documentos & Vouchers',
         duration: '-',
         description: 'Billetes electrónicos, pólizas y bonos confirmados.',
+      };
+    } else if (type === 'text') {
+      newPayload = {
+        type: 'excursion',
+        date: dateToUse,
+        time: '09:00',
+        price: 0,
+        title: 'Nota / Texto Informativo',
+        duration: '-',
+        description: 'Escribe aquí la información descriptiva, mensaje de bienvenida o recomendaciones del día.',
+      };
+    } else if (type === 'title') {
+      newPayload = {
+        type: 'excursion',
+        date: dateToUse,
+        time: '08:30',
+        price: 0,
+        title: 'Título de Sección',
+        duration: '-',
+        description: '',
+      };
+    } else if (type === 'itinerary') {
+      newPayload = {
+        type: 'excursion',
+        date: dateToUse,
+        time: '08:00',
+        price: 0,
+        title: 'Resumen de Ruta e Itinerario',
+        duration: '-',
+        description: 'Visión global del recorrido, distancias y paradas programadas.',
+      };
+    } else if (type === 'services_summary') {
+      newPayload = {
+        type: 'excursion',
+        date: dateToUse,
+        time: '12:30',
+        price: 0,
+        title: 'Resumen de Servicios Incluidos',
+        duration: '-',
+        description: 'Vuelos, traslados, régimen hotelero y actividades contratadas.',
+      };
+    } else if (type === 'cruise') {
+      newPayload = {
+        type: 'transfer',
+        date: dateToUse,
+        time: '16:00',
+        price: 0,
+        transportType: 'other',
+        origin: 'Puerto de Salida',
+        destination: 'Alta Mar / Puerto de Escala',
+        duration: 'Navegación',
+        description: 'Embarque en crucero, camarote asignado y régimen todo incluido.',
+      };
+    } else if (type === 'train') {
+      newPayload = {
+        type: 'transfer',
+        date: dateToUse,
+        time: '09:30',
+        price: 0,
+        transportType: 'train',
+        origin: 'Estación de Origen',
+        destination: 'Estación de Destino',
+        duration: '2h 15m',
+        description: 'Tren de alta velocidad, billetes y asientos reservados.',
+      };
+    } else if (type === 'gallery') {
+      newPayload = {
+        type: 'excursion',
+        date: dateToUse,
+        time: '17:00',
+        price: 0,
+        title: 'Galería Fotográfica del Destino',
+        duration: '-',
+        description: 'Álbum visual de los lugares más espectaculares del viaje.',
+      };
+    } else if (type === 'video') {
+      newPayload = {
+        type: 'excursion',
+        date: dateToUse,
+        time: '18:00',
+        price: 0,
+        title: 'Vídeo Promocional & Guía Visual',
+        duration: '-',
+        description: 'Presentación audiovisual de las experiencias reservadas.',
+      };
+    } else if (type === 'notes') {
+      newPayload = {
+        type: 'excursion',
+        date: dateToUse,
+        time: '19:00',
+        price: 0,
+        title: 'Notas Importantes & Políticas',
+        duration: '-',
+        description: 'Normativa local, requisitos de entrada y políticas de cancelación.',
+      };
+    } else if (type === 'emergency') {
+      newPayload = {
+        type: 'excursion',
+        date: dateToUse,
+        time: '00:00',
+        price: 0,
+        title: 'Asistencia 24/7 & Teléfonos de Emergencia',
+        duration: '-',
+        description: 'Contacto directo de la agencia y número de póliza médica de asistencia.',
+      };
+    } else if (type === 'weather') {
+      newPayload = {
+        type: 'excursion',
+        date: dateToUse,
+        time: '07:00',
+        price: 0,
+        title: 'Clima & Recomendaciones de Equipaje',
+        duration: '-',
+        description: 'Temperatura prevista, tipo de calzado y vestimenta aconsejada.',
       };
     } else {
       newPayload = {
@@ -1224,7 +1589,7 @@ export default function ViajeDetalle({ params }: PageProps) {
     handleCreateBlankActivity(type, true, targetDate || activeDate);
   };
 
-  // Reusable Activity Card Renderer with Drag & Drop Handle
+  // Reusable Activity Card Renderer with Drag & Drop Handle and Theme Shapes
   const renderActivityCard = (act: Activity) => {
     const isDraft =
       (act.type === 'flight' && !act.airline && !act.flightNumber) ||
@@ -1235,6 +1600,33 @@ export default function ViajeDetalle({ params }: PageProps) {
 
     const isBeingDragged = draggedActivity?.id === act.id;
     const hasFullImage = Boolean(act.customIconUrl && act.customIconUrl.trim());
+    const theme = themeSettings.selectedTheme;
+
+    // Theme-specific wrapper classes
+    const getCardThemeClasses = () => {
+      if (isBeingDragged) {
+        return 'opacity-40 scale-[0.98] border-dashed border-[#009688] bg-[#e0f2f1]/40 rounded-2xl';
+      }
+      switch (theme) {
+        case 'bold':
+          return isDraft
+            ? 'rounded-lg border-2 border-amber-500 border-l-[8px] border-l-amber-500 bg-amber-50/40 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] hover:-translate-y-0.5'
+            : 'rounded-lg border-2 border-[#0f172a] border-l-[8px] border-l-[#009688] bg-white shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] hover:-translate-y-0.5';
+        case 'elegant':
+          return isDraft
+            ? 'rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-50/40 via-stone-50/30 to-white shadow-xs hover:shadow-lg hover:border-amber-400'
+            : 'rounded-2xl border border-stone-200/90 bg-gradient-to-r from-white via-[#fcfaf7] to-[#fbf8f2]/40 shadow-xs hover:shadow-md hover:border-amber-300';
+        case 'minimal':
+          return isDraft
+            ? 'border-b-2 border-dashed border-amber-300 bg-amber-50/20 hover:bg-amber-50/40 rounded-none shadow-none py-3.5 px-2'
+            : 'border-b border-zinc-200/90 bg-transparent hover:bg-zinc-50/70 rounded-none shadow-none py-3.5 px-2';
+        case 'classic':
+        default:
+          return isDraft
+            ? 'rounded-2xl border border-amber-300 bg-amber-50/30 hover:border-[#009688] hover:bg-white hover:shadow-md shadow-xs'
+            : 'rounded-2xl border border-[#eaecf0] bg-white hover:border-[#009688]/50 hover:shadow-md shadow-xs';
+      }
+    };
 
     return (
       <div
@@ -1246,22 +1638,28 @@ export default function ViajeDetalle({ params }: PageProps) {
           setDragOverDayDate(null);
         }}
         onClick={() => handleOpenEditActivity(act)}
-        className={`group relative flex flex-row items-stretch rounded-2xl border shadow-xs transition-all cursor-pointer overflow-hidden min-h-[135px] sm:min-h-[150px] ${
-          isBeingDragged
-            ? 'opacity-40 scale-[0.98] border-dashed border-[#009688] bg-[#e0f2f1]/40'
-            : isDraft
-            ? 'border-amber-300 bg-amber-50/30 hover:border-[#009688] hover:bg-white hover:shadow-md'
-            : 'border-[#eaecf0] bg-white hover:border-[#009688]/50 hover:shadow-md'
-        }`}
+        className={`group relative flex flex-row items-stretch transition-all cursor-pointer overflow-hidden min-h-[135px] sm:min-h-[150px] ${getCardThemeClasses()}`}
       >
-        {/* Left: Full-height image when customUrl exists (1/3 width) */}
+        {/* Left: Full-height image when customUrl exists (1/3 width or framed thumbnail) */}
         {hasFullImage && (
-          <div className="w-1/3 min-w-[110px] max-w-[200px] shrink-0 relative bg-slate-100 overflow-hidden self-stretch">
+          <div
+            className={`shrink-0 relative overflow-hidden self-stretch ${
+              theme === 'minimal'
+                ? 'w-24 min-w-[96px] max-w-[120px] m-2 rounded-lg bg-zinc-100'
+                : theme === 'elegant'
+                ? 'w-1/3 min-w-[110px] max-w-[200px] p-2 bg-stone-50 border-r border-stone-100'
+                : theme === 'bold'
+                ? 'w-1/3 min-w-[110px] max-w-[200px] bg-slate-200 border-r-2 border-[#0f172a]'
+                : 'w-1/3 min-w-[110px] max-w-[200px] bg-slate-100'
+            }`}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={act.customIconUrl!}
               alt={act.type}
-              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className={`h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ${
+                theme === 'elegant' ? 'rounded-xl shadow-xs' : ''
+              }`}
             />
           </div>
         )}
@@ -1271,21 +1669,47 @@ export default function ViajeDetalle({ params }: PageProps) {
           <div className="flex items-start gap-2.5 sm:gap-3.5 min-w-0 flex-1">
             {/* Drag Grab Handle */}
             <div
-              className="hidden sm:flex items-center self-center py-2 -ml-1 text-[#98a2b3] hover:text-[#344054] cursor-grab active:cursor-grabbing transition-colors"
+              className={`hidden sm:flex items-center self-center py-2 -ml-1 text-[#98a2b3] hover:text-[#344054] cursor-grab active:cursor-grabbing transition-colors ${
+                theme === 'bold' ? 'text-slate-900 font-black' : ''
+              }`}
               title="Arrastra para mover a otro día"
               onClick={(e) => e.stopPropagation()}
             >
               <GripVertical className="h-4 w-4" />
             </div>
 
-            {!hasFullImage && <ActivityCardIcon act={act} isDraft={isDraft} />}
+            {!hasFullImage && (
+              <div
+                className={
+                  theme === 'bold'
+                    ? 'shrink-0 rounded-md border-2 border-[#0f172a] shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] overflow-hidden'
+                    : theme === 'elegant'
+                    ? 'shrink-0 rounded-full border border-stone-200 shadow-2xs overflow-hidden'
+                    : theme === 'minimal'
+                    ? 'shrink-0 rounded-md overflow-hidden'
+                    : ''
+                }
+              >
+                <ActivityCardIcon act={act} isDraft={isDraft} />
+              </div>
+            )}
 
             <div className="space-y-1 min-w-0 flex-1">
               {/* Title per Type */}
               {act.type === 'flight' && (() => {
                 const effectiveAirline = detectAirlineFromFlightNumber(act.flightNumber) || act.airline || 'Vuelo';
                 return (
-                  <h3 className="text-sm font-bold text-[#101828] truncate">
+                  <h3
+                    className={`text-sm sm:text-base font-bold truncate ${
+                      theme === 'bold'
+                        ? 'font-black uppercase tracking-tight text-[#0f172a]'
+                        : theme === 'elegant'
+                        ? 'font-serif text-stone-900 font-bold'
+                        : theme === 'minimal'
+                        ? 'font-medium text-zinc-900'
+                        : 'text-[#101828]'
+                    }`}
+                  >
                     {act.flightNumber || act.airline
                       ? `${effectiveAirline} ${act.flightNumber ? `(${act.flightNumber})` : ''}`
                       : 'Vuelo pendiente de configurar'}
@@ -1294,7 +1718,17 @@ export default function ViajeDetalle({ params }: PageProps) {
               })()}
 
               {act.type === 'hotel' && (
-                <h3 className="text-sm font-bold text-[#101828] truncate">
+                <h3
+                  className={`text-sm sm:text-base font-bold truncate ${
+                    theme === 'bold'
+                      ? 'font-black uppercase tracking-tight text-[#0f172a]'
+                      : theme === 'elegant'
+                      ? 'font-serif text-stone-900 font-bold'
+                      : theme === 'minimal'
+                      ? 'font-medium text-zinc-900'
+                      : 'text-[#101828]'
+                  }`}
+                >
                   {act.isCheckout
                     ? `Check-out: ${act.hotelName || 'Alojamiento'}`
                     : act.hotelName || 'Alojamiento pendiente de configurar'}
@@ -1302,19 +1736,49 @@ export default function ViajeDetalle({ params }: PageProps) {
               )}
 
               {act.type === 'excursion' && (
-                <h3 className="text-sm font-bold text-[#101828] truncate">
+                <h3
+                  className={`text-sm sm:text-base font-bold truncate ${
+                    theme === 'bold'
+                      ? 'font-black uppercase tracking-tight text-[#0f172a]'
+                      : theme === 'elegant'
+                      ? 'font-serif text-stone-900 font-bold'
+                      : theme === 'minimal'
+                      ? 'font-medium text-zinc-900'
+                      : 'text-[#101828]'
+                  }`}
+                >
                   {act.title || 'Actividad / Excursión sin título'}
                 </h3>
               )}
 
               {act.type === 'food' && (
-                <h3 className="text-sm font-bold text-[#101828] truncate">
+                <h3
+                  className={`text-sm sm:text-base font-bold truncate ${
+                    theme === 'bold'
+                      ? 'font-black uppercase tracking-tight text-[#0f172a]'
+                      : theme === 'elegant'
+                      ? 'font-serif text-stone-900 font-bold'
+                      : theme === 'minimal'
+                      ? 'font-medium text-zinc-900'
+                      : 'text-[#101828]'
+                  }`}
+                >
                   {act.restaurantName || 'Restaurante pendiente de configurar'}
                 </h3>
               )}
 
               {act.type === 'transfer' && (
-                <h3 className="text-sm font-bold text-[#101828] truncate">
+                <h3
+                  className={`text-sm sm:text-base font-bold truncate ${
+                    theme === 'bold'
+                      ? 'font-black uppercase tracking-tight text-[#0f172a]'
+                      : theme === 'elegant'
+                      ? 'font-serif text-stone-900 font-bold'
+                      : theme === 'minimal'
+                      ? 'font-medium text-zinc-900'
+                      : 'text-[#101828]'
+                  }`}
+                >
                   {act.origin || act.destination
                     ? `Traslado en ${act.transportType || 'transporte'}`
                     : 'Traslado pendiente de configurar'}
@@ -1322,38 +1786,78 @@ export default function ViajeDetalle({ params }: PageProps) {
               )}
 
               {/* Badges: Time, Category, Price / Draft */}
-              <div className="flex flex-wrap items-center gap-2 mt-0.5 mb-1">
-                <span className="rounded-full bg-[#f4f5f8] px-2.5 py-0.5 text-[11px] font-bold text-[#344054] flex items-center gap-1">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-0.5 mb-1">
+                <span
+                  className={`flex items-center gap-1 text-[11px] font-bold ${
+                    theme === 'bold'
+                      ? 'rounded-xs border border-[#0f172a] bg-slate-100 text-[#0f172a] px-2 py-0.5'
+                      : theme === 'elegant'
+                      ? 'rounded-md border border-stone-200 bg-stone-50/90 text-stone-700 px-2.5 py-0.5'
+                      : theme === 'minimal'
+                      ? 'text-zinc-500 font-mono text-[11px]'
+                      : 'rounded-full bg-[#f4f5f8] px-2.5 py-0.5 text-[#344054]'
+                  }`}
+                >
                   <Clock className="h-3 w-3 text-[#009688]" />
                   {act.time}
                 </span>
+
                 <span
-                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
-                    act.isCheckout
-                      ? 'bg-rose-50 border border-rose-200 text-rose-700'
-                      : 'bg-[#e0f2fe] text-[#0369a1]'
+                  className={`text-[10px] font-bold uppercase ${
+                    theme === 'bold'
+                      ? 'rounded-xs border border-[#0f172a] bg-[#0f172a] text-white px-2 py-0.5 tracking-wider'
+                      : theme === 'elegant'
+                      ? 'rounded-md border border-amber-200 bg-amber-50/70 text-amber-900 px-2.5 py-0.5 tracking-wide'
+                      : theme === 'minimal'
+                      ? 'rounded-sm bg-zinc-100 text-zinc-700 px-2 py-0.5 font-medium'
+                      : act.isCheckout
+                      ? 'rounded-full bg-rose-50 border border-rose-200 text-rose-700 px-2.5 py-0.5'
+                      : 'rounded-full bg-[#e0f2fe] text-[#0369a1] px-2.5 py-0.5'
                   }`}
                 >
                   {act.type === 'flight'
                     ? 'Vuelo'
                     : act.type === 'hotel'
                     ? act.isCheckout
-                      ? 'Check-out Alojamiento'
+                      ? 'Check-out'
                       : 'Alojamiento'
                     : act.type === 'excursion'
                     ? 'Excursión'
                     : act.type === 'food'
                     ? 'Gastronomía'
+                    : act.type === 'booking'
+                    ? 'Módulo de Reservas & Pagos'
                     : 'Traslado'}
                 </span>
+
                 {isDraft ? (
-                  <span className="rounded-full bg-amber-100 border border-amber-300 px-2.5 py-0.5 text-[10px] font-bold text-amber-800 flex items-center gap-1">
+                  <span
+                    className={`flex items-center gap-1 text-[10px] font-bold ${
+                      theme === 'bold'
+                        ? 'rounded-xs border border-amber-500 bg-amber-100 text-amber-950 px-2 py-0.5'
+                        : theme === 'elegant'
+                        ? 'rounded-md border border-amber-300 bg-amber-50 text-amber-900 px-2.5 py-0.5'
+                        : theme === 'minimal'
+                        ? 'text-amber-700 font-medium'
+                        : 'rounded-full bg-amber-100 border border-amber-300 px-2.5 py-0.5 text-amber-800'
+                    }`}
+                  >
                     <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                    Bloque vacío (sin rellenar)
+                    Sin completar
                   </span>
                 ) : act.price ? (
-                  <span className="rounded-full bg-[#ecfdf3] px-2.5 py-0.5 text-[11px] font-bold text-[#027a48]">
-                    {act.price} €
+                  <span
+                    className={`text-[11px] font-bold ${
+                      theme === 'bold'
+                        ? 'rounded-xs border border-[#0f172a] bg-[#ecfdf3] text-[#027a48] px-2.5 py-0.5 shadow-[1px_1px_0px_0px_rgba(15,23,42,1)]'
+                        : theme === 'elegant'
+                        ? 'rounded-md bg-stone-50 border border-stone-200 px-2.5 py-0.5 font-serif font-bold text-stone-800'
+                        : theme === 'minimal'
+                        ? 'text-zinc-900 font-semibold bg-zinc-100 px-2 py-0.5 rounded-full'
+                        : 'rounded-full bg-[#ecfdf3] px-2.5 py-0.5 text-[#027a48]'
+                    }`}
+                  >
+                    {formatPrice(act.price)}
                   </span>
                 ) : null}
               </div>
@@ -1424,6 +1928,17 @@ export default function ViajeDetalle({ params }: PageProps) {
                     : 'Haz clic en Editar para indicar origen, destino y transporte.'}
                 </p>
               )}
+
+              {act.type === 'booking' && (
+                <div className="space-y-1">
+                  <p className="text-xs text-[#667085] truncate">
+                    Pasarela: <strong className="text-[#101828] uppercase font-bold">{(act as BookingActivity).paymentProvider || 'redsys'}</strong> · Depósito inicial: <strong className="text-[#009688] font-bold">{(act as BookingActivity).depositAmount || Math.round((act.price || 1250) * 0.2)} €</strong>
+                  </p>
+                  {act.description && (
+                    <p className="text-xs text-[#475467] line-clamp-2">{act.description}</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -1435,20 +1950,40 @@ export default function ViajeDetalle({ params }: PageProps) {
             <button
               type="button"
               onClick={() => handleOpenEditActivity(act)}
-              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer shadow-2xs ${
-                isDraft
-                  ? 'bg-[#009688] text-white hover:bg-[#00796b]'
-                  : 'border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f4f5f8] hover:border-[#009688]'
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer shadow-2xs ${
+                theme === 'bold'
+                  ? isDraft
+                    ? 'rounded-md border-2 border-slate-900 bg-amber-400 text-slate-950 font-black shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                    : 'rounded-md border-2 border-slate-900 bg-[#009688] text-white font-black shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none'
+                  : theme === 'elegant'
+                  ? isDraft
+                    ? 'rounded-xl border border-amber-300 bg-amber-100 text-amber-900 font-serif'
+                    : 'rounded-xl border border-stone-200 bg-stone-900 text-white hover:bg-stone-800 font-serif'
+                  : theme === 'minimal'
+                  ? isDraft
+                    ? 'rounded-md bg-amber-100 text-amber-900'
+                    : 'rounded-md border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-100'
+                  : isDraft
+                  ? 'rounded-full bg-[#009688] text-white hover:bg-[#00796b]'
+                  : 'rounded-full border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f4f5f8] hover:border-[#009688]'
               }`}
             >
-              <Edit2 className={`h-3.5 w-3.5 ${isDraft ? 'text-white' : 'text-[#009688]'}`} />
+              <Edit2 className={`h-3.5 w-3.5 ${isDraft && theme === 'classic' ? 'text-white' : theme === 'bold' ? 'text-current' : 'text-[#009688]'}`} />
               <span>{isDraft ? 'Rellenar datos' : 'Editar'}</span>
             </button>
             <button
               type="button"
               onClick={(e) => handleDuplicateActivity(act, e)}
               title="Duplicar actividad"
-              className="rounded-full p-1.5 text-[#98a2b3] hover:bg-[#f2f4f7] hover:text-[#344054] transition-colors cursor-pointer"
+              className={`p-1.5 transition-colors cursor-pointer ${
+                theme === 'bold'
+                  ? 'rounded-md border-2 border-slate-900 bg-white text-slate-900 font-black shadow-[1px_1px_0px_0px_rgba(15,23,42,1)] hover:bg-slate-100'
+                  : theme === 'elegant'
+                  ? 'rounded-lg border border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-100'
+                  : theme === 'minimal'
+                  ? 'rounded-md text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
+                  : 'rounded-full p-1.5 text-[#98a2b3] hover:bg-[#f2f4f7] hover:text-[#344054]'
+              }`}
             >
               <Copy className="h-3.5 w-3.5" />
             </button>
@@ -1456,7 +1991,15 @@ export default function ViajeDetalle({ params }: PageProps) {
               type="button"
               onClick={(e) => handleRequestDeleteActivity(act.id, e)}
               title="Eliminar actividad"
-              className="rounded-full p-1.5 text-[#98a2b3] hover:bg-[#fee4e2] hover:text-[#d92d20] transition-colors cursor-pointer"
+              className={`p-1.5 transition-colors cursor-pointer ${
+                theme === 'bold'
+                  ? 'rounded-md border-2 border-slate-900 bg-rose-50 text-rose-700 shadow-[1px_1px_0px_0px_rgba(15,23,42,1)] hover:bg-rose-100'
+                  : theme === 'elegant'
+                  ? 'rounded-lg border border-rose-200 text-rose-600 hover:text-rose-800 hover:bg-rose-50'
+                  : theme === 'minimal'
+                  ? 'rounded-md text-rose-500 hover:text-rose-700 hover:bg-rose-50'
+                  : 'rounded-full p-1.5 text-[#98a2b3] hover:bg-[#fee4e2] hover:text-[#d92d20]'
+              }`}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
@@ -1466,155 +2009,271 @@ export default function ViajeDetalle({ params }: PageProps) {
     );
   };
 
-  // Block definitions for drag & drop palette
-  const serviceBlocks = [
+  // Categorized Block definitions for the Right Panel
+  const essentialBlocks = [
+    { type: 'text', label: 'Texto descriptivo', desc: 'Párrafos, notas o mensajes', icon: Type, color: 'text-sky-600 bg-sky-50' },
+    { type: 'title', label: 'Título de sección', desc: 'Separador y encabezado', icon: Heading, color: 'text-indigo-600 bg-indigo-50' },
+    { type: 'itinerary', label: 'Ruta e Itinerario', desc: 'Resumen global del recorrido', icon: Route, color: 'text-teal-600 bg-teal-50' },
+    { type: 'services_summary', label: 'Resumen de servicios', desc: 'Lista de servicios contratados', icon: ListOrdered, color: 'text-emerald-600 bg-emerald-50' },
+    { type: 'price', label: 'Desglose de Precios', desc: 'Tabla de importes y condiciones', icon: DollarSign, color: 'text-amber-600 bg-amber-50' },
+    { type: 'file', label: 'Documentos & Vouchers', desc: 'PDFs, pólizas y billetes', icon: Paperclip, color: 'text-purple-600 bg-purple-50' },
+    { type: 'booking', label: 'Módulo de Reservas', desc: 'Plazos de pago y depósito', icon: CalendarCheck, color: 'text-blue-600 bg-blue-50' },
+  ];
+
+  const travelServiceBlocks = [
     { type: 'flight', label: 'Vuelo & Conexiones', desc: 'Horarios, aerolínea y terminales', icon: Plane, color: 'text-sky-600 bg-sky-50' },
     { type: 'hotel', label: 'Alojamiento & Hotel', desc: 'Resort, check-in y servicios', icon: Bed, color: 'text-indigo-600 bg-indigo-50' },
     { type: 'activity', label: 'Excursión / Tour', desc: 'Visita guiada, entradas y duración', icon: MapPin, color: 'text-teal-600 bg-teal-50' },
     { type: 'food', label: 'Restaurante / Comida', desc: 'Desayuno, almuerzo o cena gourmet', icon: Utensils, color: 'text-amber-600 bg-amber-50' },
     { type: 'transport', label: 'Traslado privado / Taxi', desc: 'Recogida con chofer o minivan', icon: Car, color: 'text-emerald-600 bg-emerald-50' },
+    { type: 'cruise', label: 'Crucero & Navegación', desc: 'Embarque, camarote y escala', icon: Ship, color: 'text-cyan-600 bg-cyan-50' },
+    { type: 'train', label: 'Tren de alta velocidad', desc: 'Estación, billete y asientos', icon: Train, color: 'text-violet-600 bg-violet-50' },
+    { type: 'info', label: 'Información del Destino', desc: 'Visados, moneda y recomendaciones', icon: Info, color: 'text-rose-600 bg-rose-50' },
   ];
 
-  const structureBlocks = [
-    { type: 'price', label: 'Desglose de Precios', desc: 'Tabla de importes y conceptos', icon: DollarSign, color: 'text-rose-600 bg-rose-50' },
-    { type: 'info', label: 'Información del Destino', desc: 'Visados, moneda y recomendaciones', icon: Info, color: 'text-purple-600 bg-purple-50' },
-    { type: 'booking', label: 'Módulo de Reservas', desc: 'Condiciones de pago y depósito', icon: CalendarCheck, color: 'text-blue-600 bg-blue-50' },
-    { type: 'file', label: 'Documentos & Vouchers', desc: 'PDFs, pólizas y billetes', icon: Paperclip, color: 'text-zinc-600 bg-zinc-100' },
+  const multimediaBlocks = [
+    { type: 'gallery', label: 'Galería de fotos', desc: 'Álbum fotográfico del destino', icon: ImageIcon, color: 'text-fuchsia-600 bg-fuchsia-50' },
+    { type: 'video', label: 'Vídeo promocional', desc: 'Presentación interactiva y guía', icon: Video, color: 'text-pink-600 bg-pink-50' },
   ];
+
+  const otherBlocks = [
+    { type: 'notes', label: 'Notas & FAQ', desc: 'Políticas, avisos y condiciones', icon: FileText, color: 'text-slate-600 bg-slate-100' },
+    { type: 'emergency', label: 'Asistencia 24/7', desc: 'Teléfonos de urgencia y seguro', icon: ShieldCheck, color: 'text-red-600 bg-red-50' },
+    { type: 'weather', label: 'Clima & Consejos', desc: 'Pronóstico y tipo de equipaje', icon: Sun, color: 'text-orange-600 bg-orange-50' },
+  ];
+
+  const renderBlockItem = (item: { type: string; label: string; desc: string; icon: any; color: string }, isMobile: boolean) => {
+    const Icon = item.icon;
+    return (
+      <div
+        key={item.type}
+        draggable={true}
+        onDragStart={(e) => {
+          e.dataTransfer.setData('text/plain', item.type);
+          handleDragStartFromPalette(item.type as BlockType, e);
+        }}
+        onDragEnd={() => setDraggedBlockType(null)}
+        onClick={() => {
+          handleAddBlockDirectly(item.type as BlockType);
+          if (isMobile) setIsMobileRightPanelOpen(false);
+        }}
+        className="flex items-center gap-3 rounded-2xl border border-[#eaecf0] bg-white p-3 text-left transition-all hover:border-[#009688] hover:shadow-md group cursor-grab active:cursor-grabbing select-none"
+      >
+        <GripVertical className="h-4 w-4 text-[#cbd5e1] group-hover:text-[#009688] transition-colors shrink-0" />
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="text-xs font-bold text-[#101828] group-hover:text-[#009688] transition-colors">
+            {item.label}
+          </h4>
+          <p className="text-[11px] text-[#667085] truncate">{item.desc}</p>
+        </div>
+        <Plus className="h-4 w-4 text-[#98a2b3] group-hover:text-[#009688] shrink-0" />
+      </div>
+    );
+  };
 
   const renderRightPanelContent = (isMobile = false) => (
-    <div className="rounded-3xl border border-[#eaecf0] bg-white shadow-xl overflow-hidden flex flex-col h-full">
-      {/* Drawer Header with HeroUI Tab Switcher: BLOQUES FIRST, AGENTE IA SECOND */}
-      <div className="flex items-center justify-between border-b border-[#eaecf0] bg-[#fafafa] p-3.5">
-        <div className="flex items-center gap-1 rounded-full bg-[#f4f4f5] p-1 border border-[#e4e4e7]/70">
-          <button
-            type="button"
-            onClick={() => setRightPanelTab('blocks')}
-            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-              rightPanelTab === 'blocks'
-                ? 'bg-white text-[#101828] shadow-xs'
-                : 'text-[#71717a] hover:text-[#18181b]'
-            }`}
-          >
-            <Layers className="h-3.5 w-3.5 text-[#009688]" />
-            <span>Bloques</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setRightPanelTab('agent')}
-            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-              rightPanelTab === 'agent'
-                ? 'bg-white text-[#101828] shadow-xs'
-                : 'text-[#71717a] hover:text-[#18181b]'
-            }`}
-          >
-            <Sparkles className="h-3.5 w-3.5 text-[#009688]" />
-            <span>Agente IA</span>
-          </button>
-        </div>
+    <div className="rounded-3xl border border-[#eaecf0] bg-white shadow-xl overflow-hidden flex flex-row h-full">
+      {/* ------------------------------------------------------------- */}
+      {/* 1. LEFT LATERAL INNER DOCK (Only visible when on Bloques / Tools) */}
+      {/* ------------------------------------------------------------- */}
+      {rightPanelTab !== 'agent' && (
+        <div className="flex flex-col items-center justify-between border-r border-[#eaecf0] bg-[#fafbfc] py-3 px-1.5 w-12 shrink-0 select-none animate-fade-in">
+          <div className="flex flex-col items-center gap-2 w-full">
+            {[
+              { id: 'blocks', label: 'Bloques', icon: Layers },
+              { id: 'templates', label: 'Plantillas', icon: BookOpen },
+              { id: 'personalization', label: 'Diseño', icon: Palette },
+              { id: 'languages', label: 'Idioma', icon: Globe },
+              { id: 'clients', label: 'Viajeros', icon: Users },
+              { id: 'document', label: 'Documento', icon: FileText },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = rightPanelTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setRightPanelTab(item.id as any)}
+                  title={item.label}
+                  className={`group relative flex h-9 w-9 items-center justify-center rounded-xl transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-[#009688] text-white shadow-sm shadow-[#009688]/30'
+                      : 'text-[#667085] hover:bg-[#f2f4f7] hover:text-[#101828]'
+                  }`}
+                >
+                  {isActive && (
+                    <span className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-4 w-1 rounded-r-full bg-[#009688]" />
+                  )}
+                  <Icon className={`h-4 w-4 ${isActive ? 'text-white' : 'group-hover:scale-110'} transition-transform`} />
+                </button>
+              );
+            })}
+          </div>
 
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#ecfdf3] px-2 py-0.5 text-[10px] font-bold text-[#027a48]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#12b76a] animate-pulse" />
-            Online
-          </span>
-          {isMobile && (
+          {/* Bottom indicator */}
+          <div className="pt-2 border-t border-zinc-200/80 flex flex-col items-center">
+            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" title="Sincronizado" />
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* 2. RIGHT MAIN CONTENT AREA                                   */}
+      {/* ------------------------------------------------------------- */}
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-white">
+        {/* Top Header: ONLY 2 Tabs (Bloques & Agente IA) */}
+        <div className="border-b border-[#eaecf0] bg-[#fafafa] p-2.5 shrink-0">
+          <div className="flex items-center justify-between gap-1 mb-2 px-1">
+            <span className="text-[11px] font-black uppercase tracking-wider text-[#475467]">Herramientas de viaje</span>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#ecfdf3] px-2 py-0.5 text-[10px] font-bold text-[#027a48]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#12b76a] animate-pulse" />
+                Online
+              </span>
+              {isMobile && (
+                <button
+                  type="button"
+                  onClick={() => setIsMobileRightPanelOpen(false)}
+                  className="rounded-full p-1 text-zinc-500 hover:bg-zinc-200 cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Segmented 2-Tab Bar (ONLY Bloques vs Agente IA) */}
+          <div className="grid grid-cols-2 gap-1 rounded-2xl bg-[#f4f4f5] p-1 border border-[#e4e4e7]/70">
             <button
               type="button"
-              onClick={() => setIsMobileRightPanelOpen(false)}
-              className="rounded-full p-1 text-zinc-500 hover:bg-zinc-200 cursor-pointer ml-1"
+              onClick={() => setRightPanelTab('blocks')}
+              title="Bloques"
+              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                rightPanelTab === 'blocks'
+                  ? 'bg-white text-[#101828] shadow-xs'
+                  : 'text-[#71717a] hover:text-[#18181b] hover:bg-black/[0.02]'
+              }`}
             >
-              <X className="h-5 w-5" />
+              <Layers className={`h-4 w-4 ${rightPanelTab === 'blocks' ? 'text-[#009688]' : 'text-[#71717a]'}`} />
+              <span>Bloques</span>
             </button>
-          )}
-        </div>
-      </div>
 
-      {/* TAB 1: BLOQUES (Drag & Drop + Click to Add) */}
+            <button
+              type="button"
+              onClick={() => setRightPanelTab('agent')}
+              title="Agente IA"
+              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                rightPanelTab === 'agent'
+                  ? 'bg-white text-[#101828] shadow-xs'
+                  : 'text-[#71717a] hover:text-[#18181b] hover:bg-black/[0.02]'
+              }`}
+            >
+              <Sparkles className={`h-4 w-4 ${rightPanelTab === 'agent' ? 'text-[#009688]' : 'text-[#71717a]'}`} />
+              <span>Agente IA</span>
+            </button>
+          </div>
+        </div>
+
+      {/* ============================================================= */}
+      {/* TAB 1: BLOQUES (Esenciales, Servicios, Multimedia, Otros)      */}
+      {/* ============================================================= */}
       {rightPanelTab === 'blocks' && (
         <div className="flex-1 overflow-y-auto p-4 space-y-4 [scrollbar-width:thin]">
           <div className="rounded-2xl border border-[#009688]/20 bg-[#e0f2f1]/40 p-3 flex items-start gap-2.5">
             <Sparkles className="h-4 w-4 text-[#009688] shrink-0 mt-0.5" />
             <p className="text-xs text-[#004d40]">
-              <strong>Arrastra</strong> cualquier bloque hacia el itinerario o <strong>haz clic</strong> sobre él para añadirlo al día seleccionado ({activeDate}).
+              <strong>Arrastra</strong> cualquier bloque al itinerario o <strong>haz clic</strong> para añadirlo al día ({activeDate}).
             </p>
           </div>
 
-          <div className="space-y-3">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-[#98a2b3]">Servicios de viaje</p>
-            <div className="grid grid-cols-1 gap-2.5">
-              {serviceBlocks.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={item.type}
-                    draggable={true}
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('text/plain', item.type);
-                      handleDragStartFromPalette(item.type as BlockType);
-                    }}
-                    onDragEnd={() => setDraggedBlockType(null)}
-                    onClick={() => {
-                      handleAddBlockDirectly(item.type as BlockType);
-                      if (isMobile) setIsMobileRightPanelOpen(false);
-                    }}
-                    className="flex items-center gap-3 rounded-2xl border border-[#eaecf0] bg-white p-3 text-left transition-all hover:border-[#009688] hover:shadow-md group cursor-grab active:cursor-grabbing select-none"
-                  >
-                    <GripVertical className="h-4 w-4 text-[#cbd5e1] group-hover:text-[#009688] transition-colors shrink-0" />
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-bold text-[#101828] group-hover:text-[#009688] transition-colors">
-                        {item.label}
-                      </h4>
-                      <p className="text-[11px] text-[#667085] truncate">{item.desc}</p>
-                    </div>
-                    <Plus className="h-4 w-4 text-[#98a2b3] group-hover:text-[#009688] shrink-0" />
-                  </div>
-                );
-              })}
-            </div>
+          {/* 1. SERVICIOS DE VIAJE */}
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => toggleBlockCategory('servicios')}
+              className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#009688] cursor-pointer"
+            >
+              <span className="flex items-center gap-1.5">
+                {blockCategoriesOpen.servicios ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+                Servicios de viaje
+              </span>
+              <span className="text-[10px] font-semibold text-[#98a2b3]">({travelServiceBlocks.length})</span>
+            </button>
+            {blockCategoriesOpen.servicios && (
+              <div className="grid grid-cols-1 gap-2.5 pt-1">
+                {travelServiceBlocks.map((item) => renderBlockItem(item, isMobile))}
+              </div>
+            )}
+          </div>
 
-            <p className="text-[11px] font-bold uppercase tracking-wider text-[#98a2b3] pt-2">Estructura & Gestión</p>
-            <div className="grid grid-cols-1 gap-2.5">
-              {structureBlocks.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={item.type}
-                    draggable={true}
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('text/plain', item.type);
-                      handleDragStartFromPalette(item.type as BlockType);
-                    }}
-                    onDragEnd={() => setDraggedBlockType(null)}
-                    onClick={() => {
-                      handleAddBlockDirectly(item.type as BlockType);
-                      if (isMobile) setIsMobileRightPanelOpen(false);
-                    }}
-                    className="flex items-center gap-3 rounded-2xl border border-[#eaecf0] bg-white p-3 text-left transition-all hover:border-[#009688] hover:shadow-md group cursor-grab active:cursor-grabbing select-none"
-                  >
-                    <GripVertical className="h-4 w-4 text-[#cbd5e1] group-hover:text-[#009688] transition-colors shrink-0" />
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-bold text-[#101828] group-hover:text-[#009688] transition-colors">
-                        {item.label}
-                      </h4>
-                      <p className="text-[11px] text-[#667085] truncate">{item.desc}</p>
-                    </div>
-                    <Plus className="h-4 w-4 text-[#98a2b3] group-hover:text-[#009688] shrink-0" />
-                  </div>
-                );
-              })}
-            </div>
+          {/* 2. ESENCIALES */}
+          <div className="space-y-2 pt-2 border-t border-[#eaecf0]">
+            <button
+              type="button"
+              onClick={() => toggleBlockCategory('esenciales')}
+              className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#009688] cursor-pointer"
+            >
+              <span className="flex items-center gap-1.5">
+                {blockCategoriesOpen.esenciales ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+                Esenciales & Estructura
+              </span>
+              <span className="text-[10px] font-semibold text-[#98a2b3]">({essentialBlocks.length})</span>
+            </button>
+            {blockCategoriesOpen.esenciales && (
+              <div className="grid grid-cols-1 gap-2.5 pt-1">
+                {essentialBlocks.map((item) => renderBlockItem(item, isMobile))}
+              </div>
+            )}
+          </div>
+
+          {/* 3. MULTIMEDIA */}
+          <div className="space-y-2 pt-2 border-t border-[#eaecf0]">
+            <button
+              type="button"
+              onClick={() => toggleBlockCategory('multimedia')}
+              className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#009688] cursor-pointer"
+            >
+              <span className="flex items-center gap-1.5">
+                {blockCategoriesOpen.multimedia ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+                Multimedia
+              </span>
+              <span className="text-[10px] font-semibold text-[#98a2b3]">({multimediaBlocks.length})</span>
+            </button>
+            {blockCategoriesOpen.multimedia && (
+              <div className="grid grid-cols-1 gap-2.5 pt-1">
+                {multimediaBlocks.map((item) => renderBlockItem(item, isMobile))}
+              </div>
+            )}
+          </div>
+
+          {/* 4. OTROS */}
+          <div className="space-y-2 pt-2 border-t border-[#eaecf0]">
+            <button
+              type="button"
+              onClick={() => toggleBlockCategory('otros')}
+              className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#009688] cursor-pointer"
+            >
+              <span className="flex items-center gap-1.5">
+                {blockCategoriesOpen.otros ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+                Otros & Asistencia
+              </span>
+              <span className="text-[10px] font-semibold text-[#98a2b3]">({otherBlocks.length})</span>
+            </button>
+            {blockCategoriesOpen.otros && (
+              <div className="grid grid-cols-1 gap-2.5 pt-1">
+                {otherBlocks.map((item) => renderBlockItem(item, isMobile))}
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* TAB 2: AGENTE IA (Interactive Chat) */}
+      {/* ============================================================= */}
+      {/* TAB 2: AGENTE IA (Interactive Chat)                           */}
+      {/* ============================================================= */}
       {rightPanelTab === 'agent' && (
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Chat History */}
@@ -1816,6 +2475,454 @@ export default function ViajeDetalle({ params }: PageProps) {
           </div>
         </div>
       )}
+
+      {/* ============================================================= */}
+      {/* TAB 3: PLANTILLAS DE INSPIRACIÓN                              */}
+      {/* ============================================================= */}
+      {rightPanelTab === 'templates' && (
+        <div className="flex-1 overflow-y-auto p-4 space-y-3.5 [scrollbar-width:thin]">
+          <div className="rounded-2xl border border-[#009688]/20 bg-[#e0f2f1]/40 p-3 flex items-start gap-2.5">
+            <BookOpen className="h-4 w-4 text-[#009688] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-bold text-[#004d40]">Plantillas de itinerario prediseñadas</p>
+              <p className="text-[11px] text-[#00796b] mt-0.5">
+                Aplica una plantilla para importar actividades y servicios configurados directamente en este viaje.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {TRIP_TEMPLATES.map((tpl) => (
+              <div
+                key={tpl.id}
+                className="group rounded-2xl border border-zinc-200 bg-white p-3.5 hover:border-[#009688] hover:shadow-md transition-all flex flex-col justify-between"
+              >
+                <div className="relative h-28 w-full rounded-xl overflow-hidden mb-2.5 bg-slate-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={tpl.imageUrl}
+                    alt={tpl.title}
+                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-2 left-2 rounded-full bg-black/60 backdrop-blur-xs px-2 py-0.5 text-[10px] font-bold text-white">
+                    {tpl.code}
+                  </div>
+                  <div className="absolute top-2 right-2 rounded-full bg-teal-600/90 px-2 py-0.5 text-[10px] font-bold text-white">
+                    {tpl.category}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-extrabold text-zinc-900 group-hover:text-[#009688] transition-colors leading-snug">
+                    {tpl.title}
+                  </h4>
+                  <p className="text-[11px] text-zinc-500 line-clamp-2 mt-1 leading-relaxed">
+                    {tpl.description}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-2.5 mt-2.5 border-t border-zinc-100">
+                  <div className="text-[11px] text-zinc-600 font-medium">
+                    <span>{tpl.durationDays} días</span> · <strong className="text-zinc-900 font-bold">~{tpl.estimatedBudget} €</strong>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleApplyTemplate(tpl);
+                      if (isMobile) setIsMobileRightPanelOpen(false);
+                    }}
+                    className="rounded-xl bg-[#009688] px-3 py-1.5 text-[11px] font-bold text-white shadow-xs hover:bg-[#00796b] transition-all cursor-pointer flex items-center gap-1"
+                  >
+                    <Plus className="h-3 w-3" />
+                    <span>Aplicar</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================= */}
+      {/* TAB 4: PERSONALIZACIÓN & DISEÑO                               */}
+      {/* ============================================================= */}
+      {rightPanelTab === 'personalization' && (
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 [scrollbar-width:thin]">
+          {/* 1. SECCIÓN TEMA */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#344054]">Tema de la Propuesta</h4>
+
+            {/* Account Theme Checkbox */}
+            <label className="flex items-start gap-2.5 cursor-pointer select-none rounded-xl border border-[#eaecf0] bg-[#fafafa] p-3 transition hover:bg-[#f4f5f8]">
+              <input
+                type="checkbox"
+                checked={themeSettings.useAccountTheme}
+                onChange={(e) => handleUpdateThemeSettings({ useAccountTheme: e.target.checked })}
+                className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[#009688] focus:ring-[#009688]"
+              />
+              <div className="text-xs">
+                <span className="font-bold text-[#101828]">Usar el tema de tu cuenta</span>
+                <p className="text-[11px] text-[#667085]">
+                  Ahora mismo: <strong className="text-[#009688] capitalize">{themeSettings.selectedTheme}</strong>
+                </p>
+              </div>
+            </label>
+
+            {/* Grid of Themes */}
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
+              {THEMES.map((th) => {
+                const isSelected = themeSettings.selectedTheme === th.id;
+                return (
+                  <div
+                    key={th.id}
+                    className={`group relative flex flex-col justify-between rounded-2xl border-2 p-3 transition-all ${
+                      isSelected
+                        ? 'border-[#009688] bg-[#f0fdfa]/40 shadow-sm'
+                        : 'border-[#eaecf0] bg-white hover:border-zinc-300 hover:shadow-xs'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-extrabold text-[#101828]">{th.name}</span>
+                    </div>
+
+                    {/* Wireframe Layout Sketch */}
+                    <div className="h-14 w-full rounded-xl bg-zinc-100/90 border border-zinc-200/80 p-1.5 flex flex-col justify-between overflow-hidden">
+                      {th.previewType === 'classic' && (
+                        <>
+                          <div className="h-2 w-1/3 rounded bg-zinc-300" />
+                          <div className="h-1.5 w-2/3 rounded bg-zinc-200" />
+                          <div className="grid grid-cols-2 gap-1 mt-1">
+                            <div className="h-5 rounded bg-zinc-300/80" />
+                            <div className="h-5 rounded bg-zinc-300/80" />
+                          </div>
+                        </>
+                      )}
+                      {th.previewType === 'elegant' && (
+                        <div className="flex flex-col items-center justify-center h-full gap-1">
+                          <div className="h-2 w-1/2 rounded-full bg-zinc-400" />
+                          <div className="h-6 w-4/5 rounded bg-zinc-300/80" />
+                        </div>
+                      )}
+                      {th.previewType === 'bold' && (
+                        <>
+                          <div className="h-3 w-full rounded bg-zinc-400/80" />
+                          <div className="flex gap-1 mt-1">
+                            <div className="h-6 w-2/3 rounded bg-zinc-300" />
+                            <div className="h-6 w-1/3 rounded bg-zinc-200" />
+                          </div>
+                        </>
+                      )}
+                      {th.previewType === 'minimal' && (
+                        <>
+                          <div className="flex justify-between">
+                            <div className="h-2 w-2/5 rounded bg-zinc-400" />
+                            <div className="h-2 w-1/5 rounded bg-zinc-300" />
+                          </div>
+                          <div className="space-y-1 mt-1">
+                            <div className="h-2.5 w-full rounded bg-zinc-200" />
+                            <div className="h-2.5 w-full rounded bg-zinc-200" />
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateThemeSettings({ selectedTheme: th.id })}
+                      className={`mt-2.5 w-full rounded-xl py-1.5 text-[11px] font-bold transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#009688] text-white shadow-xs'
+                          : 'border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f9fafb]'
+                      }`}
+                    >
+                      {isSelected ? 'Activo' : 'Seleccionar'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 2. SECCIÓN LOGOTIPO */}
+          <div className="space-y-3 pt-4 border-t border-[#eaecf0]">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-black uppercase tracking-wider text-[#344054]">Logotipo de la Agencia</h4>
+              <span className="text-[10px] text-zinc-500 font-medium">PNG / SVG</span>
+            </div>
+
+            <div className="flex items-center gap-3 rounded-2xl border border-[#eaecf0] bg-[#fafafa] p-3">
+              <div className="relative h-12 w-24 shrink-0 rounded-xl bg-white border border-zinc-200 flex items-center justify-center overflow-hidden p-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/wanderlust_horizontal_negro.png"
+                  alt="Logo"
+                  className="max-h-full max-w-full object-contain"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="flex items-center gap-2 text-xs font-bold text-[#101828] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={themeSettings.showLogoInPublic}
+                    onChange={(e) => handleUpdateThemeSettings({ showLogoInPublic: e.target.checked })}
+                    className="rounded border-zinc-300 text-[#009688] focus:ring-[#009688]"
+                  />
+                  <span>Mostrar en vista viajero</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => showToast('✨ Logotipo actualizado desde configuración de agencia')}
+                  className="mt-1 text-[10px] font-bold text-[#009688] hover:underline cursor-pointer"
+                >
+                  Personalizar logo
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. SECCIÓN COLORES DE MARCA */}
+          <div className="space-y-3 pt-4 border-t border-[#eaecf0]">
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#344054]">Color Principal</h4>
+            <div className="grid grid-cols-6 gap-2">
+              {COLOR_PALETTES.map((col) => {
+                const isColActive = themeSettings.primaryColor === col.value;
+                return (
+                  <button
+                    key={col.value}
+                    type="button"
+                    title={col.name}
+                    onClick={() => handleUpdateThemeSettings({ primaryColor: col.value })}
+                    className={`h-9 w-9 rounded-full ${col.bg} flex items-center justify-center transition-transform cursor-pointer ${
+                      isColActive ? 'ring-3 ring-offset-2 ring-[#009688] scale-110 shadow-sm' : 'hover:scale-105 opacity-90'
+                    }`}
+                  >
+                    {isColActive && <Check className="h-4 w-4 text-white" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 4. SECCIÓN TIPOGRAFÍA */}
+          <div className="space-y-2 pt-4 border-t border-[#eaecf0]">
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#344054]">Tipografía</h4>
+            <select
+              value={themeSettings.fontFamily}
+              onChange={(e) => handleUpdateThemeSettings({ fontFamily: e.target.value })}
+              className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20 font-medium"
+            >
+              {FONTS.map((f) => (
+                <option key={f.value} value={f.value}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 5. SECCIÓN ESTILO DE PORTADA */}
+          <div className="space-y-2 pt-4 border-t border-[#eaecf0]">
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#344054]">Altura de Portada</h4>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: 'compact', label: 'Compacta' },
+                { id: 'standard', label: 'Estándar' },
+                { id: 'immersive', label: 'Inmersiva' },
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => handleUpdateThemeSettings({ headerStyle: opt.id as any })}
+                  className={`rounded-xl py-2 text-xs font-bold transition-all cursor-pointer ${
+                    themeSettings.headerStyle === opt.id
+                      ? 'bg-[#101828] text-white shadow-xs'
+                      : 'border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f9fafb]'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================= */}
+      {/* TAB 5: IDIOMA & CONFIGURACIÓN REGIONAL                        */}
+      {/* ============================================================= */}
+      {rightPanelTab === 'languages' && (
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 [scrollbar-width:thin]">
+          {/* 1. Idioma principal */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#344054]">Idioma de la Propuesta</h4>
+            <div className="space-y-2">
+              {[
+                { code: 'es', label: 'Español (Castellano)', flag: '🇪🇸' },
+                { code: 'en', label: 'English (UK / US)', flag: '🇬🇧' },
+                { code: 'fr', label: 'Français', flag: '🇫🇷' },
+                { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+                { code: 'it', label: 'Italiano', flag: '🇮🇹' },
+                { code: 'pt', label: 'Português', flag: '🇵🇹' },
+              ].map((lang) => {
+                const isSelected = languageSettings.selectedLanguage === lang.code;
+                return (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => {
+                      setLanguageSettings((prev) => ({ ...prev, selectedLanguage: lang.code as any }));
+                      showToast(`🌐 Idioma cambiado a ${lang.label}`);
+                    }}
+                    className={`flex w-full items-center justify-between rounded-2xl p-3 text-xs font-bold transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#e0f2f1] border-2 border-[#009688] text-[#00796b] shadow-xs'
+                        : 'border border-[#eaecf0] bg-white text-[#344054] hover:bg-[#fafafa]'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="text-base">{lang.flag}</span>
+                      <span>{lang.label}</span>
+                    </span>
+                    {isSelected && <Check className="h-4 w-4 text-[#009688]" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 2. Moneda de cotización */}
+          <div className="space-y-2 pt-4 border-t border-[#eaecf0]">
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#344054]">Moneda</h4>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: 'EUR', label: '€ EUR' },
+                { id: 'USD', label: '$ USD' },
+                { id: 'GBP', label: '£ GBP' },
+              ].map((cur) => (
+                <button
+                  key={cur.id}
+                  type="button"
+                  onClick={() => {
+                    setLanguageSettings((prev) => ({ ...prev, currency: cur.id as any }));
+                    showToast(`💱 Moneda cambiada a ${cur.id}`);
+                  }}
+                  className={`rounded-xl py-2 text-xs font-bold transition-all cursor-pointer ${
+                    languageSettings.currency === cur.id
+                      ? 'bg-[#101828] text-white shadow-xs'
+                      : 'border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f9fafb]'
+                  }`}
+                >
+                  {cur.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. Formato de fechas */}
+          <div className="space-y-2 pt-4 border-t border-[#eaecf0]">
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#344054]">Formato de Fecha</h4>
+            <select
+              value={languageSettings.dateFormat}
+              onChange={(e) => {
+                setLanguageSettings((prev) => ({ ...prev, dateFormat: e.target.value as any }));
+                showToast('📅 Formato de fecha actualizado');
+              }}
+              className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden font-medium"
+            >
+              <option value="DD/MM/YYYY">DD/MM/YYYY (ej: 18/09/2026)</option>
+              <option value="MM/DD/YYYY">MM/DD/YYYY (ej: 09/18/2026)</option>
+              <option value="YYYY-MM-DD">YYYY-MM-DD (ej: 2026-09-18)</option>
+            </select>
+          </div>
+
+          {/* 4. Traducción Automática */}
+          <div className="space-y-2 pt-4 border-t border-[#eaecf0]">
+            <label className="flex items-start gap-2.5 cursor-pointer select-none rounded-xl border border-[#eaecf0] bg-[#fafafa] p-3">
+              <input
+                type="checkbox"
+                checked={languageSettings.autoTranslate}
+                onChange={(e) => {
+                  setLanguageSettings((prev) => ({ ...prev, autoTranslate: e.target.checked }));
+                  showToast(e.target.checked ? '✨ Traducción IA activada' : 'Traducción IA desactivada');
+                }}
+                className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[#009688] focus:ring-[#009688]"
+              />
+              <div className="text-xs">
+                <span className="font-bold text-[#101828]">Traducción dinámica con IA</span>
+                <p className="text-[11px] text-[#667085]">
+                  Traduce automáticamente títulos y notas a la lengua del cliente cuando acceda al portal.
+                </p>
+              </div>
+            </label>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================= */}
+      {/* TAB 6: VIAJEROS & CLIENTES                                    */}
+      {/* ============================================================= */}
+      {rightPanelTab === 'clients' && (
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 [scrollbar-width:thin]">
+          <div className="rounded-2xl border border-[#009688]/20 bg-[#e0f2f1]/40 p-3 flex items-start gap-2.5">
+            <Users className="h-4 w-4 text-[#009688] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-bold text-[#004d40]">Pasajeros & Viajeros del itinerario</p>
+              <p className="text-[11px] text-[#00796b] mt-0.5">
+                Datos asignados de los clientes para billetes, traslados y reservas.
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-zinc-200 bg-white p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#101828] text-white font-bold text-xs">
+                P1
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-[#101828]">Pasajero Principal</h4>
+                <p className="text-[11px] text-[#667085]">Asignado automáticamente al viaje</p>
+              </div>
+            </div>
+            <div className="text-xs text-zinc-600 bg-zinc-50 p-2.5 rounded-xl border border-zinc-100">
+              <p className="font-medium">📧 Contacto: viajero@ejemplo.com</p>
+              <p className="font-medium mt-1">📱 Teléfono: +34 600 000 000</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================= */}
+      {/* TAB 7: DOCUMENTO & EXPORTACIÓN                                */}
+      {/* ============================================================= */}
+      {rightPanelTab === 'document' && (
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 [scrollbar-width:thin]">
+          <div className="rounded-2xl border border-[#009688]/20 bg-[#e0f2f1]/40 p-3 flex items-start gap-2.5">
+            <FileText className="h-4 w-4 text-[#009688] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-bold text-[#004d40]">Exportación de la propuesta</p>
+              <p className="text-[11px] text-[#00796b] mt-0.5">
+                Genera versiones impresas o digitales listas para entregar al viajero.
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-zinc-200 bg-white p-4 space-y-3">
+            <h4 className="text-xs font-bold text-[#101828]">Documento PDF</h4>
+            <p className="text-[11px] text-[#667085]">
+              Incluye vuelos, reservas, vouchers y descripción del itinerario con la marca de la agencia.
+            </p>
+            <button
+              type="button"
+              onClick={() => showToast('📄 Preparando descarga del dossier PDF...')}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#009688] py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition cursor-pointer"
+            >
+              <Download className="h-4 w-4" />
+              <span>Descargar propuesta en PDF</span>
+            </button>
+          </div>
+        </div>
+      )}
+      </div>
     </div>
   );
 
@@ -1830,11 +2937,13 @@ export default function ViajeDetalle({ params }: PageProps) {
       )}
 
       {/* Main Workspace: Responsive Layout */}
-      <div className="flex flex-col xl:flex-row w-full h-auto xl:h-[calc(100vh-6.5rem)] xl:overflow-hidden gap-6 relative">
-        {/* ============================================================= */}
-        {/* LEFT / CENTER: ITINERARY CANVAS (Scrolls independently on xl)  */}
-        {/* ============================================================= */}
-        <div className="flex-1 w-full overflow-y-visible xl:overflow-y-auto pr-0 xl:pr-1 pb-16 space-y-5 sm:space-y-6 [scrollbar-width:thin] min-w-0">
+      <div className="flex flex-col xl:flex-row w-full h-auto xl:h-[calc(100vh-6.5rem)] xl:overflow-hidden gap-0 relative bg-zinc-50/50 rounded-3xl border border-zinc-200/80 overflow-hidden shadow-xs">
+
+        {/* CENTER: ITINERARY CANVAS (Scrolls independently on xl) */}
+        <div
+          style={{ fontFamily: themeSettings.fontFamily }}
+          className="flex-1 w-full overflow-y-visible xl:overflow-y-auto p-4 sm:p-6 pb-20 space-y-5 sm:space-y-6 [scrollbar-width:thin] min-w-0 bg-white"
+        >
           {/* Breadcrumb Navigation & Top Action Pills */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <nav className="flex items-center gap-1.5 sm:gap-2 text-xs text-[#667085] flex-wrap">
@@ -1860,6 +2969,14 @@ export default function ViajeDetalle({ params }: PageProps) {
                 <span>Bloques & Agente IA</span>
               </button>
 
+              <Link
+                href={`/viaje/${id}/configuracion`}
+                className="flex items-center gap-1.5 rounded-full border border-[#d0d5dd] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#344054] hover:bg-[#f9fafb] shadow-xs transition-all cursor-pointer"
+              >
+                <Settings className="h-3.5 w-3.5 text-[#667085]" />
+                <span>Configuración</span>
+              </Link>
+
               <button
                 type="button"
                 onClick={handleCopyClientLink}
@@ -1881,10 +2998,63 @@ export default function ViajeDetalle({ params }: PageProps) {
           </div>
 
           {/* Trip Header Banner Card */}
-          <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs relative overflow-hidden">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-[#e0f2f1] px-3 py-1 text-xs font-bold text-[#009688] mb-2">
+          <div
+            className={`relative overflow-hidden transition-all duration-300 ${
+              themeSettings.selectedTheme === 'bold'
+                ? 'rounded-xl border-2 border-slate-900 bg-slate-900 text-white p-6 shadow-[6px_6px_0px_0px_rgba(0,150,136,1)]'
+                : themeSettings.selectedTheme === 'elegant'
+                ? 'rounded-3xl border border-stone-200/80 bg-gradient-to-b from-[#fefdfb] via-white to-[#fbf9f5] p-6 sm:p-8 shadow-sm text-center flex flex-col items-center'
+                : themeSettings.selectedTheme === 'minimal'
+                ? 'border-b border-zinc-200 bg-transparent p-4 sm:p-6 rounded-none shadow-none'
+                : 'rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs'
+            }`}
+          >
+            {themeSettings.showLogoInPublic && themeSettings.logoUrl && (
+              <div
+                className={`mb-3 flex items-center justify-between pb-3 ${
+                  themeSettings.selectedTheme === 'bold'
+                    ? 'border-b border-white/20'
+                    : 'border-b border-zinc-100'
+                } w-full`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={themeSettings.logoUrl}
+                  alt="Logo Agencia"
+                  className="h-7 max-w-[130px] object-contain"
+                />
+                <span
+                  className={`text-[10px] font-bold uppercase tracking-wider ${
+                    themeSettings.selectedTheme === 'bold'
+                      ? 'text-teal-400 font-mono'
+                      : 'text-[#667085]'
+                  }`}
+                >
+                  Propuesta Oficial
+                </span>
+              </div>
+            )}
+
+            <div
+              className={`flex flex-col sm:flex-row justify-between gap-4 w-full ${
+                themeSettings.selectedTheme === 'elegant'
+                  ? 'sm:items-center sm:justify-center text-center'
+                  : 'sm:items-center'
+              }`}
+            >
+              <div className={themeSettings.selectedTheme === 'elegant' ? 'flex flex-col items-center' : ''}>
+                <div
+                  style={{ color: themeSettings.selectedTheme === 'bold' ? '#5eead4' : themeSettings.primaryColor }}
+                  className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-bold mb-2 ${
+                    themeSettings.selectedTheme === 'bold'
+                      ? 'rounded-xs border border-teal-500/40 bg-teal-950/60 font-black uppercase'
+                      : themeSettings.selectedTheme === 'elegant'
+                      ? 'rounded-full bg-amber-50/80 border border-amber-200 text-amber-900 font-serif'
+                      : themeSettings.selectedTheme === 'minimal'
+                      ? 'bg-zinc-100 text-zinc-700 rounded-sm'
+                      : 'rounded-full bg-[#e0f2f1]'
+                  }`}
+                >
                   <Sparkles className="h-3.5 w-3.5" />
                   <span>Propuesta de Viaje Personalizada</span>
                 </div>
@@ -1896,7 +3066,11 @@ export default function ViajeDetalle({ params }: PageProps) {
                       value={tripTitleInput}
                       onChange={(e) => setTripTitleInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSaveTripTitle()}
-                      className="rounded-2xl border border-[#009688] px-3 py-1 text-2xl font-extrabold text-[#101828] focus:outline-hidden ring-2 ring-[#009688]/20"
+                      className={`rounded-2xl border px-3 py-1 text-2xl font-extrabold focus:outline-hidden ${
+                        themeSettings.selectedTheme === 'bold'
+                          ? 'border-teal-400 bg-slate-800 text-white'
+                          : 'border-[#009688] text-[#101828] ring-2 ring-[#009688]/20'
+                      }`}
                       autoFocus
                     />
                     <button
@@ -1912,16 +3086,40 @@ export default function ViajeDetalle({ params }: PageProps) {
                     onClick={() => setIsEditingTitle(true)}
                     className="group flex cursor-pointer items-center gap-2 mt-1"
                   >
-                    <h1 className="text-2xl sm:text-3xl font-extrabold text-[#101828] tracking-tight group-hover:text-[#009688] transition-colors">
+                    <h1
+                      className={`text-2xl sm:text-3xl font-extrabold tracking-tight transition-colors ${
+                        themeSettings.selectedTheme === 'bold'
+                          ? 'text-white font-black uppercase tracking-tight'
+                          : themeSettings.selectedTheme === 'elegant'
+                          ? 'font-serif text-[#1e293b] font-normal text-3xl sm:text-4xl'
+                          : themeSettings.selectedTheme === 'minimal'
+                          ? 'text-zinc-900 font-light'
+                          : 'text-[#101828]'
+                      }`}
+                    >
                       {activeTrip.name}
                     </h1>
                     <Edit2 className="h-4 w-4 text-[#98a2b3] opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 )}
 
-                <p className="mt-2 text-xs text-[#667085] flex flex-wrap items-center gap-2">
+                <p
+                  className={`mt-2 text-xs flex flex-wrap items-center gap-2 ${
+                    themeSettings.selectedTheme === 'bold'
+                      ? 'text-slate-300'
+                      : themeSettings.selectedTheme === 'elegant'
+                      ? 'text-stone-600 justify-center font-serif'
+                      : 'text-[#667085]'
+                  }`}
+                >
                   <span>Código:</span>
-                  <span className="font-mono font-bold text-[#344054] bg-[#f2f4f7] px-2 py-0.5 rounded-md">
+                  <span
+                    className={`font-mono font-bold px-2 py-0.5 rounded-md ${
+                      themeSettings.selectedTheme === 'bold'
+                        ? 'bg-slate-800 text-teal-400 border border-slate-700'
+                        : 'bg-[#f2f4f7] text-[#344054]'
+                    }`}
+                  >
                     {tripCode}
                   </span>
                   <span>·</span>
@@ -1945,18 +3143,52 @@ export default function ViajeDetalle({ params }: PageProps) {
                     setBudgetInput(activeTrip.budget || 2500);
                     setIsBudgetModalOpen(true);
                   }}
-                  className="flex items-center gap-1.5 rounded-full border border-[#eaecf0] bg-[#f8fafc] px-4 py-2 text-xs font-bold text-[#344054] hover:bg-[#eaecf0] transition-colors cursor-pointer"
+                  className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold transition-all cursor-pointer shadow-2xs ${
+                    themeSettings.selectedTheme === 'bold'
+                      ? 'rounded-md border-2 border-teal-400 bg-slate-800 text-teal-300 hover:bg-slate-700'
+                      : themeSettings.selectedTheme === 'elegant'
+                      ? 'rounded-full border border-stone-300 bg-white font-serif text-stone-800 hover:bg-stone-50'
+                      : themeSettings.selectedTheme === 'minimal'
+                      ? 'rounded-md border border-zinc-200 bg-white text-zinc-700'
+                      : 'rounded-full border border-[#eaecf0] bg-[#f8fafc] text-[#344054] hover:bg-[#eaecf0]'
+                  }`}
                 >
                   <DollarSign className="h-3.5 w-3.5 text-[#009688]" />
-                  <span>Presupuesto: {activeTrip.budget || 2500} €</span>
+                  <span>Presupuesto: {formatPrice(activeTrip.budget || 2500)}</span>
                 </button>
               </div>
             </div>
 
             {/* Header Media */}
-            <div className="group relative mt-5 flex min-h-[140px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#d0d5dd] bg-[#fafafa] p-3 text-center transition-colors hover:border-[#009688] hover:bg-[#e0f2f1]/20 overflow-hidden">
+            <div
+              className={`group relative mt-5 flex min-h-[140px] flex-col items-center justify-center text-center transition-colors overflow-hidden w-full ${
+                themeSettings.selectedTheme === 'bold'
+                  ? 'rounded-lg border-2 border-slate-700 bg-slate-800/80 p-2'
+                  : themeSettings.selectedTheme === 'elegant'
+                  ? 'rounded-2xl border border-stone-200 bg-stone-50/60 p-2 shadow-xs'
+                  : themeSettings.selectedTheme === 'minimal'
+                  ? 'rounded-none border-0 bg-transparent p-0'
+                  : 'rounded-2xl border-2 border-dashed border-[#d0d5dd] bg-[#fafafa] p-3 hover:border-[#009688] hover:bg-[#e0f2f1]/20'
+              }`}
+            >
               {activeTrip.imageUrl ? (
-                <div className="relative h-44 w-full overflow-hidden rounded-xl">
+                <div
+                  className={`relative w-full overflow-hidden transition-all duration-300 ${
+                    themeSettings.selectedTheme === 'bold'
+                      ? 'rounded-md border border-slate-700'
+                      : themeSettings.selectedTheme === 'elegant'
+                      ? 'rounded-xl shadow-xs'
+                      : themeSettings.selectedTheme === 'minimal'
+                      ? 'rounded-lg'
+                      : 'rounded-xl'
+                  } ${
+                    themeSettings.headerStyle === 'compact'
+                      ? 'h-32'
+                      : themeSettings.headerStyle === 'immersive'
+                      ? 'h-72'
+                      : 'h-48'
+                  }`}
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={activeTrip.imageUrl}
@@ -1995,12 +3227,36 @@ export default function ViajeDetalle({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Day-by-Day / All-Trip Itinerary Section with Drag & Drop Zone */}
-          <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs space-y-6">
+          {/* Day-by-Day / All-Trip Itinerary Section with Theme Shapes */}
+          <div
+            className={`transition-all duration-300 ${
+              themeSettings.selectedTheme === 'bold'
+                ? 'rounded-xl border-2 border-slate-900 bg-white p-6 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] space-y-6'
+                : themeSettings.selectedTheme === 'elegant'
+                ? 'rounded-3xl border border-stone-200/80 bg-[#faf8f5]/40 p-6 sm:p-8 shadow-sm space-y-6'
+                : themeSettings.selectedTheme === 'minimal'
+                ? 'border-0 bg-transparent p-0 sm:p-2 shadow-none space-y-6'
+                : 'rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs space-y-6'
+            }`}
+          >
             {/* Header: Title + View Mode Switcher + Add Activity */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaecf0] pb-4">
+            <div
+              className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 ${
+                themeSettings.selectedTheme === 'bold'
+                  ? 'border-b-2 border-slate-900'
+                  : 'border-b border-[#eaecf0]'
+              }`}
+            >
               <div>
-                <h2 className="text-lg font-bold text-[#101828]">
+                <h2
+                  className={`text-lg font-bold ${
+                    themeSettings.selectedTheme === 'bold'
+                      ? 'font-black uppercase tracking-tight text-slate-950'
+                      : themeSettings.selectedTheme === 'elegant'
+                      ? 'font-serif text-stone-900'
+                      : 'text-[#101828]'
+                  }`}
+                >
                   {itineraryViewMode === 'day' ? 'Itinerario día a día' : 'Itinerario completo del viaje'}
                 </h2>
                 <p className="text-xs text-[#667085] mt-0.5">
@@ -2012,13 +3268,29 @@ export default function ViajeDetalle({ params }: PageProps) {
 
               <div className="flex flex-wrap items-center gap-2.5">
                 {/* View Switcher: Por día vs Todo el viaje */}
-                <div className="flex items-center gap-1 rounded-full bg-[#f4f4f5] p-1 border border-[#e4e4e7]/70 shadow-2xs">
+                <div
+                  className={`flex items-center gap-1 p-1 ${
+                    themeSettings.selectedTheme === 'bold'
+                      ? 'rounded-md border-2 border-slate-900 bg-slate-100 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                      : themeSettings.selectedTheme === 'elegant'
+                      ? 'rounded-full bg-stone-100/90 border border-stone-200 shadow-2xs font-serif'
+                      : themeSettings.selectedTheme === 'minimal'
+                      ? 'rounded-md bg-zinc-100 border border-zinc-200'
+                      : 'rounded-full bg-[#f4f4f5] border border-[#e4e4e7]/70 shadow-2xs'
+                  }`}
+                >
                   <button
                     type="button"
                     onClick={() => changeItineraryViewMode('day')}
-                    className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer select-none ${
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer select-none ${
                       itineraryViewMode === 'day'
-                        ? 'bg-white text-[#101828] shadow-xs'
+                        ? themeSettings.selectedTheme === 'bold'
+                          ? 'rounded-xs bg-slate-900 text-white'
+                          : themeSettings.selectedTheme === 'elegant'
+                          ? 'rounded-full bg-white text-stone-900 shadow-xs'
+                          : themeSettings.selectedTheme === 'minimal'
+                          ? 'rounded-sm bg-white text-zinc-900 shadow-2xs'
+                          : 'rounded-full bg-white text-[#101828] shadow-xs'
                         : 'text-[#71717a] hover:text-[#18181b]'
                     }`}
                   >
@@ -2028,9 +3300,15 @@ export default function ViajeDetalle({ params }: PageProps) {
                   <button
                     type="button"
                     onClick={() => changeItineraryViewMode('all')}
-                    className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer select-none ${
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer select-none ${
                       itineraryViewMode === 'all'
-                        ? 'bg-white text-[#101828] shadow-xs'
+                        ? themeSettings.selectedTheme === 'bold'
+                          ? 'rounded-xs bg-slate-900 text-white'
+                          : themeSettings.selectedTheme === 'elegant'
+                          ? 'rounded-full bg-white text-stone-900 shadow-xs'
+                          : themeSettings.selectedTheme === 'minimal'
+                          ? 'rounded-sm bg-white text-zinc-900 shadow-2xs'
+                          : 'rounded-full bg-white text-[#101828] shadow-xs'
                         : 'text-[#71717a] hover:text-[#18181b]'
                     }`}
                   >
@@ -2045,7 +3323,15 @@ export default function ViajeDetalle({ params }: PageProps) {
                 <button
                   type="button"
                   onClick={() => handleOpenAddActivity('flight', activeDate)}
-                  className="flex items-center gap-1.5 rounded-full bg-[#009688] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition-all cursor-pointer"
+                  className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
+                    themeSettings.selectedTheme === 'bold'
+                      ? 'rounded-md border-2 border-slate-900 bg-[#009688] text-white font-black shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none'
+                      : themeSettings.selectedTheme === 'elegant'
+                      ? 'rounded-full bg-stone-900 text-white hover:bg-stone-800 font-serif shadow-xs'
+                      : themeSettings.selectedTheme === 'minimal'
+                      ? 'rounded-md border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-100'
+                      : 'rounded-full bg-[#009688] text-white shadow-xs hover:bg-[#00796b]'
+                  }`}
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>Añadir actividad</span>
@@ -2060,7 +3346,17 @@ export default function ViajeDetalle({ params }: PageProps) {
               <div className="space-y-6 animate-fade-in">
                 {/* Day Selector Tabs (Acts as Drop Targets for Moving Activities) */}
                 <div className="w-full overflow-x-auto pb-1 [scrollbar-width:none]">
-                  <div className="inline-flex items-center gap-1 rounded-full bg-[#f4f4f5] p-1 border border-[#e4e4e7]/70 shadow-2xs">
+                  <div
+                    className={`inline-flex items-center gap-1 p-1 ${
+                      themeSettings.selectedTheme === 'bold'
+                        ? 'rounded-lg border-2 border-slate-900 bg-slate-100 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)]'
+                        : themeSettings.selectedTheme === 'elegant'
+                        ? 'rounded-full bg-stone-100/90 border border-stone-200/80 shadow-2xs font-serif'
+                        : themeSettings.selectedTheme === 'minimal'
+                        ? 'border-b border-zinc-200 pb-2 bg-transparent gap-3'
+                        : 'rounded-full bg-[#f4f4f5] border border-[#e4e4e7]/70 shadow-2xs'
+                    }`}
+                  >
                     {tripDates.map((dateStr, dIdx) => {
                       const isSelected = activeDate === dateStr;
                       const isDropTarget = dragOverDayDate === dateStr;
@@ -2074,6 +3370,30 @@ export default function ViajeDetalle({ params }: PageProps) {
                         return false;
                       }).length;
 
+                      const getTabClasses = () => {
+                        if (isDropTarget) {
+                          return 'ring-2 ring-[#009688] bg-[#e0f2f1] text-[#00796b] scale-105 shadow-md';
+                        }
+                        if (themeSettings.selectedTheme === 'bold') {
+                          return isSelected
+                            ? 'rounded-md border-2 border-slate-900 bg-[#009688] text-white font-black shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                            : 'rounded-md text-slate-700 hover:text-slate-950 font-bold hover:bg-slate-200';
+                        }
+                        if (themeSettings.selectedTheme === 'elegant') {
+                          return isSelected
+                            ? 'rounded-full bg-stone-900 text-white shadow-sm font-serif'
+                            : 'text-stone-600 hover:text-stone-900 font-serif';
+                        }
+                        if (themeSettings.selectedTheme === 'minimal') {
+                          return isSelected
+                            ? 'border-b-2 border-[#009688] text-[#009688] font-bold rounded-none pb-1'
+                            : 'text-zinc-500 hover:text-zinc-900 rounded-none pb-1';
+                        }
+                        return isSelected
+                          ? 'rounded-full bg-white text-[#18181b] shadow-sm'
+                          : 'rounded-full text-[#71717a] hover:text-[#18181b] hover:bg-black/[0.02]';
+                      };
+
                       return (
                         <button
                           key={dateStr}
@@ -2086,13 +3406,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           }}
                           onDragLeave={() => setDragOverDayDate(null)}
                           onDrop={(e) => handleDropOnDate(dateStr, e)}
-                          className={`shrink-0 flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 cursor-pointer select-none whitespace-nowrap ${
-                            isDropTarget
-                              ? 'ring-2 ring-[#009688] bg-[#e0f2f1] text-[#00796b] scale-105 shadow-md'
-                              : isSelected
-                              ? 'bg-white text-[#18181b] shadow-sm'
-                              : 'text-[#71717a] hover:text-[#18181b] hover:bg-black/[0.02]'
-                          }`}
+                          className={`shrink-0 flex items-center gap-2 px-4 py-2 text-xs font-semibold transition-all duration-200 cursor-pointer select-none whitespace-nowrap ${getTabClasses()}`}
                         >
                           <Calendar
                             className={`h-3.5 w-3.5 ${
@@ -2105,10 +3419,18 @@ export default function ViajeDetalle({ params }: PageProps) {
                           </span>
                           {actsCount > 0 && (
                             <span
-                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold transition-colors ${
-                                isSelected
-                                  ? 'bg-[#f4f4f5] text-[#18181b] border border-[#e4e4e7]'
-                                  : 'bg-[#e4e4e7] text-[#71717a]'
+                              className={`px-2 py-0.5 text-[10px] font-bold transition-colors ${
+                                themeSettings.selectedTheme === 'bold'
+                                  ? isSelected
+                                    ? 'bg-slate-900 text-white rounded-xs'
+                                    : 'bg-slate-300 text-slate-800 rounded-xs'
+                                  : themeSettings.selectedTheme === 'elegant'
+                                  ? isSelected
+                                    ? 'bg-amber-400 text-stone-900 rounded-full'
+                                    : 'bg-stone-200 text-stone-700 rounded-full'
+                                  : isSelected
+                                  ? 'bg-[#f4f4f5] text-[#18181b] border border-[#e4e4e7] rounded-full'
+                                  : 'bg-[#e4e4e7] text-[#71717a] rounded-full'
                               }`}
                             >
                               {actsCount}
@@ -2123,11 +3445,31 @@ export default function ViajeDetalle({ params }: PageProps) {
                 {/* Day Activities List */}
                 <div className="space-y-4 pt-1">
                   {dayActivities.length === 0 ? (
-                    <div className="rounded-2xl border-2 border-dashed border-[#eaecf0] bg-[#fafafa] p-8 text-center">
+                    <div
+                      className={`text-center p-8 transition-all ${
+                        themeSettings.selectedTheme === 'bold'
+                          ? 'rounded-lg border-2 border-dashed border-slate-900 bg-slate-50'
+                          : themeSettings.selectedTheme === 'elegant'
+                          ? 'rounded-2xl border border-stone-200 bg-stone-50/50'
+                          : themeSettings.selectedTheme === 'minimal'
+                          ? 'rounded-none border-b border-zinc-200 bg-transparent py-8'
+                          : 'rounded-2xl border-2 border-dashed border-[#eaecf0] bg-[#fafafa]'
+                      }`}
+                    >
                       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688] mb-3">
                         <Plane className="h-6 w-6" />
                       </div>
-                      <h3 className="text-sm font-bold text-[#101828]">No hay actividades para este día</h3>
+                      <h3
+                        className={`text-sm font-bold ${
+                          themeSettings.selectedTheme === 'bold'
+                            ? 'font-black uppercase text-slate-900'
+                            : themeSettings.selectedTheme === 'elegant'
+                            ? 'font-serif text-stone-900 text-base'
+                            : 'text-[#101828]'
+                        }`}
+                      >
+                        No hay actividades para este día
+                      </h3>
                       <p className="text-xs text-[#667085] max-w-sm mx-auto mt-1 mb-4">
                         Arrastra cualquier bloque desde el panel derecho o haz clic para añadir un bloque vacío y completarlo.
                       </p>
@@ -2181,10 +3523,18 @@ export default function ViajeDetalle({ params }: PageProps) {
                     }}
                     onDragLeave={() => setDragOverDayDate(null)}
                     onDrop={(e) => handleDropOnDate(activeDate, e)}
-                    className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed py-4 px-4 text-center transition-all ${
+                    className={`flex flex-col items-center justify-center py-4 px-4 text-center transition-all ${
+                      themeSettings.selectedTheme === 'bold'
+                        ? 'rounded-md border-2 border-dashed border-slate-900 bg-slate-50'
+                        : themeSettings.selectedTheme === 'elegant'
+                        ? 'rounded-2xl border border-dashed border-stone-300 bg-stone-50/40'
+                        : themeSettings.selectedTheme === 'minimal'
+                        ? 'border border-dashed border-zinc-300 bg-transparent rounded-md'
+                        : 'rounded-2xl border-2 border-dashed border-[#eaecf0] bg-[#fafafa]'
+                    } ${
                       dragOverDayDate === activeDate
                         ? 'border-[#009688] bg-[#e0f2f1]/60 ring-4 ring-[#009688]/20 scale-[1.01]'
-                        : 'border-[#eaecf0] bg-[#fafafa]'
+                        : ''
                     }`}
                   >
                     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#009688] shadow-2xs mb-1">
@@ -2217,23 +3567,61 @@ export default function ViajeDetalle({ params }: PageProps) {
                       }}
                       onDragLeave={() => setDragOverDayDate(null)}
                       onDrop={(e) => handleDropOnDate(dateStr, e)}
-                      className={`rounded-2xl border p-5 transition-all space-y-4 ${
+                      className={`transition-all space-y-4 ${
+                        themeSettings.selectedTheme === 'bold'
+                          ? 'rounded-lg border-2 border-slate-900 bg-white p-5 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]'
+                          : themeSettings.selectedTheme === 'elegant'
+                          ? 'rounded-2xl border border-stone-200/80 bg-[#fdfcfb] p-5 shadow-xs'
+                          : themeSettings.selectedTheme === 'minimal'
+                          ? 'border-b border-zinc-200/90 bg-transparent p-4 rounded-none shadow-none'
+                          : 'rounded-2xl border border-[#eaecf0] bg-[#fafbfc] p-5'
+                      } ${
                         isDayOver
                           ? 'border-[#009688] bg-[#e0f2f1]/30 ring-2 ring-[#009688]/30 shadow-md'
-                          : 'border-[#eaecf0] bg-[#fafbfc]'
+                          : ''
                       }`}
                     >
                       {/* Day Header */}
-                      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#eaecf0] pb-3">
+                      <div
+                        className={`flex flex-wrap items-center justify-between gap-3 pb-3 ${
+                          themeSettings.selectedTheme === 'bold'
+                            ? 'border-b-2 border-slate-900'
+                            : 'border-b border-[#eaecf0]'
+                        }`}
+                      >
                         <div className="flex items-center gap-3">
-                          <span className="flex items-center gap-1.5 rounded-full bg-[#101828] text-white px-3 py-1 text-xs font-bold shadow-2xs">
+                          <span
+                            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-bold shadow-2xs ${
+                              themeSettings.selectedTheme === 'bold'
+                                ? 'rounded-xs border border-slate-900 bg-slate-900 text-white font-black uppercase'
+                                : themeSettings.selectedTheme === 'elegant'
+                                ? 'rounded-full bg-stone-900 text-white font-serif'
+                                : themeSettings.selectedTheme === 'minimal'
+                                ? 'rounded-sm bg-zinc-900 text-white font-medium'
+                                : 'rounded-full bg-[#101828] text-white'
+                            }`}
+                          >
                             <Calendar className="h-3.5 w-3.5 text-[#009688]" />
                             <span>Día {dIdx + 1}</span>
                           </span>
-                          <span className="text-sm font-bold text-[#101828]">
+                          <span
+                            className={`text-sm font-bold ${
+                              themeSettings.selectedTheme === 'bold'
+                                ? 'font-black uppercase tracking-tight text-slate-950'
+                                : themeSettings.selectedTheme === 'elegant'
+                                ? 'font-serif text-stone-900'
+                                : 'text-[#101828]'
+                            }`}
+                          >
                             {formatDayFullLabel(dateStr)}
                           </span>
-                          <span className="rounded-full bg-[#eaecf0] px-2.5 py-0.5 text-[11px] font-bold text-[#344054]">
+                          <span
+                            className={`px-2.5 py-0.5 text-[11px] font-bold ${
+                              themeSettings.selectedTheme === 'bold'
+                                ? 'rounded-xs border border-slate-900 bg-slate-100 text-slate-900'
+                                : 'rounded-full bg-[#eaecf0] text-[#344054]'
+                            }`}
+                          >
                             {acts.length} {acts.length === 1 ? 'actividad' : 'actividades'}
                           </span>
                         </div>
@@ -2242,7 +3630,13 @@ export default function ViajeDetalle({ params }: PageProps) {
                           <button
                             type="button"
                             onClick={() => handleOpenAddActivity('flight', dateStr)}
-                            className="flex items-center gap-1 rounded-full border border-[#d0d5dd] bg-white px-3 py-1 text-xs font-bold text-[#344054] hover:bg-[#f9fafb] hover:border-[#009688] shadow-2xs transition-all cursor-pointer"
+                            className={`flex items-center gap-1 px-3 py-1 text-xs font-bold shadow-2xs transition-all cursor-pointer ${
+                              themeSettings.selectedTheme === 'bold'
+                                ? 'rounded-xs border border-slate-900 bg-white hover:bg-slate-100 text-slate-900 font-black shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                                : themeSettings.selectedTheme === 'elegant'
+                                ? 'rounded-full border border-stone-200 bg-white font-serif text-stone-800 hover:bg-stone-50'
+                                : 'rounded-full border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f9fafb] hover:border-[#009688]'
+                            }`}
                           >
                             <Plus className="h-3 w-3 text-[#009688]" />
                             <span>Añadir a Día {dIdx + 1}</span>
@@ -2271,9 +3665,6 @@ export default function ViajeDetalle({ params }: PageProps) {
                           }`}
                         >
                           <Plus className="h-3.5 w-3.5 text-[#009688]" />
-                          <span className="text-xs font-semibold">
-                            Arrastra aquí una actividad o bloque para el Día {dIdx + 1} ({formatDayDate(dateStr)})
-                          </span>
                         </div>
                       </div>
                     </div>
@@ -2287,7 +3678,7 @@ export default function ViajeDetalle({ params }: PageProps) {
         {/* ============================================================= */}
         {/* DESKTOP RIGHT PANEL: FIXED AGENTE IA & BLOQUES (xl:flex)       */}
         {/* ============================================================= */}
-        <aside className="hidden xl:flex w-80 2xl:w-96 shrink-0 h-full flex-col">
+        <aside className="hidden xl:flex w-88 2xl:w-[410px] shrink-0 h-full flex-col">
           {renderRightPanelContent(false)}
         </aside>
 
@@ -3200,7 +4591,9 @@ export default function ViajeDetalle({ params }: PageProps) {
               className="space-y-4"
             >
               <div>
-                <label className="block text-xs font-bold text-[#344054] mb-1">Importe estimado (€)</label>
+                <label className="block text-xs font-bold text-[#344054] mb-1">
+                  Importe estimado ({getCurrencySymbol()})
+                </label>
                 <input
                   type="number"
                   min={0}
@@ -3342,6 +4735,54 @@ export default function ViajeDetalle({ params }: PageProps) {
           </div>
         </div>
       )}
+      {/* Booking & Payment Conditions Modal */}
+      <BookingPaymentModal
+        isOpen={isBookingModalOpen}
+        onClose={() => {
+          setIsBookingModalOpen(false);
+          setEditingBookingActivity(null);
+        }}
+        activity={editingBookingActivity}
+        defaultDate={targetModalDate || activeDate || activeTrip.startDate}
+        onSave={async (data) => {
+          if (editingBookingActivity) {
+            await updateActivity(activeTrip.id, {
+              ...editingBookingActivity,
+              ...data,
+              type: 'booking',
+            } as BookingActivity);
+            showToast('✅ Condiciones de reserva actualizadas');
+          } else {
+            const dateToUse = targetModalDate || activeDate || activeTrip.startDate;
+            const newBooking: BookingActivity = {
+              id: `booking-${Date.now()}`,
+              type: 'booking',
+              title: data.title || 'Condiciones de Reserva y Plazos de Pago',
+              date: dateToUse,
+              time: data.time || '11:00',
+              price: data.price || 1250,
+              totalAmount: data.totalAmount || 1250,
+              depositAmount: data.depositAmount || 250,
+              depositPercentage: data.depositPercentage || 20,
+              secondPaymentAmount: data.secondPaymentAmount || 500,
+              secondPaymentDate: data.secondPaymentDate || '',
+              finalPaymentAmount: data.finalPaymentAmount || 500,
+              finalPaymentDate: data.finalPaymentDate || '',
+              paymentProvider: data.paymentProvider || 'redsys',
+              cancellationPolicy: data.cancellationPolicy || '',
+              description: data.description || data.cancellationPolicy || '',
+              autoPaymentEnabled: data.autoPaymentEnabled ?? true,
+            };
+            await addActivity(activeTrip.id, newBooking);
+            showToast('✅ Módulo de reservas y pagos añadido');
+          }
+          setIsBookingModalOpen(false);
+          setEditingBookingActivity(null);
+        }}
+        onDelete={(actId) => {
+          handleRequestDeleteActivity(actId);
+        }}
+      />
     </DashboardShell>
   );
 }

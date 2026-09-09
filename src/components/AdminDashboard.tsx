@@ -29,7 +29,7 @@ type DashboardData = {
     publicLinksEnabled: number;
   };
   activityBreakdown: { type: string; count: number; spend: number }[];
-  recentUsers: { id: number; email: string; role: 'admin' | 'user'; createdAt: string }[];
+  recentUsers: { id: number; email: string; role: 'superadmin' | 'admin' | 'user'; createdAt: string }[];
 };
 
 const formatCurrency = (value: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
@@ -87,11 +87,11 @@ export function AdminDashboard() {
 
     <div className="grid gap-6 xl:grid-cols-5">
       <section className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-xs xl:col-span-3">
-        <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-5 sm:px-6"><div><h2 className="font-bold text-zinc-950">Actividad por categoría</h2><p className="mt-1 text-xs font-medium text-zinc-500">Total de actividades y gasto registrado</p></div><span className="rounded-lg bg-zinc-100 px-2.5 py-1 text-xs font-bold text-zinc-600">Resumen</span></div>
+        <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-5 sm:px-6"><h2 className="font-bold text-zinc-950">Actividad por categoría</h2><span className="rounded-lg bg-zinc-100 px-2.5 py-1 text-xs font-bold text-zinc-600">Resumen</span></div>
         {data.activityBreakdown.length === 0 ? <p className="p-10 text-center text-sm text-zinc-500">Todavía no hay actividades registradas.</p> : <div className="divide-y divide-zinc-100">{data.activityBreakdown.map((item) => <div key={item.type} className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6"><div><p className="font-bold text-zinc-800">{activityLabels[item.type] ?? item.type}</p><p className="mt-1 text-xs font-medium text-zinc-500">{item.count} {item.count === 1 ? 'actividad' : 'actividades'}</p></div><p className="rounded-lg bg-teal-50 px-2.5 py-1.5 text-sm font-bold text-[#00796b]">{formatCurrency(item.spend)}</p></div>)}</div>}
       </section>
       <section className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-xs xl:col-span-2">
-        <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-5 sm:px-6"><div><h2 className="font-bold text-zinc-950">Nuevos usuarios</h2><p className="mt-1 text-xs font-medium text-zinc-500">Altas recientes</p></div><Link href="/admin/usuarios" className="text-xs font-bold text-[#009688] hover:text-[#00796b]">Ver todos</Link></div>
+        <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-5 sm:px-6"><h2 className="font-bold text-zinc-950">Nuevos usuarios</h2><Link href="/usuarios" className="text-xs font-bold text-[#009688] hover:text-[#00796b]">Ver todos</Link></div>
         {data.recentUsers.length === 0 ? <p className="p-10 text-center text-sm text-zinc-500">No hay usuarios todavía.</p> : <div className="divide-y divide-zinc-100">{data.recentUsers.map((user) => <div key={user.id} className="flex items-center gap-3 px-5 py-4 sm:px-6"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[10px] font-extrabold text-[#00796b]">{user.email.slice(0, 2).toUpperCase()}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-zinc-800">{user.email}</p><p className="mt-1 flex items-center gap-1 text-xs font-medium text-zinc-500"><CalendarDays className="h-3 w-3" /> {formatDate(user.createdAt)}</p></div><span className="rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-bold uppercase text-zinc-500">{user.role}</span></div>)}</div>}
       </section>
     </div>

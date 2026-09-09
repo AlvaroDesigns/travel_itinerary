@@ -25,7 +25,7 @@ type ActivityBreakdownRow = {
 type RecentUserRow = {
   id: number;
   email: string;
-  role: 'admin' | 'user';
+  role: 'superadmin' | 'admin' | 'user';
   created_at: string;
 };
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Bell, CalendarClock, Clock3, Mail, Save, Send, Sparkles } from 'lucide-react';
+import { Bell, CalendarClock, Clock3, Mail, Save, Send, Sparkles, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { PublicAccessSettings } from '@/components/PublicAccessSettings';
 import { SettingsSwitch } from '@/components/SettingsSwitch';
 import type { NotificationSettings } from '@/lib/notification-settings';
@@ -16,8 +16,8 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
   const [settings, setSettings] = useState<NotificationSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isSendingTest, setIsSendingTest] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [sendingType, setSendingType] = useState<'countdown' | 'instructions' | 'itinerary' | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string; testType?: string } | null>(null);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveVersion = useRef(0);
 
@@ -92,7 +92,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
   const sendTestEmail = async (testType: 'countdown' | 'instructions' | 'itinerary') => {
     if (!settings) return;
 
-    setIsSendingTest(true);
+    setSendingType(testType);
     setFeedback(null);
     try {
       const response = await fetch(`/api/trips/${tripId}/notification-settings/test`, {
@@ -113,12 +113,17 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
       const hiddenCopies = Math.max(0, Number(data.recipientCount ?? 1) - 1);
       setFeedback({
         type: 'success',
-        text: `Prueba de ${labels[testType]} enviada al destinatario principal${hiddenCopies > 0 ? ` y ${hiddenCopies} ${hiddenCopies === 1 ? 'copia oculta' : 'copias ocultas'}` : ''}.`,
+        testType,
+        text: `Prueba de ${labels[testType]} enviada correctamente a ${settings.recipientEmail}${hiddenCopies > 0 ? ` (+${hiddenCopies} CCO)` : ''}.`,
       });
     } catch (error) {
-      setFeedback({ type: 'error', text: error instanceof Error ? error.message : 'No se pudo enviar el email de prueba' });
+      setFeedback({
+        type: 'error',
+        testType,
+        text: error instanceof Error ? error.message : 'No se pudo enviar el email de prueba',
+      });
     } finally {
-      setIsSendingTest(false);
+      setSendingType(null);
     }
   };
 
@@ -152,6 +157,38 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
 
   return (
     <section className="space-y-6">
+      {/* Top Feedback Banner */}
+      {feedback && (
+        <div
+          className={`flex items-start gap-3 rounded-2xl border p-4 text-sm font-medium transition-all ${
+            feedback.type === 'success'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+              : 'border-red-200 bg-red-50 text-red-800'
+          }`}
+        >
+          {feedback.type === 'success' ? (
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 mt-0.5" />
+          ) : (
+            <AlertCircle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
+          )}
+          <div className="flex-1">
+            <p className="font-semibold">{feedback.text}</p>
+            {feedback.type === 'success' && (
+              <p className="mt-1 text-xs text-emerald-700">
+                Los correos se envían desde <strong>viajes@travel.alvarodesigns.com</strong>. Si no lo ves en la bandeja de entrada, revisa la carpeta de <strong>Spam o Correo no deseado</strong>.
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setFeedback(null)}
+            className="text-xs font-bold text-zinc-400 hover:text-zinc-600 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       <div className="rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-xs">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex gap-3">
@@ -211,7 +248,24 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
               <p className="mt-1 text-sm text-zinc-500">Envía un email cada cierto número de días mientras se acerca la salida.</p>
             </div>
           </div>
-          <button type="button" disabled={isSendingTest || !settings.recipientEmail} onClick={() => sendTestEmail('countdown')} className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-bold text-[#00796b] transition hover:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-60"><Send className="h-3.5 w-3.5" />{isSendingTest ? 'Enviando…' : 'Enviar prueba'}</button>
+          <button
+            type="button"
+            disabled={sendingType !== null || !settings.recipientEmail}
+            onClick={() => sendTestEmail('countdown')}
+            className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-bold text-[#00796b] transition hover:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+          >
+            {sendingType === 'countdown' ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>Enviando…</span>
+              </>
+            ) : (
+              <>
+                <Send className="h-3.5 w-3.5" />
+                <span>Enviar prueba</span>
+              </>
+            )}
+          </button>
         </div>
         <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div>
@@ -242,7 +296,24 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-3">
-            <button type="button" disabled={isSendingTest || !settings.recipientEmail} onClick={() => sendTestEmail('instructions')} className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-700 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"><Send className="h-3.5 w-3.5" />{isSendingTest ? 'Enviando…' : 'Enviar prueba'}</button>
+            <button
+              type="button"
+              disabled={sendingType !== null || !settings.recipientEmail}
+              onClick={() => sendTestEmail('instructions')}
+              className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-700 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+            >
+              {sendingType === 'instructions' ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Enviando…</span>
+                </>
+              ) : (
+                <>
+                  <Send className="h-3.5 w-3.5" />
+                  <span>Enviar prueba</span>
+                </>
+              )}
+            </button>
             <SettingsSwitch
               label="Enviar instrucciones"
               disabled={!settings.reminderEnabled}
@@ -264,7 +335,24 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-3">
-            <button type="button" disabled={isSendingTest || !settings.recipientEmail} onClick={() => sendTestEmail('itinerary')} className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-bold text-[#00796b] transition hover:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-60"><Send className="h-3.5 w-3.5" />{isSendingTest ? 'Enviando…' : 'Enviar prueba'}</button>
+            <button
+              type="button"
+              disabled={sendingType !== null || !settings.recipientEmail}
+              onClick={() => sendTestEmail('itinerary')}
+              className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-bold text-[#00796b] transition hover:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+            >
+              {sendingType === 'itinerary' ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Enviando…</span>
+                </>
+              ) : (
+                <>
+                  <Send className="h-3.5 w-3.5" />
+                  <span>Enviar prueba</span>
+                </>
+              )}
+            </button>
             <SettingsSwitch
               label="Enviar acceso"
               disabled={!settings.reminderEnabled}
@@ -281,7 +369,15 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
 
       <PublicAccessSettings settings={settings} onChange={updateSettings} />
 
-      {feedback && <p className={`rounded-xl px-4 py-3 text-sm font-medium ${feedback.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>{feedback.text}</p>}
+      {feedback && (
+        <p
+          className={`rounded-xl px-4 py-3 text-sm font-medium ${
+            feedback.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+          }`}
+        >
+          {feedback.text}
+        </p>
+      )}
       <div className="flex justify-end">
         <button type="button" disabled={isSaving} onClick={saveSettings} className="wanderlust-primary-button inline-flex h-11 items-center gap-2 rounded-xl px-6 text-sm font-bold text-white shadow-md disabled:cursor-wait disabled:opacity-70">
           <Save className="h-4 w-4" />{isSaving ? 'Guardando…' : 'Guardar configuración'}

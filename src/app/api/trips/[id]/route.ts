@@ -14,12 +14,25 @@ export async function PUT(
   const { id } = await params;
 
   try {
-    // Check ownership
-    const tripCheck = await pool.query('SELECT user_id FROM trips WHERE id = $1', [id]);
+    // Check ownership or tenant membership
+    const tripCheck = await pool.query<{ id: string; user_id: number; tenant_id: string }>(
+      `SELECT t.id, t.user_id, u.tenant_id 
+       FROM trips t
+       JOIN users u ON u.id = t.user_id
+       WHERE t.id = $1`,
+      [id]
+    );
     if (tripCheck.rows.length === 0) {
       return NextResponse.json({ error: 'Viaje no encontrado' }, { status: 404 });
     }
-    if (tripCheck.rows[0].user_id !== session.userId) {
+    const trip = tripCheck.rows[0];
+    const hasPermission =
+      trip.user_id === session.userId ||
+      (session.tenantId && session.tenantId !== 'particular' && trip.tenant_id === session.tenantId) ||
+      session.role === 'superuser' ||
+      session.role === 'superadmin';
+
+    if (!hasPermission) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
@@ -69,12 +82,25 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    // Check ownership
-    const tripCheck = await pool.query('SELECT user_id FROM trips WHERE id = $1', [id]);
+    // Check ownership or tenant membership
+    const tripCheck = await pool.query<{ id: string; user_id: number; tenant_id: string }>(
+      `SELECT t.id, t.user_id, u.tenant_id 
+       FROM trips t
+       JOIN users u ON u.id = t.user_id
+       WHERE t.id = $1`,
+      [id]
+    );
     if (tripCheck.rows.length === 0) {
       return NextResponse.json({ error: 'Viaje no encontrado' }, { status: 404 });
     }
-    if (tripCheck.rows[0].user_id !== session.userId) {
+    const trip = tripCheck.rows[0];
+    const hasPermission =
+      trip.user_id === session.userId ||
+      (session.tenantId && session.tenantId !== 'particular' && trip.tenant_id === session.tenantId) ||
+      session.role === 'superuser' ||
+      session.role === 'superadmin';
+
+    if (!hasPermission) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 

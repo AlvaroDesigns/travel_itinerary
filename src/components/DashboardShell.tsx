@@ -23,12 +23,16 @@ import {
   FileText,
   TrendingUp,
   Share2,
-  Luggage,
   BarChart3,
   LayoutDashboard,
+  Briefcase,
   Menu,
   X,
+  Settings,
+  HelpCircle,
+  MessageSquare,
 } from 'lucide-react';
+import { UserAvatarDisplay } from '@/components/AvatarPickerModal';
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -38,6 +42,7 @@ interface DashboardShellProps {
     | 'agente'
     | 'viajes'
     | 'clientes'
+    | 'oportunidades'
     | 'destinos'
     | 'notificaciones'
     | 'compartir'
@@ -45,6 +50,7 @@ interface DashboardShellProps {
     | 'configuracion'
     | 'admin'
     | 'admin_usuarios'
+    | 'usuarios'
     | 'cuenta';
   onOpenCreateTrip?: () => void;
   hideSidebar?: boolean;
@@ -56,7 +62,7 @@ export function DashboardShell({
   onOpenCreateTrip,
   hideSidebar = false,
 }: DashboardShellProps) {
-  const { trips, clients, logout, user } = useTravel();
+  const { trips, clients, opportunities, logout, user } = useTravel();
   const router = useRouter();
 
   const [isToolsExpanded, setIsToolsExpanded] = useState(true);
@@ -72,7 +78,7 @@ export function DashboardShell({
     if (onOpenCreateTrip) {
       onOpenCreateTrip();
     } else {
-      router.push('/?crear=true');
+      router.push('/viajes?crear=true');
     }
   };
 
@@ -82,11 +88,11 @@ export function DashboardShell({
       <div className="space-y-1">
         {/* Dashboard */}
         <Link
-          href="/"
+          href="/dashboard"
           onClick={onItemClick}
           className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
             activeMenu === 'dashboard' || activeMenu === 'inicio'
-              ? 'bg-white text-[#101828] shadow-xs'
+              ? 'bg-white text-[#101828] shadow-xs font-bold'
               : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
           }`}
         >
@@ -121,8 +127,8 @@ export function DashboardShell({
           href="/viajes"
           onClick={onItemClick}
           className={`flex w-full items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-            activeMenu === 'viajes' || activeMenu === 'configuracion'
-              ? 'bg-white text-[#101828] shadow-xs'
+            activeMenu === 'viajes'
+              ? 'bg-white text-[#101828] shadow-xs font-bold'
               : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
           }`}
         >
@@ -154,13 +160,34 @@ export function DashboardShell({
           </span>
         </Link>
 
+        {/* Oportunidades (CRM) */}
+        <Link
+          href="/oportunidades"
+          onClick={onItemClick}
+          className={`flex w-full items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
+            activeMenu === 'oportunidades'
+              ? 'bg-white text-[#101828] shadow-xs'
+              : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <Briefcase className="h-4 w-4 text-[#009688]" />
+            <span>Oportunidades</span>
+          </div>
+          {opportunities.length > 0 && (
+            <span className="rounded-full bg-[#e0f2f1] px-2 py-0.5 text-[10px] font-bold text-[#00796b]">
+              {opportunities.length}
+            </span>
+          )}
+        </Link>
+
         {/* Usuarios */}
-        {user?.role === 'admin' && (
+        {(user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'superuser' || (user?.tenantId && user?.tenantId !== 'particular')) && (
           <Link
-            href="/admin/usuarios"
+            href="/usuarios"
             onClick={onItemClick}
             className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-              activeMenu === 'admin_usuarios'
+              activeMenu === 'usuarios' || activeMenu === 'admin_usuarios'
                 ? 'bg-white text-[#101828] shadow-xs font-bold'
                 : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
             }`}
@@ -172,7 +199,7 @@ export function DashboardShell({
 
         {/* Destinos */}
         <Link
-          href="/"
+          href="/viajes"
           onClick={onItemClick}
           className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
             activeMenu === 'destinos'
@@ -186,7 +213,7 @@ export function DashboardShell({
 
         {/* Notificaciones & Emails */}
         <Link
-          href="/"
+          href="/cuenta"
           onClick={onItemClick}
           className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
             activeMenu === 'notificaciones'
@@ -198,13 +225,13 @@ export function DashboardShell({
           <span>Notificaciones de viaje</span>
         </Link>
 
-        {/* Compartir / Para clientes */}
+        {/* Compartir / Enlaces públicos */}
         <Link
-          href="/"
+          href="/enlaces-publicos"
           onClick={onItemClick}
           className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
             activeMenu === 'compartir'
-              ? 'bg-white text-[#101828] shadow-xs'
+              ? 'bg-white text-[#101828] shadow-xs font-bold'
               : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
           }`}
         >
@@ -213,8 +240,48 @@ export function DashboardShell({
         </Link>
       </div>
 
-      {/* Section: Aplicaciones de Itinerarios */}
+      {/* Section: Esta cuenta */}
       <div className="mt-6 pt-4 border-t border-[#e4e7ec]">
+        <p className="px-2 pb-2 text-[11px] font-bold text-[#667085] uppercase tracking-wider">
+          Esta cuenta
+        </p>
+        <div className="space-y-0.5">
+          {/* Configuración */}
+          <Link
+            href="/cuenta"
+            onClick={onItemClick}
+            className={`flex w-full items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
+              activeMenu === 'cuenta' || activeMenu === 'configuracion'
+                ? 'bg-white text-[#101828] shadow-xs'
+                : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Settings className="h-4 w-4 text-[#009688]" />
+              <span>Configuración</span>
+            </div>
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#155eef] text-[10px] font-bold text-white shadow-2xs">
+              !
+            </span>
+          </Link>
+
+          {/* Centro de ayuda */}
+          <button
+            type="button"
+            onClick={() => {
+              onItemClick?.();
+              router.push('/cuenta?tab=legal');
+            }}
+            className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold text-[#475467] hover:bg-white/60 hover:text-[#101828] transition cursor-pointer"
+          >
+            <HelpCircle className="h-4 w-4 text-[#667085]" />
+            <span>Centro de ayuda</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Section: Aplicaciones de Itinerarios */}
+      <div className="mt-4 pt-3 border-t border-[#e4e7ec]">
         <button
           type="button"
           onClick={() => setIsToolsExpanded(!isToolsExpanded)}
@@ -274,12 +341,12 @@ export function DashboardShell({
       onClick={() => {
         setIsUserMenuOpen(false);
       }}
-      className="flex min-h-screen w-full flex-col bg-[#140b2a] font-sans text-[#18181b] selection:bg-[#009688] selection:text-white"
+      className="flex h-screen h-[100dvh] w-full flex-col bg-[#140b2a] font-sans text-[#18181b] selection:bg-[#009688] selection:text-white overflow-hidden"
     >
       {/* ============================================================= */}
       {/* 1. TOP HEADER (Deep Purple hPanel Header with White Logo)     */}
       {/* ============================================================= */}
-      <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between bg-[#140b2a] px-3 sm:px-6 text-white border-b border-transparent">
+      <header className="shrink-0 z-40 flex h-16 w-full items-center justify-between bg-[#140b2a] px-3 sm:px-6 text-white border-b border-transparent">
         {/* Left: Mobile Menu Toggle + White Brand Logo + Loyalty Pill */}
         <div className="flex items-center gap-2 sm:gap-4">
           {!hideSidebar && (
@@ -296,7 +363,7 @@ export function DashboardShell({
             </button>
           )}
 
-          <Link href="/" className="flex items-center group" aria-label="Inicio">
+          <Link href="/viajes" className="flex items-center group" aria-label="Inicio">
             <Image
               src="/wanderlust_horizontal_blanco.png"
               alt="Wanderlust"
@@ -315,37 +382,40 @@ export function DashboardShell({
           </div>
         </div>
 
-        {/* Right Actions: AI Agent Button, Admin, Search & User */}
+        {/* Right Actions: Role Badge, Search & User */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* AI Agent Button */}
-          <button
-            type="button"
-            onClick={handleCreateTripClick}
-            className="flex items-center gap-1.5 rounded-full border border-[#009688]/60 bg-gradient-to-r from-[#004d40] to-[#00796b] px-3 sm:px-4 py-1.5 text-xs font-bold text-white shadow-xs transition-all hover:border-[#80cbc4] hover:brightness-110 active:scale-95 cursor-pointer"
-          >
-            <Sparkles className="h-3.5 w-3.5 text-[#80cbc4]" />
-            <span className="hidden xs:inline">Agente IA</span>
-            <span className="xs:hidden">IA</span>
-          </button>
-
-          {user?.role === 'admin' && (
+          {user && (
             <Link
-              href="/admin"
-              className={`hidden sm:flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${
-                activeMenu?.startsWith('admin')
+              href={
+                user.role === 'admin' || user.role === 'superadmin' || user.role === 'superuser' || (user.tenantId && user.tenantId !== 'particular')
+                  ? '/usuarios'
+                  : '/cuenta'
+              }
+              className={`hidden sm:flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${
+                activeMenu === 'usuarios' || activeMenu?.startsWith('admin')
                   ? 'border-[#80cbc4] bg-white/20 text-white shadow-xs'
                   : 'border-white/15 bg-white/10 text-[#80cbc4] hover:bg-white/20'
               }`}
             >
-              <ShieldCheck className="h-3.5 w-3.5 text-[#26a69a]" />
-              <span>Admin</span>
+              {user.role === 'superuser' || user.role === 'superadmin' || user.role === 'admin' ? (
+                <ShieldCheck className="h-3.5 w-3.5 text-[#26a69a]" />
+              ) : (
+                <User className="h-3.5 w-3.5 text-[#26a69a]" />
+              )}
+              <span>
+                {user.role === 'superuser' || user.role === 'superadmin'
+                  ? 'SUPERUSER'
+                  : user.role === 'admin'
+                  ? 'Admin'
+                  : 'User'}
+              </span>
             </Link>
           )}
 
           {/* Search Icon */}
           <button
             type="button"
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/viajes')}
             className="flex h-9 w-9 items-center justify-center rounded-full text-zinc-300 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
             aria-label="Buscar"
           >
@@ -361,13 +431,17 @@ export function DashboardShell({
                 setIsUserMenuOpen(!isUserMenuOpen);
               }}
               title="Perfil de usuario"
-              className={`flex h-9 w-9 items-center justify-center rounded-full transition-all cursor-pointer ${
+              className={`flex h-9 w-9 items-center justify-center rounded-full transition-all cursor-pointer overflow-hidden ${
                 isUserMenuOpen || activeMenu === 'cuenta'
-                  ? 'bg-white text-[#140b2a] ring-2 ring-[#009688] shadow-md'
-                  : 'bg-white/10 text-zinc-200 hover:bg-white/20 hover:text-white border border-white/15'
+                  ? 'ring-2 ring-[#009688] shadow-md'
+                  : 'hover:ring-2 hover:ring-white/40'
               }`}
             >
-              <User className="h-4 w-4" />
+              <UserAvatarDisplay
+                avatar={user?.avatar || 'traveler-girl-teal'}
+                name={getUserDisplayName()}
+                size="sm"
+              />
             </button>
 
             {/* Profile Dropdown Menu */}
@@ -376,14 +450,27 @@ export function DashboardShell({
                 onClick={(e) => e.stopPropagation()}
                 className="absolute right-0 top-12 z-50 w-64 rounded-3xl border border-[#eaecf0] bg-white p-2 shadow-2xl text-left animate-scale-in"
               >
-                {/* Header: User Name + Role */}
-                <div className="px-3 py-3 border-b border-[#eaecf0]">
-                  <p className="text-sm font-bold text-[#101828]">
-                    {getUserDisplayName()}
-                  </p>
-                  <p className="text-xs text-[#667085] mt-0.5">
-                    {user?.role === 'admin' ? 'Administrador' : 'Propietario'}
-                  </p>
+                {/* Header: User Avatar + Name + Role + Agency */}
+                <div className="px-3 py-3 border-b border-[#eaecf0] flex items-center gap-3">
+                  <UserAvatarDisplay
+                    avatar={user?.avatar || 'traveler-girl-teal'}
+                    name={getUserDisplayName()}
+                    size="md"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-[#101828] truncate">
+                      {user?.name || getUserDisplayName()}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                      <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-extrabold text-[#00796b]">
+                        {user?.role === 'superuser' || user?.role === 'superadmin'
+                          ? 'SUPERUSER'
+                          : user?.role === 'admin'
+                          ? 'Administrador'
+                          : 'Usuario'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Navigation Items */}
@@ -397,32 +484,16 @@ export function DashboardShell({
                     <span>Mi cuenta</span>
                   </Link>
 
-                  {user?.role === 'admin' && (
+                  {(user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'superuser' || (user?.tenantId && user?.tenantId !== 'particular')) && (
                     <Link
-                      href="/admin"
+                      href="/usuarios"
                       onClick={() => setIsUserMenuOpen(false)}
                       className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors"
                     >
-                      <ShieldCheck className="h-4 w-4 text-[#009688]" />
-                      <span>Panel Admin</span>
+                      <UserCog className="h-4 w-4 text-[#009688]" />
+                      <span>Usuarios</span>
                     </Link>
                   )}
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsUserMenuOpen(false);
-                      if (trips.length > 0) {
-                        router.push(`/publico/${encodeURIComponent(trips[0].id)}`);
-                      } else {
-                        alert('Crea un viaje para previsualizar el portal del viajero.');
-                      }
-                    }}
-                    className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors cursor-pointer"
-                  >
-                    <Luggage className="h-4 w-4 text-[#667085]" />
-                    <span>Portal del viajero</span>
-                  </button>
                 </div>
 
                 {/* Logout Item */}
@@ -448,12 +519,12 @@ export function DashboardShell({
       {/* ============================================================= */}
       {/* 2. BODY LAYOUT: CURVED TOP BORDER                             */}
       {/* ============================================================= */}
-      <div className="flex flex-1 overflow-hidden rounded-t-[28px] border-t border-white/10 bg-[#f4f5f8] shadow-2xl relative">
+      <div className="flex flex-1 min-h-0 overflow-hidden rounded-t-[28px] border-t border-white/10 bg-[#f4f5f8] shadow-2xl relative">
         {/* ----------------------------------------------------------- */}
         {/* DESKTOP SIDEBAR (Visible on lg+)                            */}
         {/* ----------------------------------------------------------- */}
         {!hideSidebar && (
-          <aside className="hidden lg:flex h-[calc(100vh-4rem)] w-64 shrink-0 flex-col overflow-y-auto border-r border-[#eaecf0] bg-[#f4f5f8] px-3 py-5 text-[#344054]">
+          <aside className="hidden lg:flex h-full w-64 shrink-0 flex-col overflow-y-auto border-r border-[#eaecf0] bg-[#f4f5f8] px-3 py-5 text-[#344054]">
             {renderNavLinks()}
           </aside>
         )}
@@ -504,7 +575,7 @@ export function DashboardShell({
         {/* ----------------------------------------------------------- */}
         {/* MAIN CONTENT CANVAS (Full width on mobile, fills space)     */}
         {/* ----------------------------------------------------------- */}
-        <main className="w-full flex-1 overflow-y-auto px-3 py-5 sm:px-6 lg:px-8 sm:py-6">
+        <main className="w-full flex-1 min-h-0 overflow-y-auto px-3 py-5 sm:px-6 lg:px-8 sm:py-6">
           {children}
         </main>
       </div>

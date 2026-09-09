@@ -12,10 +12,13 @@ export async function GET() {
     const tripsRes = await pool.query(
       `SELECT t.*, c.name as client_name, c.email as client_email
        FROM trips t
+       JOIN users u ON u.id = t.user_id
        LEFT JOIN clients c ON c.id = t.client_id
        WHERE t.user_id = $1
+          OR ($2 <> 'particular' AND u.tenant_id = $2)
+          OR ($3 = 'superuser' OR $3 = 'superadmin')
        ORDER BY t.start_date ASC`,
-      [session.userId]
+      [session.userId, session.tenantId || 'particular', session.role]
     );
 
     const trips = [];

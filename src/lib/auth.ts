@@ -3,12 +3,17 @@ import 'server-only';
 import { cookies } from 'next/headers';
 import { initDb, pool } from '@/lib/db';
 
-export type UserRole = 'admin' | 'user';
+export type UserRole = 'superuser' | 'superadmin' | 'admin' | 'user';
 
 export interface AuthenticatedUser {
   userId: number;
   email: string;
   role: UserRole;
+  name?: string;
+  avatar?: string;
+  tenantId?: string;
+  agencyName?: string;
+  planType?: string;
 }
 
 function getJwtSecret(): string {
@@ -80,10 +85,24 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
     id: number;
     email: string;
     role: UserRole;
+    name: string | null;
     is_active: boolean;
-  }>('SELECT id, email, role, is_active FROM users WHERE id = $1', [session.userId]);
+    tenant_id: string | null;
+    agency_name: string | null;
+    plan_type: string | null;
+    preferences: Record<string, unknown> | null;
+  }>('SELECT id, email, role, name, is_active, tenant_id, agency_name, plan_type, preferences FROM users WHERE id = $1', [session.userId]);
   const user = result.rows[0];
 
-  if (!user || !user.is_active || (user.role !== 'admin' && user.role !== 'user')) return null;
-  return { userId: user.id, email: user.email, role: user.role };
+  if (!user || !user.is_active || (user.role !== 'superuser' && user.role !== 'superadmin' && user.role !== 'admin' && user.role !== 'user')) return null;
+  return {
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name || undefined,
+    avatar: (user.preferences?.avatar as string) || 'traveler-girl-teal',
+    tenantId: user.tenant_id || undefined,
+    agencyName: user.agency_name || undefined,
+    planType: user.plan_type || undefined,
+  };
 }

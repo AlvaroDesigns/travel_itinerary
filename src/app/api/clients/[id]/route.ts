@@ -30,10 +30,15 @@ export async function GET(
                 '[]'::json
               ) as assigned_trips
        FROM clients c
+       JOIN users u ON u.id = c.user_id
        LEFT JOIN trips t ON t.client_id = c.id
-       WHERE c.id = $1 AND c.user_id = $2
+       WHERE c.id = $1 AND (
+         c.user_id = $2 
+         OR ($3 != 'particular' AND u.tenant_id = $3)
+         OR $4 IN ('superuser', 'superadmin')
+       )
        GROUP BY c.id`,
-      [id, session.userId]
+      [id, session.userId, session.tenantId || 'particular', session.role]
     );
 
     if (clientRes.rows.length === 0) {
@@ -74,8 +79,14 @@ export async function PUT(
   try {
     await initDb();
     const clientCheck = await pool.query(
-      'SELECT id FROM clients WHERE id = $1 AND user_id = $2',
-      [id, session.userId]
+      `SELECT c.id FROM clients c
+       JOIN users u ON u.id = c.user_id
+       WHERE c.id = $1 AND (
+         c.user_id = $2 
+         OR ($3 != 'particular' AND u.tenant_id = $3)
+         OR $4 IN ('superuser', 'superadmin')
+       )`,
+      [id, session.userId, session.tenantId || 'particular', session.role]
     );
 
     if (clientCheck.rows.length === 0) {
@@ -95,7 +106,7 @@ export async function PUT(
            notes = COALESCE($6, notes),
            status = COALESCE($7, status),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $8 AND user_id = $9`,
+       WHERE id = $8`,
       [
         name !== undefined ? name.trim() : null,
         email !== undefined ? email.trim() : null,
@@ -105,7 +116,6 @@ export async function PUT(
         notes !== undefined ? notes.trim() : null,
         status || null,
         id,
-        session.userId,
       ]
     );
 
@@ -113,14 +123,14 @@ export async function PUT(
     if (Array.isArray(assignedTripIds)) {
       // Remove all trips currently assigned to this client
       await pool.query(
-        `UPDATE trips SET client_id = NULL WHERE client_id = $1 AND user_id = $2`,
-        [id, session.userId]
+        `UPDATE trips SET client_id = NULL WHERE client_id = $1`,
+        [id]
       );
       // Assign specified trips
       if (assignedTripIds.length > 0) {
         await pool.query(
-          `UPDATE trips SET client_id = $1 WHERE id = ANY($2::text[]) AND user_id = $3`,
-          [id, assignedTripIds, session.userId]
+          `UPDATE trips SET client_id = $1 WHERE id = ANY($2::text[])`,
+          [id, assignedTripIds]
         );
       }
     }
@@ -146,8 +156,14 @@ export async function DELETE(
   try {
     await initDb();
     const clientCheck = await pool.query(
-      'SELECT id FROM clients WHERE id = $1 AND user_id = $2',
-      [id, session.userId]
+      `SELECT c.id FROM clients c
+       JOIN users u ON u.id = c.user_id
+       WHERE c.id = $1 AND (
+         c.user_id = $2 
+         OR ($3 != 'particular' AND u.tenant_id = $3)
+         OR $4 IN ('superuser', 'superadmin')
+       )`,
+      [id, session.userId, session.tenantId || 'particular', session.role]
     );
 
     if (clientCheck.rows.length === 0) {
@@ -156,7 +172,7 @@ export async function DELETE(
 
     // Set client_id = NULL on trips
     await pool.query('UPDATE trips SET client_id = NULL WHERE client_id = $1', [id]);
-    await pool.query('DELETE FROM clients WHERE id = $1 AND user_id = $2', [id, session.userId]);
+    await pool.query('DELETE FROM clients WHERE id = $1', [id]);
 
     return NextResponse.json({ success: true });
   } catch (error) {
