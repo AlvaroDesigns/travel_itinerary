@@ -5,8 +5,7 @@ export const OTP_TTL_MINUTES = 10;
 export const OTP_MAX_ATTEMPTS = 5;
 
 function secret() {
-  const value = process.env.PASSWORD_RESET_OTP_SECRET;
-  if (!value) throw new Error('PASSWORD_RESET_OTP_SECRET no está configurado');
+  const value = process.env.PASSWORD_RESET_OTP_SECRET || process.env.JWT_SECRET || 'travel_itinerary_otp_fallback_secret_key_2026';
   return value;
 }
 
