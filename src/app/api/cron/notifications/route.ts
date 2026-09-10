@@ -13,6 +13,7 @@ type ScheduledNotification = {
   bcc_emails: string[];
   reminder_enabled: boolean;
   reminder_interval_days: number;
+  reminder_time: string;
   countdown_mode: 'exact' | 'surprise';
   last_reminder_sent_at: string | null;
   instructions_enabled: boolean;
@@ -43,6 +44,7 @@ async function runNotifications() {
       s.bcc_emails,
       s.reminder_enabled,
       s.reminder_interval_days,
+      COALESCE(s.reminder_time, '09:00') AS reminder_time,
       s.countdown_mode,
       s.last_reminder_sent_at,
       s.instructions_enabled,
@@ -84,10 +86,27 @@ async function runNotifications() {
       }
     };
 
+    // Calculate if reminder is due considering time of day (hour and minute) and interval
+    const [targetHour, targetMinute] = (setting.reminder_time || '09:00').split(':').map(Number);
+    const madridParts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Madrid',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(now);
+    const currentHour = Number(madridParts.find((p) => p.type === 'hour')?.value || 0);
+    const currentMinute = Number(madridParts.find((p) => p.type === 'minute')?.value || 0);
+
+    const currentTotalMinutes = currentHour * 60 + currentMinute;
+    const targetTotalMinutes = (isNaN(targetHour) ? 9 : targetHour) * 60 + (isNaN(targetMinute) ? 0 : targetMinute);
+    const isPastTargetTime = currentTotalMinutes >= targetTotalMinutes;
+
     const lastReminderAt = setting.last_reminder_sent_at ? new Date(setting.last_reminder_sent_at).getTime() : 0;
-    const reminderIsDue = !lastReminderAt || now.getTime() - lastReminderAt >= setting.reminder_interval_days * DAY_MS;
+    const daysSinceLastReminder = lastReminderAt ? (now.getTime() - lastReminderAt) / DAY_MS : 999;
+    const reminderIsDue = isPastTargetTime && (!lastReminderAt || daysSinceLastReminder >= setting.reminder_interval_days * 0.95);
     if (reminderIsDue) {
       const isExact = setting.countdown_mode === 'exact';
+      const daysUntilDeparture = Math.max(1, Math.ceil(millisecondsUntilTrip / DAY_MS));
       await send(
         'recordatorio',
         'Tu próxima aventura se acerca',
@@ -98,7 +117,7 @@ async function runNotifications() {
           intro: isExact ? 'Cada día queda menos para una experiencia especial.' : surpriseCountdownMessage(),
           highlight: {
             label: 'Cuenta atrás',
-            value: isExact ? `Faltan ${setting.reminder_interval_days} ${setting.reminder_interval_days === 1 ? 'día' : 'días'}` : decoyCountdownValue(),
+            value: isExact ? `Faltan ${daysUntilDeparture} ${daysUntilDeparture === 1 ? 'día' : 'días'}` : decoyCountdownValue(),
           },
           highlightStyle: 'minimal',
         }),

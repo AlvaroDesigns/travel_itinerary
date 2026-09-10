@@ -19,6 +19,7 @@ function toSettings(row: Record<string, unknown>): NotificationSettings {
       : [],
     reminderEnabled: Boolean(row.reminder_enabled),
     reminderIntervalDays: Number(row.reminder_interval_days),
+    reminderTime: String(row.reminder_time || '09:00'),
     countdownMode: row.countdown_mode as CountdownMode,
     instructionsEnabled: Boolean(row.instructions_enabled),
     instructionsText: String(row.instructions_text ?? ''),
@@ -74,6 +75,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const recipientEmail = body.recipientEmail?.trim().toLowerCase() ?? '';
     const bccEmails = normalizeBccEmails(body.bccEmails ?? []);
     const reminderIntervalDays = Number(body.reminderIntervalDays);
+    const reminderTime = typeof body.reminderTime === 'string' && /^([01]\d|2[0-3]):([0-5]\d)$/.test(body.reminderTime) ? body.reminderTime : '09:00';
     const itineraryAccessHours = Number(body.itineraryAccessHours);
     const countdownMode = body.countdownMode;
     const instructionsText = body.instructionsText?.trim() ?? '';
@@ -113,6 +115,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       bccEmails,
       reminderEnabled: Boolean(body.reminderEnabled),
       reminderIntervalDays,
+      reminderTime,
       countdownMode,
       instructionsEnabled: Boolean(body.instructionsEnabled),
       instructionsText,
@@ -126,15 +129,16 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const result = await pool.query(
       `INSERT INTO trip_notification_settings (
-        trip_id, recipient_email, bcc_emails, reminder_enabled, reminder_interval_days, countdown_mode,
+        trip_id, recipient_email, bcc_emails, reminder_enabled, reminder_interval_days, reminder_time, countdown_mode,
         instructions_enabled, instructions_text, itinerary_access_enabled, itinerary_access_hours,
         public_access_enabled, public_access_token, public_show_expenses, public_itinerary_visibility
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       ON CONFLICT (trip_id) DO UPDATE SET
         recipient_email = EXCLUDED.recipient_email,
         bcc_emails = EXCLUDED.bcc_emails,
         reminder_enabled = EXCLUDED.reminder_enabled,
         reminder_interval_days = EXCLUDED.reminder_interval_days,
+        reminder_time = EXCLUDED.reminder_time,
         countdown_mode = EXCLUDED.countdown_mode,
         instructions_enabled = EXCLUDED.instructions_enabled,
         instructions_text = EXCLUDED.instructions_text,
@@ -144,6 +148,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         public_access_token = EXCLUDED.public_access_token,
         public_show_expenses = EXCLUDED.public_show_expenses,
         public_itinerary_visibility = EXCLUDED.public_itinerary_visibility,
+        last_reminder_sent_at = CASE WHEN trip_notification_settings.reminder_time != EXCLUDED.reminder_time THEN NULL ELSE trip_notification_settings.last_reminder_sent_at END,
         updated_at = CURRENT_TIMESTAMP
       RETURNING *`,
       [
@@ -152,6 +157,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         settings.bccEmails,
         settings.reminderEnabled,
         settings.reminderIntervalDays,
+        settings.reminderTime,
         settings.countdownMode,
         settings.instructionsEnabled,
         settings.instructionsText,

@@ -184,9 +184,6 @@ export default function EnlacesPublicosPage() {
         {/* Header Title */}
         <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
           <div>
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-teal-200/80 bg-teal-50 px-3.5 py-1 text-xs font-bold text-[#00796b]">
-              <Globe className="h-3.5 w-3.5 text-[#009688]" /> Enlaces & Accesos Públicos
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#101828]">
               Gestión de Enlaces Públicos
             </h1>

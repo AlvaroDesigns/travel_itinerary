@@ -15,6 +15,19 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+function getBaseUrl(request: Request, reqUrl: URL) {
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || reqUrl.host;
+  const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
+  if (isLocal) {
+    return `http://${host}`;
+  }
+  if (process.env.APP_URL) {
+    return process.env.APP_URL.replace(/\/$/, '');
+  }
+  const proto = request.headers.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
+  return `${proto}://${host}`;
+}
+
 export async function GET(request: Request) {
   const reqUrl = new URL(request.url);
   const code = reqUrl.searchParams.get('code');
@@ -42,9 +55,7 @@ export async function GET(request: Request) {
       }
     }
 
-    const host = request.headers.get('host') || reqUrl.host;
-    const protocol = host.includes('localhost') ? 'http' : 'https';
-    const baseUrl = `${protocol}://${host}`;
+    const baseUrl = getBaseUrl(request, reqUrl);
     const redirectUri = `${baseUrl}/api/auth/google/callback`;
 
     // 1. Exchange authorization code for tokens

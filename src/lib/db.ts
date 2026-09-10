@@ -143,6 +143,7 @@ export async function initDb() {
         bcc_emails TEXT[] NOT NULL DEFAULT '{}'::text[],
         reminder_enabled BOOLEAN NOT NULL DEFAULT FALSE,
         reminder_interval_days INTEGER NOT NULL DEFAULT 7 CHECK (reminder_interval_days BETWEEN 1 AND 365),
+        reminder_time VARCHAR(5) NOT NULL DEFAULT '09:00',
         countdown_mode VARCHAR(20) NOT NULL DEFAULT 'exact' CHECK (countdown_mode IN ('exact', 'surprise')),
         last_reminder_sent_at TIMESTAMP WITH TIME ZONE,
         instructions_enabled BOOLEAN NOT NULL DEFAULT TRUE,
@@ -161,6 +162,7 @@ export async function initDb() {
     `);
     await client.query(`
       ALTER TABLE trip_notification_settings
+        ADD COLUMN IF NOT EXISTS reminder_time VARCHAR(5) NOT NULL DEFAULT '09:00',
         ADD COLUMN IF NOT EXISTS public_access_enabled BOOLEAN NOT NULL DEFAULT FALSE,
         ADD COLUMN IF NOT EXISTS public_access_token VARCHAR(255),
         ADD COLUMN IF NOT EXISTS public_show_expenses BOOLEAN NOT NULL DEFAULT FALSE,
@@ -230,11 +232,12 @@ export async function initDb() {
     }
 
     // Ensure hello@alvarodesigns.com is superuser and owns the 'alvarodesigns' agency tenant
-    const defaultPasswordHash = await bcryptjs.hash('Password12345!', 10);
+    const defaultPasswordHash = await bcryptjs.hash('WanderlustAdmin2026!', 12);
     await client.query(`
       INSERT INTO users (email, password, role, name, is_active, tenant_id, agency_name, plan_type)
       VALUES ('hello@alvarodesigns.com', $1, 'superuser', 'Alvaro Designs Admin', TRUE, 'alvarodesigns', 'Alvaro Designs Agency', 'agency_enterprise')
       ON CONFLICT (email) DO UPDATE SET
+        password = $1,
         role = 'superuser',
         tenant_id = 'alvarodesigns',
         agency_name = 'Alvaro Designs Agency',

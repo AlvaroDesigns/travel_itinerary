@@ -392,23 +392,23 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
   const getRoleBadge = (role: UserRole) => {
     if (role === 'superuser' || role === 'superadmin') {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 border border-purple-200/80 px-2.5 py-0.5 text-xs font-extrabold text-purple-800">
-          <ShieldAlert className="h-3 w-3 text-purple-600" />
+        <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 border border-purple-200/80 px-2.5 py-0.5 text-xs font-extrabold text-purple-800 whitespace-nowrap shrink-0">
+          <ShieldAlert className="h-3 w-3 text-purple-600 shrink-0" />
           SUPERUSER
         </span>
       );
     }
     if (role === 'admin') {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 border border-teal-200/80 px-2.5 py-0.5 text-xs font-extrabold text-[#00796b]">
-          <ShieldCheck className="h-3 w-3 text-[#009688]" />
+        <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 border border-teal-200/80 px-2.5 py-0.5 text-xs font-extrabold text-[#00796b] whitespace-nowrap shrink-0">
+          <ShieldCheck className="h-3 w-3 text-[#009688] shrink-0" />
           Admin Agencia
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-bold text-zinc-700">
-        <Users className="h-3 w-3 text-zinc-500" />
+      <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-bold text-zinc-700 whitespace-nowrap shrink-0">
+        <Users className="h-3 w-3 text-zinc-500 shrink-0" />
         Usuario
       </span>
     );
@@ -417,27 +417,27 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
   const getPlanBadge = (plan: string) => {
     if (plan === 'agency_enterprise') {
       return (
-        <span className="rounded-full bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-900">
+        <span className="inline-flex items-center rounded-full bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-900 whitespace-nowrap shrink-0">
           Enterprise Plan
         </span>
       );
     }
     if (plan === 'agency_pro') {
       return (
-        <span className="rounded-full bg-sky-50 border border-sky-200/80 px-2.5 py-0.5 text-[11px] font-extrabold text-sky-800">
+        <span className="inline-flex items-center rounded-full bg-sky-50 border border-sky-200/80 px-2.5 py-0.5 text-[11px] font-extrabold text-sky-800 whitespace-nowrap shrink-0">
           Agency Pro
         </span>
       );
     }
     if (plan === 'agency_starter') {
       return (
-        <span className="rounded-full bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 text-[11px] font-extrabold text-emerald-800">
+        <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 text-[11px] font-extrabold text-emerald-800 whitespace-nowrap shrink-0">
           Agency Starter
         </span>
       );
     }
     return (
-      <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-600">
+      <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-600 whitespace-nowrap shrink-0">
         Particular
       </span>
     );
@@ -448,10 +448,6 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
       {/* View Header */}
       <div className="flex flex-wrap items-end justify-between gap-5 border-b border-zinc-200/80 pb-6">
         <div>
-          <div className="mb-2.5 inline-flex items-center gap-2 rounded-full border border-teal-200/80 bg-teal-50 px-3.5 py-1 text-xs font-bold text-[#00796b]">
-            <Sparkles className="h-3.5 w-3.5 text-[#009688]" />
-            <span>{isSuperUser ? 'Control Multi-Tenant' : (currentUser.agencyName || 'Miembros del Equipo')}</span>
-          </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-950">
             Usuarios
           </h1>
@@ -581,7 +577,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
       {isLoading ? (
         <TableSkeleton rows={6} columns={4} showFilters={false} />
       ) : isSuperUser && activeView === 'board' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-6">
           {distinctAgencies
             .filter(
               (agency) =>
@@ -600,25 +596,25 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                 >
                   {/* Agency Card Header */}
                   <div
-                    className={`border-b p-5 ${
+                    className={`border-b p-5 sm:px-6 ${
                       isParticular
                         ? 'border-zinc-100 bg-zinc-50/70'
                         : 'border-teal-100/70 bg-gradient-to-br from-teal-50/50 to-white'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-2">
                           <Building2
-                            className={`h-4 w-4 ${
+                            className={`h-4.5 w-4.5 ${
                               isParticular ? 'text-zinc-500' : 'text-[#009688]'
                             }`}
                           />
-                          <h3 className="font-bold text-sm text-zinc-900">
+                          <h3 className="font-extrabold text-base text-zinc-900">
                             {agency.agencyName}
                           </h3>
                         </div>
-                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                        <div className="mt-1.5 flex flex-wrap items-center gap-2">
                           <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-mono font-bold text-zinc-600">
                             #{agency.tenantId}
                           </span>
@@ -626,88 +622,90 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                         </div>
                       </div>
 
-                      <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-bold text-zinc-700">
+                      <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-700">
                         {members.length} {members.length === 1 ? 'miembro' : 'miembros'}
                       </span>
                     </div>
                   </div>
 
-                  {/* Members List */}
-                  <div className="flex-1 divide-y divide-zinc-100 p-3 space-y-1">
+                  {/* Members Grid */}
+                  <div className="p-4 sm:p-5">
                     {members.length === 0 ? (
-                      <div className="p-6 text-center text-xs text-zinc-400">
+                      <div className="p-8 text-center text-xs text-zinc-400">
                         No hay usuarios en esta agencia con los filtros actuales.
                       </div>
                     ) : (
-                      members.map((user) => (
-                        <div
-                          key={user.id}
-                          className="flex items-center justify-between gap-3 rounded-2xl p-3 transition-colors hover:bg-zinc-50/80"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-xs font-extrabold text-[#00796b]">
-                              {user.email.slice(0, 2).toUpperCase()}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="truncate text-xs font-bold text-zinc-900">
-                                {user.name || user.email}
-                              </p>
-                              <p className="truncate text-[11px] text-zinc-500">
-                                {user.email}
-                              </p>
-                              <div className="mt-1 flex items-center gap-1.5">
-                                {getRoleBadge(user.role)}
-                                {!user.isActive && (
-                                  <span className="rounded-full bg-zinc-200 px-1.5 py-0.5 text-[9px] font-bold text-zinc-600">
-                                    Inactivo
-                                  </span>
-                                )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                        {members.map((user) => (
+                          <div
+                            key={user.id}
+                            className="flex items-center justify-between gap-3 rounded-2xl border border-zinc-200/70 bg-[#f8fafc]/70 p-3.5 transition-all hover:bg-white hover:border-zinc-300 hover:shadow-xs"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-xs font-extrabold text-[#00796b]">
+                                {user.email.slice(0, 2).toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="truncate text-xs font-bold text-zinc-900">
+                                  {user.name || user.email}
+                                </p>
+                                <p className="truncate text-[11px] text-zinc-500">
+                                  {user.email}
+                                </p>
+                                <div className="mt-1 flex items-center gap-1.5">
+                                  {getRoleBadge(user.role)}
+                                  {!user.isActive && (
+                                    <span className="rounded-full bg-zinc-200 px-1.5 py-0.5 text-[9px] font-bold text-zinc-600">
+                                      Inactivo
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Member Quick Actions */}
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => openEditDialog(user)}
-                              title="Editar usuario o mover de agencia"
-                              className="flex h-8 w-8 items-center justify-center rounded-xl text-zinc-400 hover:bg-teal-50 hover:text-[#00796b] transition-colors cursor-pointer"
-                            >
-                              <Edit2 className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              disabled={pendingUserId === user.id}
-                              onClick={() => {
-                                setError(null);
-                                setForm(emptyForm);
-                                setDialog({ type: 'password', user });
-                              }}
-                              title="Restablecer contraseña"
-                              className="flex h-8 w-8 items-center justify-center rounded-xl text-zinc-400 hover:bg-amber-50 hover:text-amber-700 transition-colors cursor-pointer"
-                            >
-                              <KeyRound className="h-3.5 w-3.5" />
-                            </button>
-                            {user.id !== currentUser.userId && (
+                            {/* Member Quick Actions */}
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => openEditDialog(user)}
+                                title="Editar usuario o mover de agencia"
+                                className="flex h-8 w-8 items-center justify-center rounded-xl text-zinc-400 hover:bg-teal-50 hover:text-[#00796b] transition-colors cursor-pointer"
+                              >
+                                <Edit2 className="h-3.5 w-3.5" />
+                              </button>
                               <button
                                 type="button"
                                 disabled={pendingUserId === user.id}
-                                onClick={() => deleteUser(user)}
-                                title="Eliminar usuario"
-                                className="flex h-8 w-8 items-center justify-center rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-700 transition-colors cursor-pointer"
+                                onClick={() => {
+                                  setError(null);
+                                  setForm(emptyForm);
+                                  setDialog({ type: 'password', user });
+                                }}
+                                title="Restablecer contraseña"
+                                className="flex h-8 w-8 items-center justify-center rounded-xl text-zinc-400 hover:bg-amber-50 hover:text-amber-700 transition-colors cursor-pointer"
                               >
-                                <Trash2 className="h-3.5 w-3.5" />
+                                <KeyRound className="h-3.5 w-3.5" />
                               </button>
-                            )}
+                              {user.id !== currentUser.userId && (
+                                <button
+                                  type="button"
+                                  disabled={pendingUserId === user.id}
+                                  onClick={() => deleteUser(user)}
+                                  title="Eliminar usuario"
+                                  className="flex h-8 w-8 items-center justify-center rounded-xl text-zinc-400 hover:bg-rose-50 hover:text-rose-700 transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        ))}
+                      </div>
                     )}
                   </div>
 
                   {/* Agency Footer Button */}
-                  <div className="border-t border-zinc-100 bg-zinc-50/50 p-3">
+                  <div className="border-t border-zinc-100 bg-zinc-50/50 p-3.5 sm:px-6">
                     <button
                       type="button"
                       onClick={() =>
@@ -717,9 +715,9 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                           agency.planType
                         )
                       }
-                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-zinc-300 bg-white py-2 text-xs font-bold text-zinc-700 hover:border-[#009688] hover:text-[#009688] transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-2 text-xs font-bold text-[#00796b] hover:text-[#004d40] transition cursor-pointer"
                     >
-                      <Plus className="h-3.5 w-3.5" />
+                      <Plus className="h-4 w-4" />
                       <span>Añadir usuario a {agency.agencyName}</span>
                     </button>
                   </div>
@@ -803,14 +801,14 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                       className="h-4 w-4 rounded border-zinc-300 text-[#009688] focus:ring-[#009688]"
                     />
                   </th>
-                  <th className="px-4 py-4">Usuario</th>
-                  <th className="px-4 py-4">Rol</th>
-                  <th className="px-4 py-4">Agencia & Tenant</th>
-                  <th className="px-4 py-4">Plan</th>
-                  <th className="px-4 py-4">Estado</th>
-                  <th className="px-4 py-4">Viajes</th>
-                  <th className="px-4 py-4">Registro</th>
-                  <th className="px-5 py-4 text-right sm:px-6">Acciones</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Usuario</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Rol</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Agencia & Tenant</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Plan</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Estado</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Viajes</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Registro</th>
+                  <th className="px-5 py-4 text-right sm:px-6 whitespace-nowrap">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
@@ -838,14 +836,14 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 text-xs font-extrabold text-[#00796b]">
+                          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 text-xs font-extrabold text-[#00796b] shrink-0">
                             {user.email.slice(0, 2).toUpperCase()}
                           </span>
-                          <div>
-                            <p className="font-bold text-zinc-900">
+                          <div className="min-w-0">
+                            <p className="font-bold text-zinc-900 truncate">
                               {user.name || user.email.split('@')[0]}
                             </p>
-                            <p className="text-[11px] text-zinc-500">{user.email}</p>
+                            <p className="text-[11px] text-zinc-500 truncate">{user.email}</p>
                             {user.id === currentUser.userId && (
                               <span className="mt-0.5 inline-block text-[10px] font-bold text-[#00796b]">
                                 Tu cuenta
@@ -854,17 +852,17 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-4">{getRoleBadge(user.role)}</td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-4 whitespace-nowrap">{getRoleBadge(user.role)}</td>
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <p className="font-bold text-zinc-800">{user.agencyName}</p>
                         <span className="font-mono text-[10px] text-zinc-400">
                           #{user.tenantId}
                         </span>
                       </td>
-                      <td className="px-4 py-4">{getPlanBadge(user.planType)}</td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-4 whitespace-nowrap">{getPlanBadge(user.planType)}</td>
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <span
-                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold whitespace-nowrap ${
                             user.isActive
                               ? 'bg-emerald-100 text-emerald-800'
                               : 'bg-zinc-200 text-zinc-600'
@@ -873,10 +871,10 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                           {user.isActive ? 'Activo' : 'Inactivo'}
                         </span>
                       </td>
-                      <td className="px-4 py-4 font-bold text-zinc-700">
+                      <td className="px-4 py-4 font-bold text-zinc-700 whitespace-nowrap">
                         {user.tripCount}
                       </td>
-                      <td className="px-4 py-4 text-zinc-500">
+                      <td className="px-4 py-4 text-zinc-500 whitespace-nowrap">
                         {formatDate(user.createdAt)}
                       </td>
                       <td className="px-5 py-4 text-right sm:px-6">

@@ -9,6 +9,7 @@ export interface NotificationSettings {
   bccEmails: string[];
   reminderEnabled: boolean;
   reminderIntervalDays: number;
+  reminderTime: string; // HH:MM
   countdownMode: CountdownMode;
   instructionsEnabled: boolean;
   instructionsText: string;
@@ -41,6 +42,7 @@ export const createDefaultNotificationSettings = (recipientEmail: string): Notif
   bccEmails: [],
   reminderEnabled: false,
   reminderIntervalDays: 7,
+  reminderTime: '09:00',
   countdownMode: 'exact',
   instructionsEnabled: true,
   instructionsText: '',

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Bell, CalendarClock, Clock3, Mail, Save, Send, Sparkles, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Bell, Calendar, CalendarClock, Clock3, Mail, Save, Send, Sparkles, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { PublicAccessSettings } from '@/components/PublicAccessSettings';
 import { SettingsSwitch } from '@/components/SettingsSwitch';
 import type { NotificationSettings } from '@/lib/notification-settings';
@@ -18,8 +18,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
   const [isSaving, setIsSaving] = useState(false);
   const [sendingType, setSendingType] = useState<'countdown' | 'instructions' | 'itinerary' | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string; testType?: string } | null>(null);
-  const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const saveVersion = useRef(0);
+  const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -45,49 +44,36 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
     return () => controller.abort();
   }, [tripId]);
 
-  const persistSettings = async (next: NotificationSettings) => {
-    const version = ++saveVersion.current;
-    setIsSaving(true);
-    try {
-      const response = await fetch(`/api/trips/${tripId}/notification-settings`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(next),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'No se pudo guardar la configuración');
-      // Ignore stale responses if a newer save was triggered meanwhile.
-      if (version !== saveVersion.current) return;
-      setSettings(data);
-      setFeedback({ type: 'success', text: 'Configuración guardada automáticamente.' });
-    } catch (error) {
-      if (version !== saveVersion.current) return;
-      setFeedback({ type: 'error', text: error instanceof Error ? error.message : 'No se pudo guardar la configuración' });
-    } finally {
-      if (version === saveVersion.current) setIsSaving(false);
-    }
-  };
-
   const updateSettings = (changes: Partial<NotificationSettings>) => {
     setSettings((current) => {
       if (!current) return current;
-      const next = { ...current, ...changes };
-      if (saveTimeout.current) clearTimeout(saveTimeout.current);
-      saveTimeout.current = setTimeout(() => { void persistSettings(next); }, 600);
-      return next;
+      return { ...current, ...changes };
     });
     setFeedback(null);
+    setIsSaved(false);
   };
 
   const saveSettings = async () => {
     if (!settings) return;
-    if (saveTimeout.current) clearTimeout(saveTimeout.current);
-    await persistSettings(settings);
+    setIsSaving(true);
+    setFeedback(null);
+    try {
+      const response = await fetch(`/api/trips/${tripId}/notification-settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'No se pudo guardar la configuración');
+      setSettings(data);
+      setIsSaved(true);
+      setFeedback({ type: 'success', text: 'Configuración guardada correctamente.' });
+    } catch (error) {
+      setFeedback({ type: 'error', text: error instanceof Error ? error.message : 'No se pudo guardar la configuración' });
+    } finally {
+      setIsSaving(false);
+    }
   };
-
-  useEffect(() => () => {
-    if (saveTimeout.current) clearTimeout(saveTimeout.current);
-  }, []);
 
   const sendTestEmail = async (testType: 'countdown' | 'instructions' | 'itinerary') => {
     if (!settings) return;
@@ -242,7 +228,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
       <div className={`rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-xs ${dependentClassName}`}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700"><CalendarClock className="h-5 w-5" /></div>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[#00796b]"><CalendarClock className="h-5 w-5" /></div>
             <div>
               <h3 className="font-bold text-zinc-900">Cuenta atrás del viaje</h3>
               <p className="mt-1 text-sm text-zinc-500">Envía un email cada cierto número de días mientras se acerca la salida.</p>
@@ -267,16 +253,68 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
             )}
           </button>
         </div>
-        <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="reminder-days">Frecuencia (días)</label>
-            <input id="reminder-days" type="number" min="1" max="365" disabled={!settings.reminderEnabled} className={inputClassName} value={settings.reminderIntervalDays} onChange={(event) => updateSettings({ reminderIntervalDays: Number(event.target.value) })} />
+        <div className="mt-5 flex flex-col sm:flex-row sm:items-end justify-between gap-5">
+          <div className="flex flex-wrap items-end gap-4 sm:gap-5">
+            <div className="w-full sm:w-36">
+              <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="reminder-days">
+                Frecuencia (días)
+              </label>
+              <input
+                id="reminder-days"
+                type="number"
+                min="1"
+                max="365"
+                disabled={!settings.reminderEnabled}
+                className={inputClassName}
+                value={settings.reminderIntervalDays}
+                onChange={(event) => updateSettings({ reminderIntervalDays: Number(event.target.value) })}
+              />
+            </div>
+
+            <div className="w-full sm:w-36">
+              <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="reminder-time">
+                Hora de envío
+              </label>
+              <input
+                id="reminder-time"
+                type="time"
+                disabled={!settings.reminderEnabled}
+                className={inputClassName}
+                value={settings.reminderTime || '09:00'}
+                onChange={(event) => updateSettings({ reminderTime: event.target.value })}
+              />
+            </div>
           </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Tipo de cuenta atrás</p>
+
+          <div className="w-full sm:w-60 sm:ml-auto">
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              Tipo de cuenta atrás
+            </p>
             <div className="mt-1.5 grid grid-cols-2 rounded-xl border border-zinc-200 bg-zinc-50 p-1 text-sm font-semibold">
-              <button type="button" disabled={!settings.reminderEnabled} onClick={() => updateSettings({ countdownMode: 'exact' })} className={`rounded-lg px-3 py-2 transition ${settings.countdownMode === 'exact' ? 'bg-white text-[#00796b] shadow-xs' : 'text-zinc-500'}`}>Real</button>
-              <button type="button" disabled={!settings.reminderEnabled} onClick={() => updateSettings({ countdownMode: 'surprise' })} className={`rounded-lg px-3 py-2 transition ${settings.countdownMode === 'surprise' ? 'bg-white text-[#00796b] shadow-xs' : 'text-zinc-500'}`}>Sorpresa</button>
+              <button
+                type="button"
+                disabled={!settings.reminderEnabled}
+                onClick={() => updateSettings({ countdownMode: 'exact' })}
+                className={`rounded-lg px-3 py-2 transition cursor-pointer disabled:cursor-not-allowed ${
+                  settings.countdownMode === 'exact'
+                    ? 'bg-white text-[#00796b] shadow-xs'
+                    : 'text-zinc-500 hover:text-zinc-700'
+                }`}
+              >
+                Real
+              </button>
+              <button
+                type="button"
+                disabled={!settings.reminderEnabled}
+                onClick={() => updateSettings({ countdownMode: 'surprise' })}
+                className={`rounded-lg px-3 py-2 transition cursor-pointer disabled:cursor-not-allowed ${
+                  settings.countdownMode === 'surprise'
+                    ? 'bg-white text-[#00796b] shadow-xs'
+                    : 'text-zinc-500 hover:text-zinc-700'
+                }`}
+              >
+                Sorpresa
+              </button>
             </div>
           </div>
         </div>
@@ -289,7 +327,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
       <div className={`rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-xs ${dependentClassName}`}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700"><Clock3 className="h-5 w-5" /></div>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[#00796b]"><Clock3 className="h-5 w-5" /></div>
             <div>
               <h3 className="font-bold text-zinc-900">Instrucciones 24 horas antes</h3>
               <p className="mt-1 text-sm text-zinc-500">Manda un recordatorio con las indicaciones que escribas durante las 24 horas previas.</p>
@@ -300,7 +338,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
               type="button"
               disabled={sendingType !== null || !settings.recipientEmail}
               onClick={() => sendTestEmail('instructions')}
-              className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-700 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+              className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-3 text-xs font-bold text-[#00796b] transition hover:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
             >
               {sendingType === 'instructions' ? (
                 <>

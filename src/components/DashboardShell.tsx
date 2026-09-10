@@ -31,6 +31,9 @@ import {
   Settings,
   HelpCircle,
   MessageSquare,
+  Printer,
+  Download,
+  Check,
 } from 'lucide-react';
 import { UserAvatarDisplay } from '@/components/AvatarPickerModal';
 
@@ -46,6 +49,7 @@ interface DashboardShellProps {
     | 'destinos'
     | 'notificaciones'
     | 'compartir'
+    | 'exportar_pdf'
     | 'servicios'
     | 'configuracion'
     | 'admin'
@@ -65,9 +69,9 @@ export function DashboardShell({
   const { trips, clients, opportunities, logout, user } = useTravel();
   const router = useRouter();
 
-  const [isToolsExpanded, setIsToolsExpanded] = useState(true);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
   const getUserDisplayName = () => {
     if (user?.email) return user.email.split('@')[0];
@@ -99,28 +103,6 @@ export function DashboardShell({
           <LayoutDashboard className="h-4 w-4 text-[#009688]" />
           <span>Dashboard</span>
         </Link>
-
-        {/* Agente IA (Gratis) */}
-        <button
-          type="button"
-          onClick={() => {
-            onItemClick?.();
-            handleCreateTripClick();
-          }}
-          className={`flex w-full items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all cursor-pointer ${
-            activeMenu === 'agente'
-              ? 'bg-white text-[#101828] shadow-xs'
-              : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <Sparkles className="h-4 w-4 text-[#009688]" />
-            <span>Agente IA</span>
-          </div>
-          <span className="rounded-full bg-[#e0f2f1] px-1.5 py-0.5 text-[10px] font-bold text-[#00796b]">
-            Gratis
-          </span>
-        </button>
 
         {/* Mis Viajes */}
         <Link
@@ -197,34 +179,6 @@ export function DashboardShell({
           </Link>
         )}
 
-        {/* Destinos */}
-        <Link
-          href="/viajes"
-          onClick={onItemClick}
-          className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-            activeMenu === 'destinos'
-              ? 'bg-white text-[#101828] shadow-xs'
-              : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
-          }`}
-        >
-          <Globe className="h-4 w-4 text-[#667085]" />
-          <span>Destinos & Rutas</span>
-        </Link>
-
-        {/* Notificaciones & Emails */}
-        <Link
-          href="/cuenta"
-          onClick={onItemClick}
-          className={`flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-            activeMenu === 'notificaciones'
-              ? 'bg-white text-[#101828] shadow-xs'
-              : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
-          }`}
-        >
-          <Mail className="h-4 w-4 text-[#667085]" />
-          <span>Notificaciones de viaje</span>
-        </Link>
-
         {/* Compartir / Enlaces públicos */}
         <Link
           href="/enlaces-publicos"
@@ -235,8 +189,27 @@ export function DashboardShell({
               : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
           }`}
         >
-          <Share2 className="h-4 w-4 text-[#667085]" />
+          <Share2 className="h-4 w-4 text-[#009688]" />
           <span>Enlaces públicos</span>
+        </Link>
+
+        {/* Exportador PDF */}
+        <Link
+          href="/exportador-pdf"
+          onClick={onItemClick}
+          className={`flex w-full items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
+            activeMenu === 'exportar_pdf'
+              ? 'bg-white text-[#101828] shadow-xs font-bold'
+              : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <FileText className="h-4 w-4 text-[#009688]" />
+            <span>Exportador PDF</span>
+          </div>
+          <span className="rounded-full bg-[#e0f2f1] px-1.5 py-0.5 text-[10px] font-bold text-[#00796b]">
+            PDF
+          </span>
         </Link>
       </div>
 
@@ -260,9 +233,6 @@ export function DashboardShell({
               <Settings className="h-4 w-4 text-[#009688]" />
               <span>Configuración</span>
             </div>
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#155eef] text-[10px] font-bold text-white shadow-2xs">
-              !
-            </span>
           </Link>
 
           {/* Centro de ayuda */}
@@ -270,68 +240,14 @@ export function DashboardShell({
             type="button"
             onClick={() => {
               onItemClick?.();
-              router.push('/cuenta?tab=legal');
+              setIsHelpModalOpen(true);
             }}
             className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold text-[#475467] hover:bg-white/60 hover:text-[#101828] transition cursor-pointer"
           >
-            <HelpCircle className="h-4 w-4 text-[#667085]" />
+            <HelpCircle className="h-4 w-4 text-[#009688]" />
             <span>Centro de ayuda</span>
           </button>
         </div>
-      </div>
-
-      {/* Section: Aplicaciones de Itinerarios */}
-      <div className="mt-4 pt-3 border-t border-[#e4e7ec]">
-        <button
-          type="button"
-          onClick={() => setIsToolsExpanded(!isToolsExpanded)}
-          className="flex w-full items-center justify-between px-2 pb-2 text-[11px] font-semibold text-[#667085] hover:text-[#101828] cursor-pointer"
-        >
-          <span>Herramientas Wanderlust</span>
-          <ChevronDown
-            className={`h-3.5 w-3.5 transition-transform ${
-              isToolsExpanded ? 'rotate-0' : '-rotate-90'
-            }`}
-          />
-        </button>
-
-        {isToolsExpanded && (
-          <div className="space-y-0.5">
-            <button
-              type="button"
-              onClick={() => {
-                onItemClick?.();
-                handleCreateTripClick();
-              }}
-              className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2 text-xs text-[#475467] hover:bg-white/60 hover:text-[#009688] cursor-pointer"
-            >
-              <Sparkles className="h-4 w-4 text-[#009688]" />
-              <span>Generador de Itinerarios IA</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onItemClick?.();
-                router.push('/');
-              }}
-              className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2 text-xs text-[#475467] hover:bg-white/60 hover:text-[#009688] cursor-pointer"
-            >
-              <FileText className="h-4 w-4 text-[#667085]" />
-              <span>Exportador PDF & Vouchers</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onItemClick?.();
-                router.push('/');
-              }}
-              className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2 text-xs text-[#475467] hover:bg-white/60 hover:text-[#009688] cursor-pointer"
-            >
-              <TrendingUp className="h-4 w-4 text-[#667085]" />
-              <span>Control de Presupuestos</span>
-            </button>
-          </div>
-        )}
       </div>
     </>
   );
@@ -579,6 +495,98 @@ export function DashboardShell({
           {children}
         </main>
       </div>
+
+      {/* ============================================================= */}
+      {/* 3. HELP & SUPPORT MODAL                                       */}
+      {/* ============================================================= */}
+      {isHelpModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-fade-in"
+            onClick={() => setIsHelpModalOpen(false)}
+          />
+          <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-zinc-200 bg-white p-6 shadow-2xl animate-scale-in z-10 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-[#009688]">
+                  <HelpCircle className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-zinc-900">Centro de Ayuda</h3>
+                  <p className="text-xs text-zinc-500">Asistencia técnica y recursos de Wanderlust</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsHelpModalOpen(false)}
+                className="rounded-full p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 py-4 text-xs">
+              {/* Contact Support Card */}
+              <div className="rounded-2xl border border-teal-100 bg-teal-50/50 p-4">
+                <p className="font-bold text-teal-950">¿Necesitas soporte técnico?</p>
+                <p className="mt-1 text-teal-800">
+                  Nuestro equipo está disponible para ayudarte con configuraciones de dominio, pagos o itinerarios.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <a
+                    href="mailto:viajes@travel.alvarodesigns.com"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#009688] px-3 py-2 font-bold text-white shadow-xs hover:bg-[#00796b] transition"
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                    <span>viajes@travel.alvarodesigns.com</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Quick FAQs */}
+              <div className="space-y-2.5">
+                <h4 className="font-bold text-zinc-900 uppercase tracking-wider text-[11px]">Preguntas Frecuentes</h4>
+                
+                <div className="rounded-xl border border-zinc-200/80 p-3 bg-zinc-50/50">
+                  <p className="font-bold text-zinc-900">¿Cómo compartir un itinerario?</p>
+                  <p className="mt-1 text-zinc-600 leading-relaxed">
+                    Entra en tu viaje o en la sección <strong>Enlaces públicos</strong> y copia el enlace seguro con token para tu cliente.
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-zinc-200/80 p-3 bg-zinc-50/50">
+                  <p className="font-bold text-zinc-900">¿Cómo configurar pagos?</p>
+                  <p className="mt-1 text-zinc-600 leading-relaxed">
+                    Accede a <strong>Configuración &gt; Métodos de Pago</strong> para conectar Stripe Connect o tu pasarela Redsys.
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-zinc-200/80 p-3 bg-zinc-50/50">
+                  <p className="font-bold text-zinc-900">¿Cómo programar avisos automáticos?</p>
+                  <p className="mt-1 text-zinc-600 leading-relaxed">
+                    Dentro de cada viaje, accede a <strong>Configuración del Viaje</strong> para activar recordatorios y cuenta atrás con hora exacta.
+                  </p>
+                </div>
+              </div>
+
+              {/* Legal & Terms Link */}
+              <div className="pt-2 border-t border-zinc-100 flex items-center justify-between">
+                <span className="text-zinc-500">¿Consultar términos legales?</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsHelpModalOpen(false);
+                    router.push('/cuenta?tab=legal');
+                  }}
+                  className="font-bold text-[#009688] hover:underline cursor-pointer"
+                >
+                  Ver Términos & Legal &rarr;
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
