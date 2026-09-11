@@ -86,24 +86,11 @@ async function runNotifications() {
       }
     };
 
-    // Calculate if reminder is due considering time of day (hour and minute) and interval
-    const [targetHour, targetMinute] = (setting.reminder_time || '09:00').split(':').map(Number);
-    const madridParts = new Intl.DateTimeFormat('en-GB', {
-      timeZone: 'Europe/Madrid',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    }).formatToParts(now);
-    const currentHour = Number(madridParts.find((p) => p.type === 'hour')?.value || 0);
-    const currentMinute = Number(madridParts.find((p) => p.type === 'minute')?.value || 0);
-
-    const currentTotalMinutes = currentHour * 60 + currentMinute;
-    const targetTotalMinutes = (isNaN(targetHour) ? 9 : targetHour) * 60 + (isNaN(targetMinute) ? 0 : targetMinute);
-    const isPastTargetTime = currentTotalMinutes >= targetTotalMinutes;
-
+    // Calculate if reminder is due considering interval since last reminder
     const lastReminderAt = setting.last_reminder_sent_at ? new Date(setting.last_reminder_sent_at).getTime() : 0;
     const daysSinceLastReminder = lastReminderAt ? (now.getTime() - lastReminderAt) / DAY_MS : 999;
-    const reminderIsDue = isPastTargetTime && (!lastReminderAt || daysSinceLastReminder >= setting.reminder_interval_days * 0.95);
+    const intervalThreshold = Math.max(0.8, setting.reminder_interval_days * 0.85);
+    const reminderIsDue = !lastReminderAt || daysSinceLastReminder >= intervalThreshold;
     if (reminderIsDue) {
       const isExact = setting.countdown_mode === 'exact';
       const daysUntilDeparture = Math.max(1, Math.ceil(millisecondsUntilTrip / DAY_MS));

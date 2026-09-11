@@ -253,74 +253,129 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
             )}
           </button>
         </div>
-        <div className="mt-5 flex flex-col sm:flex-row sm:items-end justify-between gap-5">
-          <div className="flex flex-wrap items-end gap-4 sm:gap-5">
-            <div className="w-full sm:w-36">
-              <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="reminder-days">
-                Frecuencia (días)
-              </label>
-              <input
-                id="reminder-days"
-                type="number"
-                min="1"
-                max="365"
-                disabled={!settings.reminderEnabled}
-                className={inputClassName}
-                value={settings.reminderIntervalDays}
-                onChange={(event) => updateSettings({ reminderIntervalDays: Number(event.target.value) })}
-              />
-            </div>
+        <div className="mt-5 space-y-4">
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              Frecuencia de envío
+            </label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {[
+                { label: 'Diario', days: 1, desc: 'Cada día' },
+                { label: 'Día sí, día no', days: 2, desc: 'Cada 2 días' },
+                { label: 'Cada 3 días', days: 3, desc: 'Cada 3 días' },
+                { label: 'Semanal', days: 7, desc: '1 vez por semana' },
+                { label: 'Quincenal', days: 14, desc: 'Cada 2 semanas' },
+                { label: 'Personalizado', days: null, desc: 'Días a medida' },
+              ].map((preset) => {
+                const isPresetActive =
+                  preset.days === null
+                    ? ![1, 2, 3, 7, 14].includes(settings.reminderIntervalDays)
+                    : settings.reminderIntervalDays === preset.days;
 
-            <div className="w-full sm:w-36">
-              <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="reminder-time">
-                Hora de envío
-              </label>
-              <input
-                id="reminder-time"
-                type="time"
-                disabled={!settings.reminderEnabled}
-                className={inputClassName}
-                value={settings.reminderTime || '09:00'}
-                onChange={(event) => updateSettings({ reminderTime: event.target.value })}
-              />
+                return (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    disabled={!settings.reminderEnabled}
+                    onClick={() => {
+                      if (preset.days !== null) {
+                        updateSettings({ reminderIntervalDays: preset.days });
+                      } else if ([1, 2, 3, 7, 14].includes(settings.reminderIntervalDays)) {
+                        updateSettings({ reminderIntervalDays: 5 });
+                      }
+                    }}
+                    className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition cursor-pointer disabled:cursor-not-allowed ${
+                      isPresetActive
+                        ? 'bg-[#009688] text-white shadow-xs font-bold ring-2 ring-[#009688]/20'
+                        : 'border border-zinc-200 bg-zinc-50 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
+                    }`}
+                  >
+                    <span>{preset.label}</span>
+                    <span className={`text-[11px] ${isPresetActive ? 'text-teal-100 font-normal' : 'text-zinc-400 font-normal'}`}>
+                      · {preset.desc}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="w-full sm:w-60 sm:ml-auto">
-            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-              Tipo de cuenta atrás
-            </p>
-            <div className="mt-1.5 grid grid-cols-2 rounded-xl border border-zinc-200 bg-zinc-50 p-1 text-sm font-semibold">
-              <button
-                type="button"
-                disabled={!settings.reminderEnabled}
-                onClick={() => updateSettings({ countdownMode: 'exact' })}
-                className={`rounded-lg px-3 py-2 transition cursor-pointer disabled:cursor-not-allowed ${
-                  settings.countdownMode === 'exact'
-                    ? 'bg-white text-[#00796b] shadow-xs'
-                    : 'text-zinc-500 hover:text-zinc-700'
-                }`}
-              >
-                Real
-              </button>
-              <button
-                type="button"
-                disabled={!settings.reminderEnabled}
-                onClick={() => updateSettings({ countdownMode: 'surprise' })}
-                className={`rounded-lg px-3 py-2 transition cursor-pointer disabled:cursor-not-allowed ${
-                  settings.countdownMode === 'surprise'
-                    ? 'bg-white text-[#00796b] shadow-xs'
-                    : 'text-zinc-500 hover:text-zinc-700'
-                }`}
-              >
-                Sorpresa
-              </button>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 pt-1">
+            <div className="flex flex-wrap items-end gap-4 sm:gap-5">
+              {![1, 2, 3, 7, 14].includes(settings.reminderIntervalDays) && (
+                <div className="w-full sm:w-36 animate-in fade-in duration-200">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="reminder-days">
+                    Días exactos
+                  </label>
+                  <input
+                    id="reminder-days"
+                    type="number"
+                    min="1"
+                    max="365"
+                    disabled={!settings.reminderEnabled}
+                    className={inputClassName}
+                    value={settings.reminderIntervalDays}
+                    onChange={(event) => {
+                      const val = Math.max(1, Math.min(365, Number(event.target.value) || 1));
+                      updateSettings({ reminderIntervalDays: val });
+                    }}
+                  />
+                </div>
+              )}
+
+              <div className="w-full sm:w-36">
+                <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="reminder-time">
+                  Hora de envío
+                </label>
+                <input
+                  id="reminder-time"
+                  type="time"
+                  disabled={!settings.reminderEnabled}
+                  className={inputClassName}
+                  value={settings.reminderTime || '09:00'}
+                  onChange={(event) => updateSettings({ reminderTime: event.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="w-full sm:w-60 sm:ml-auto">
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                Tipo de cuenta atrás
+              </p>
+              <div className="mt-1.5 grid grid-cols-2 rounded-xl border border-zinc-200 bg-zinc-50 p-1 text-sm font-semibold">
+                <button
+                  type="button"
+                  disabled={!settings.reminderEnabled}
+                  onClick={() => updateSettings({ countdownMode: 'exact' })}
+                  className={`rounded-lg px-3 py-2 transition cursor-pointer disabled:cursor-not-allowed ${
+                    settings.countdownMode === 'exact'
+                      ? 'bg-white text-[#00796b] shadow-xs'
+                      : 'text-zinc-500 hover:text-zinc-700'
+                  }`}
+                >
+                  Real
+                </button>
+                <button
+                  type="button"
+                  disabled={!settings.reminderEnabled}
+                  onClick={() => updateSettings({ countdownMode: 'surprise' })}
+                  className={`rounded-lg px-3 py-2 transition cursor-pointer disabled:cursor-not-allowed ${
+                    settings.countdownMode === 'surprise'
+                      ? 'bg-white text-[#00796b] shadow-xs'
+                      : 'text-zinc-500 hover:text-zinc-700'
+                  }`}
+                >
+                  Sorpresa
+                </button>
+              </div>
             </div>
           </div>
         </div>
         <div className="mt-4 flex gap-2 rounded-xl bg-teal-50/80 p-3 text-xs leading-relaxed text-[#004d40]">
           <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[#009688]" />
-          {settings.countdownMode === 'exact' ? 'El email indicará cuántos días faltan para empezar el viaje.' : 'El email no revelará la fecha exacta y mostrará un mensaje genérico para mantener la sorpresa.'}
+          {settings.countdownMode === 'exact'
+            ? `El email indicará cuántos días faltan para empezar el viaje (se enviará cada ${settings.reminderIntervalDays === 1 ? 'día' : `${settings.reminderIntervalDays} días`}).`
+            : 'El email no revelará la fecha exacta y mostrará un mensaje genérico para mantener la sorpresa.'}
         </div>
       </div>
 
