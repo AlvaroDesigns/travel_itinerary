@@ -171,11 +171,11 @@ export function RedsysConfigModal({
           {/* Bottom Security Highlights */}
           <div className="relative z-10 space-y-3 pt-6 border-t border-white/10">
             <div className="flex items-start gap-2.5 text-xs text-zinc-300">
-              <ShieldCheck className="h-4 w-4 text-[#009688] shrink-0 mt-0.5" />
+              <ShieldCheck className="h-4 w-4 text-[#0066FF] shrink-0 mt-0.5" />
               <span>Cumplimiento PCI-DSS Nivel 1 y autenticación 3D Secure 2.2.</span>
             </div>
             <div className="flex items-start gap-2.5 text-xs text-zinc-300">
-              <Lock className="h-4 w-4 text-[#009688] shrink-0 mt-0.5" />
+              <Lock className="h-4 w-4 text-[#0066FF] shrink-0 mt-0.5" />
               <span>Firma HMAC-SHA256 con claves cifradas de extremo a extremo.</span>
             </div>
           </div>
@@ -240,7 +240,7 @@ export function RedsysConfigModal({
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                 {/* Código de comercio */}
                 <div>
-                  <div className="relative rounded-xl border border-zinc-300 focus-within:border-[#009688] focus-within:ring-2 focus-within:ring-[#009688]/20 transition bg-white px-3.5 pt-2 pb-2">
+                  <div className="relative rounded-xl border border-zinc-300 focus-within:border-[#0066FF] focus-within:ring-2 focus-within:ring-[#0066FF]/20 transition bg-white px-3.5 pt-2 pb-2">
                     <label className="block text-[11px] font-bold text-zinc-600">
                       Código de comercio
                     </label>
@@ -257,7 +257,7 @@ export function RedsysConfigModal({
 
                 {/* Número de terminal */}
                 <div>
-                  <div className="relative rounded-xl border border-zinc-300 focus-within:border-[#009688] focus-within:ring-2 focus-within:ring-[#009688]/20 transition bg-white px-3.5 pt-2 pb-2">
+                  <div className="relative rounded-xl border border-zinc-300 focus-within:border-[#0066FF] focus-within:ring-2 focus-within:ring-[#0066FF]/20 transition bg-white px-3.5 pt-2 pb-2">
                     <label className="block text-[11px] font-bold text-zinc-600">
                       Número de terminal
                     </label>
@@ -274,7 +274,7 @@ export function RedsysConfigModal({
 
                 {/* Moneda */}
                 <div>
-                  <div className="relative rounded-xl border border-zinc-300 focus-within:border-[#009688] focus-within:ring-2 focus-within:ring-[#009688]/20 transition bg-white px-3.5 pt-2 pb-2">
+                  <div className="relative rounded-xl border border-zinc-300 focus-within:border-[#0066FF] focus-within:ring-2 focus-within:ring-[#0066FF]/20 transition bg-white px-3.5 pt-2 pb-2">
                     <label className="block text-[11px] font-bold text-zinc-600">
                       Moneda
                     </label>
@@ -294,7 +294,7 @@ export function RedsysConfigModal({
 
               {/* Row 2: Clave de firma (Key) */}
               <div>
-                <div className="relative rounded-xl border border-zinc-300 focus-within:border-[#009688] focus-within:ring-2 focus-within:ring-[#009688]/20 transition bg-white px-3.5 pt-2 pb-2 flex items-center justify-between">
+                <div className="relative rounded-xl border border-zinc-300 focus-within:border-[#0066FF] focus-within:ring-2 focus-within:ring-[#0066FF]/20 transition bg-white px-3.5 pt-2 pb-2 flex items-center justify-between">
                   <div className="flex-1">
                     <label className="block text-[11px] font-bold text-zinc-600">
                       Clave de firma (Key)
@@ -326,7 +326,7 @@ export function RedsysConfigModal({
                     type="checkbox"
                     checked={autoInstallments}
                     onChange={(e) => setAutoInstallments(e.target.checked)}
-                    className="h-4 w-4 rounded border-zinc-300 text-[#009688] focus:ring-[#009688] accent-[#009688]"
+                    className="h-4 w-4 rounded border-zinc-300 text-[#0066FF] focus:ring-[#0066FF] accent-[#0066FF]"
                   />
                   <span className="text-xs font-bold text-[#101828]">
                     Cobrar automáticamente pagos a plazos
@@ -365,7 +365,7 @@ export function RedsysConfigModal({
                   <button
                     type="submit"
                     disabled={!isFormValid}
-                    className="flex items-center gap-1.5 rounded-xl bg-[#009688] px-5 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] disabled:opacity-40 transition cursor-pointer"
+                    className="flex items-center gap-1.5 rounded-xl bg-[#0066FF] px-5 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] disabled:opacity-40 transition cursor-pointer"
                   >
                     <span>Guardar y continuar</span>
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -389,13 +389,13 @@ export function RedsysConfigModal({
                     onClick={() => setEnvironment('test')}
                     className={`rounded-2xl border p-3 text-left transition cursor-pointer ${
                       environment === 'test'
-                        ? 'border-[#009688] bg-teal-50/50 ring-2 ring-[#009688]/20'
+                        ? 'border-[#0066FF] bg-blue-50/50 ring-2 ring-[#0066FF]/20'
                         : 'border-zinc-200 hover:border-zinc-300 bg-white'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-zinc-900">🧪 Sandbox / Pruebas</span>
-                      {environment === 'test' && <Check className="h-4 w-4 text-[#009688]" />}
+                      {environment === 'test' && <Check className="h-4 w-4 text-[#0066FF]" />}
                     </div>
                     <p className="text-[11px] text-zinc-500 mt-1">
                       Tarjetas de prueba de Redsys (Sis-t).
@@ -407,13 +407,13 @@ export function RedsysConfigModal({
                     onClick={() => setEnvironment('real')}
                     className={`rounded-2xl border p-3 text-left transition cursor-pointer ${
                       environment === 'real'
-                        ? 'border-[#009688] bg-teal-50/50 ring-2 ring-[#009688]/20'
+                        ? 'border-[#0066FF] bg-blue-50/50 ring-2 ring-[#0066FF]/20'
                         : 'border-zinc-200 hover:border-zinc-300 bg-white'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-zinc-900">⚡ Producción Real</span>
-                      {environment === 'real' && <Check className="h-4 w-4 text-[#009688]" />}
+                      {environment === 'real' && <Check className="h-4 w-4 text-[#0066FF]" />}
                     </div>
                     <p className="text-[11px] text-zinc-500 mt-1">
                       Cobros reales a cuentas bancarias de clientes.
@@ -502,7 +502,7 @@ export function RedsysConfigModal({
                   <button
                     type="button"
                     onClick={() => handleFinalSave()}
-                    className="rounded-xl bg-[#009688] px-5 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition cursor-pointer"
+                    className="rounded-xl bg-[#0066FF] px-5 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] transition cursor-pointer"
                   >
                     Confirmar y Activar TPV
                   </button>

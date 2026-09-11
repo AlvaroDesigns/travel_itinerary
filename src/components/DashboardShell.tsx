@@ -36,6 +36,7 @@ import {
   Check,
 } from 'lucide-react';
 import { UserAvatarDisplay } from '@/components/AvatarPickerModal';
+import { isAgencyUser } from '@/lib/user-utils';
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -100,7 +101,7 @@ export function DashboardShell({
               : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
           }`}
         >
-          <LayoutDashboard className="h-4 w-4 text-[#009688]" />
+          <LayoutDashboard className="h-4 w-4 text-[#0066FF]" />
           <span>Dashboard</span>
         </Link>
 
@@ -115,7 +116,7 @@ export function DashboardShell({
           }`}
         >
           <div className="flex items-center gap-3">
-            <Plane className="h-4 w-4 text-[#009688]" />
+            <Plane className="h-4 w-4 text-[#0066FF]" />
             <span>Mis viajes</span>
           </div>
           <span className="rounded-full bg-[#e0f2f1] px-2 py-0.5 text-[10px] font-bold text-[#00796b]">
@@ -134,7 +135,7 @@ export function DashboardShell({
           }`}
         >
           <div className="flex items-center gap-3">
-            <Users className="h-4 w-4 text-[#009688]" />
+            <Users className="h-4 w-4 text-[#0066FF]" />
             <span>Clientes</span>
           </div>
           <span className="rounded-full bg-[#e0f2f1] px-2 py-0.5 text-[10px] font-bold text-[#00796b]">
@@ -142,29 +143,31 @@ export function DashboardShell({
           </span>
         </Link>
 
-        {/* Oportunidades (CRM) */}
-        <Link
-          href="/oportunidades"
-          onClick={onItemClick}
-          className={`flex w-full items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
-            activeMenu === 'oportunidades'
-              ? 'bg-white text-[#101828] shadow-xs'
-              : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <Briefcase className="h-4 w-4 text-[#009688]" />
-            <span>Oportunidades</span>
-          </div>
-          {opportunities.length > 0 && (
-            <span className="rounded-full bg-[#e0f2f1] px-2 py-0.5 text-[10px] font-bold text-[#00796b]">
-              {opportunities.length}
-            </span>
-          )}
-        </Link>
+        {/* Oportunidades (CRM) - Solo para agencias / administradores */}
+        {isAgencyUser(user) && (
+          <Link
+            href="/oportunidades"
+            onClick={onItemClick}
+            className={`flex w-full items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs font-semibold transition-all ${
+              activeMenu === 'oportunidades'
+                ? 'bg-white text-[#101828] shadow-xs'
+                : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Briefcase className="h-4 w-4 text-[#0066FF]" />
+              <span>Oportunidades</span>
+            </div>
+            {opportunities.length > 0 && (
+              <span className="rounded-full bg-[#e0f2f1] px-2 py-0.5 text-[10px] font-bold text-[#00796b]">
+                {opportunities.length}
+              </span>
+            )}
+          </Link>
+        )}
 
         {/* Usuarios */}
-        {(user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'superuser' || (user?.tenantId && user?.tenantId !== 'particular')) && (
+        {isAgencyUser(user) && (
           <Link
             href="/usuarios"
             onClick={onItemClick}
@@ -174,7 +177,7 @@ export function DashboardShell({
                 : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
             }`}
           >
-            <UserCog className="h-4 w-4 text-[#009688]" />
+            <UserCog className="h-4 w-4 text-[#0066FF]" />
             <span>Usuarios</span>
           </Link>
         )}
@@ -189,7 +192,7 @@ export function DashboardShell({
               : 'text-[#475467] hover:bg-white/60 hover:text-[#101828]'
           }`}
         >
-          <Share2 className="h-4 w-4 text-[#009688]" />
+          <Share2 className="h-4 w-4 text-[#0066FF]" />
           <span>Enlaces públicos</span>
         </Link>
 
@@ -204,7 +207,7 @@ export function DashboardShell({
           }`}
         >
           <div className="flex items-center gap-3">
-            <FileText className="h-4 w-4 text-[#009688]" />
+            <FileText className="h-4 w-4 text-[#0066FF]" />
             <span>Exportador PDF</span>
           </div>
           <span className="rounded-full bg-[#e0f2f1] px-1.5 py-0.5 text-[10px] font-bold text-[#00796b]">
@@ -230,7 +233,7 @@ export function DashboardShell({
             }`}
           >
             <div className="flex items-center gap-3">
-              <Settings className="h-4 w-4 text-[#009688]" />
+              <Settings className="h-4 w-4 text-[#0066FF]" />
               <span>Configuración</span>
             </div>
           </Link>
@@ -244,7 +247,7 @@ export function DashboardShell({
             }}
             className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-xs font-semibold text-[#475467] hover:bg-white/60 hover:text-[#101828] transition cursor-pointer"
           >
-            <HelpCircle className="h-4 w-4 text-[#009688]" />
+            <HelpCircle className="h-4 w-4 text-[#0066FF]" />
             <span>Centro de ayuda</span>
           </button>
         </div>
@@ -257,7 +260,7 @@ export function DashboardShell({
       onClick={() => {
         setIsUserMenuOpen(false);
       }}
-      className="flex h-screen h-[100dvh] w-full flex-col bg-[#140b2a] font-sans text-[#18181b] selection:bg-[#009688] selection:text-white overflow-hidden"
+      className="flex h-screen h-[100dvh] w-full flex-col bg-[#140b2a] font-sans text-[#18181b] selection:bg-[#0066FF] selection:text-white overflow-hidden"
     >
       {/* ============================================================= */}
       {/* 1. TOP HEADER (Deep Purple hPanel Header with White Logo)     */}
@@ -302,11 +305,7 @@ export function DashboardShell({
         <div className="flex items-center gap-2 sm:gap-3">
           {user && (
             <Link
-              href={
-                user.role === 'admin' || user.role === 'superadmin' || user.role === 'superuser' || (user.tenantId && user.tenantId !== 'particular')
-                  ? '/usuarios'
-                  : '/cuenta'
-              }
+              href={isAgencyUser(user) ? '/usuarios' : '/cuenta'}
               className={`hidden sm:flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${
                 activeMenu === 'usuarios' || activeMenu?.startsWith('admin')
                   ? 'border-[#80cbc4] bg-white/20 text-white shadow-xs'
@@ -349,7 +348,7 @@ export function DashboardShell({
               title="Perfil de usuario"
               className={`flex h-9 w-9 items-center justify-center rounded-full transition-all cursor-pointer overflow-hidden ${
                 isUserMenuOpen || activeMenu === 'cuenta'
-                  ? 'ring-2 ring-[#009688] shadow-md'
+                  ? 'ring-2 ring-[#0066FF] shadow-md'
                   : 'hover:ring-2 hover:ring-white/40'
               }`}
             >
@@ -378,7 +377,7 @@ export function DashboardShell({
                       {user?.name || getUserDisplayName()}
                     </p>
                     <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                      <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-extrabold text-[#00796b]">
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-extrabold text-[#0066FF]">
                         {user?.role === 'superuser' || user?.role === 'superadmin'
                           ? 'SUPERUSER'
                           : user?.role === 'admin'
@@ -400,13 +399,13 @@ export function DashboardShell({
                     <span>Mi cuenta</span>
                   </Link>
 
-                  {(user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'superuser' || (user?.tenantId && user?.tenantId !== 'particular')) && (
+                  {isAgencyUser(user) && (
                     <Link
                       href="/usuarios"
                       onClick={() => setIsUserMenuOpen(false)}
                       className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors"
                     >
-                      <UserCog className="h-4 w-4 text-[#009688]" />
+                      <UserCog className="h-4 w-4 text-[#0066FF]" />
                       <span>Usuarios</span>
                     </Link>
                   )}
@@ -508,7 +507,7 @@ export function DashboardShell({
           <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-zinc-200 bg-white p-6 shadow-2xl animate-scale-in z-10 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-[#009688]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF]">
                   <HelpCircle className="h-5 w-5" />
                 </div>
                 <div>
@@ -527,15 +526,15 @@ export function DashboardShell({
 
             <div className="space-y-4 py-4 text-xs">
               {/* Contact Support Card */}
-              <div className="rounded-2xl border border-teal-100 bg-teal-50/50 p-4">
-                <p className="font-bold text-teal-950">¿Necesitas soporte técnico?</p>
-                <p className="mt-1 text-teal-800">
+              <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+                <p className="font-bold text-blue-950">¿Necesitas soporte técnico?</p>
+                <p className="mt-1 text-blue-800">
                   Nuestro equipo está disponible para ayudarte con configuraciones de dominio, pagos o itinerarios.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <a
                     href="mailto:viajes@travel.alvarodesigns.com"
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#009688] px-3 py-2 font-bold text-white shadow-xs hover:bg-[#00796b] transition"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#0066FF] px-3 py-2 font-bold text-white shadow-xs hover:bg-[#0052CC] transition"
                   >
                     <Mail className="h-3.5 w-3.5" />
                     <span>viajes@travel.alvarodesigns.com</span>
@@ -570,19 +569,35 @@ export function DashboardShell({
               </div>
 
               {/* Legal & Terms Link */}
-              <div className="pt-2 border-t border-zinc-100 flex items-center justify-between">
-                <span className="text-zinc-500">¿Consultar términos legales?</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsHelpModalOpen(false);
-                    router.push('/cuenta?tab=legal');
-                  }}
-                  className="font-bold text-[#009688] hover:underline cursor-pointer"
-                >
-                  Ver Términos & Legal &rarr;
-                </button>
-              </div>
+              {isAgencyUser(user) ? (
+                <div className="pt-2 border-t border-zinc-100 flex items-center justify-between">
+                  <span className="text-zinc-500">¿Consultar términos legales de tu agencia?</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsHelpModalOpen(false);
+                      router.push('/cuenta?tab=legal');
+                    }}
+                    className="font-bold text-[#0066FF] hover:underline cursor-pointer"
+                  >
+                    Ver Términos & Legal &rarr;
+                  </button>
+                </div>
+              ) : (
+                <div className="pt-2 border-t border-zinc-100 flex items-center justify-between">
+                  <span className="text-zinc-500">¿Deseas editar tu perfil?</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsHelpModalOpen(false);
+                      router.push('/cuenta');
+                    }}
+                    className="font-bold text-[#0066FF] hover:underline cursor-pointer"
+                  >
+                    Ir a Configuración &rarr;
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -197,7 +197,7 @@ export function BookingPaymentModal({
             </div>
 
             <div className="flex items-center gap-2 text-[11px] text-zinc-400">
-              <ShieldCheck className="h-4 w-4 text-[#009688] shrink-0" />
+              <ShieldCheck className="h-4 w-4 text-[#0066FF] shrink-0" />
               <span>Compatible con TPV Virtual Redsys y Stripe Connect.</span>
             </div>
           </div>
@@ -209,7 +209,7 @@ export function BookingPaymentModal({
             {/* Header */}
             <div className="flex items-start justify-between border-b border-zinc-100 pb-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-[#009688]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF]">
                   <CalendarCheck className="h-5 w-5" />
                 </div>
                 <div>
@@ -240,7 +240,7 @@ export function BookingPaymentModal({
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-xl border border-zinc-300 px-3.5 py-2 text-xs font-semibold text-[#101828] focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/20 outline-none"
+                  className="w-full rounded-xl border border-zinc-300 px-3.5 py-2 text-xs font-semibold text-[#101828] focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 outline-none"
                   placeholder="Ej. Condiciones de Reserva y Plazos"
                 />
               </div>
@@ -253,7 +253,7 @@ export function BookingPaymentModal({
                   type="time"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
-                  className="w-full rounded-xl border border-zinc-300 px-3.5 py-2 text-xs font-semibold text-[#101828] focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/20 outline-none"
+                  className="w-full rounded-xl border border-zinc-300 px-3.5 py-2 text-xs font-semibold text-[#101828] focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 outline-none"
                 />
               </div>
             </div>
@@ -272,7 +272,7 @@ export function BookingPaymentModal({
                     step="10"
                     value={totalAmount}
                     onChange={(e) => handleTotalChange(Number(e.target.value))}
-                    className="w-full rounded-xl border border-zinc-300 bg-white px-3.5 py-2.5 text-base font-black text-[#101828] focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/20 outline-none"
+                    className="w-full rounded-xl border border-zinc-300 bg-white px-3.5 py-2.5 text-base font-black text-[#101828] focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 outline-none"
                   />
                   <span className="absolute right-3.5 top-3 text-xs font-bold text-zinc-400">EUR (€)</span>
                 </div>
@@ -289,13 +289,13 @@ export function BookingPaymentModal({
                     onClick={() => setPaymentProvider('redsys')}
                     className={`rounded-xl border p-2.5 text-left transition cursor-pointer flex flex-col justify-between ${
                       paymentProvider === 'redsys'
-                        ? 'border-[#009688] bg-teal-50/70 ring-2 ring-[#009688]/20'
+                        ? 'border-[#0066FF] bg-blue-50/70 ring-2 ring-[#0066FF]/20'
                         : 'border-zinc-200 bg-white hover:border-zinc-300'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <RedsysLogo size="sm" showText={false} />
-                      {paymentProvider === 'redsys' && <Check className="h-3.5 w-3.5 text-[#009688]" />}
+                      {paymentProvider === 'redsys' && <Check className="h-3.5 w-3.5 text-[#0066FF]" />}
                     </div>
                     <span className="text-[11px] font-extrabold text-[#101828] mt-1">
                       Redsys (Bizum / Tarjeta)
@@ -307,13 +307,13 @@ export function BookingPaymentModal({
                     onClick={() => setPaymentProvider('stripe')}
                     className={`rounded-xl border p-2.5 text-left transition cursor-pointer flex flex-col justify-between ${
                       paymentProvider === 'stripe'
-                        ? 'border-[#009688] bg-teal-50/70 ring-2 ring-[#009688]/20'
+                        ? 'border-[#0066FF] bg-blue-50/70 ring-2 ring-[#0066FF]/20'
                         : 'border-zinc-200 bg-white hover:border-zinc-300'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-black text-xs text-[#009688]">Stripe</span>
-                      {paymentProvider === 'stripe' && <Check className="h-3.5 w-3.5 text-[#009688]" />}
+                      <span className="font-black text-xs text-[#0066FF]">Stripe</span>
+                      {paymentProvider === 'stripe' && <Check className="h-3.5 w-3.5 text-[#0066FF]" />}
                     </div>
                     <span className="text-[11px] font-extrabold text-[#101828] mt-1">
                       Stripe Payments
@@ -338,7 +338,7 @@ export function BookingPaymentModal({
                       onClick={() => handleDepositPercentChange(pct)}
                       className={`rounded-md px-2 py-0.5 text-[10px] font-bold cursor-pointer transition ${
                         depositPercentage === pct
-                          ? 'bg-[#009688] text-white'
+                          ? 'bg-[#0066FF] text-white'
                           : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
                       }`}
                     >
@@ -405,21 +405,21 @@ export function BookingPaymentModal({
                 rows={2}
                 value={cancellationPolicy}
                 onChange={(e) => setCancellationPolicy(e.target.value)}
-                className="w-full rounded-xl border border-zinc-300 p-3 text-xs text-zinc-700 focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/20 outline-none"
+                className="w-full rounded-xl border border-zinc-300 p-3 text-xs text-zinc-700 focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 outline-none"
                 placeholder="Condiciones de pago, reembolsos..."
               />
             </div>
 
             {/* Live Test Sandbox Simulator Box */}
-            <div className="rounded-2xl border border-teal-200/80 bg-teal-50/50 p-4 space-y-2">
+            <div className="rounded-2xl border border-blue-200/80 bg-blue-50/50 p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-[#009688]" />
+                  <Zap className="h-4 w-4 text-[#0066FF]" />
                   <span className="text-xs font-bold text-[#101828]">
                     Probar pasarela en vivo ({paymentProvider === 'redsys' ? 'Redsys Sis-t Sandbox' : 'Stripe Test'})
                   </span>
                 </div>
-                <span className="rounded-md bg-white border border-teal-200 px-2 py-0.5 text-[10px] font-black text-[#009688]">
+                <span className="rounded-md bg-white border border-blue-200 px-2 py-0.5 text-[10px] font-black text-[#0066FF]">
                   MODO TEST
                 </span>
               </div>
@@ -439,7 +439,7 @@ export function BookingPaymentModal({
                   }}
                   className="rounded-xl border border-zinc-300 bg-white px-3.5 py-1.5 text-xs font-bold text-zinc-700 hover:bg-zinc-50 transition cursor-pointer flex items-center gap-1.5 shadow-xs"
                 >
-                  <CreditCard className="h-3.5 w-3.5 text-[#009688]" />
+                  <CreditCard className="h-3.5 w-3.5 text-[#0066FF]" />
                   <span>Lanzar prueba de cobro (1,00 €)</span>
                 </button>
 
@@ -452,7 +452,7 @@ export function BookingPaymentModal({
                       </span>
                     ) : (
                       <span className="text-zinc-600 flex items-center gap-1">
-                        <span className="h-3 w-3 rounded-full border-2 border-[#009688] border-t-transparent animate-spin" />
+                        <span className="h-3 w-3 rounded-full border-2 border-[#0066FF] border-t-transparent animate-spin" />
                         Conectando con TPV Redsys Sis-t...
                       </span>
                     )}
@@ -487,7 +487,7 @@ export function BookingPaymentModal({
 
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#009688] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition cursor-pointer"
+                  className="rounded-xl bg-[#0066FF] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] transition cursor-pointer"
                 >
                   Guardar condiciones de reserva
                 </button>

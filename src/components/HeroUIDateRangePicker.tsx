@@ -173,10 +173,10 @@ export function HeroUIDateRangePicker({
       {/* Label */}
       <div className="flex items-center justify-between">
         <label className="text-xs font-bold uppercase tracking-wider text-zinc-600">
-          {label} {isRequired && <span className="text-[#009688]">*</span>}
+          {label} {isRequired && <span className="text-[#0066FF]">*</span>}
         </label>
         {daysCount && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#00796b]">
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0066FF]">
             <Sparkles className="h-3 w-3" />
             {daysCount} {daysCount === 1 ? 'día' : 'días'}
           </span>
@@ -188,7 +188,7 @@ export function HeroUIDateRangePicker({
         onClick={() => setIsOpen(!isOpen)}
         className={`group flex h-12 w-full cursor-pointer items-center justify-between rounded-2xl border bg-zinc-50/70 px-3.5 text-sm transition-all duration-200 ${
           isOpen
-            ? 'border-[#009688] bg-white ring-2 ring-[#009688]/15 shadow-sm'
+            ? 'border-[#0066FF] bg-white ring-2 ring-[#0066FF]/15 shadow-sm'
             : 'border-zinc-200/90 hover:border-zinc-300 hover:bg-white'
         }`}
       >
@@ -196,7 +196,7 @@ export function HeroUIDateRangePicker({
           <div
             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-colors ${
               isOpen || (startDate && endDate)
-                ? 'bg-teal-50 text-[#009688]'
+                ? 'bg-blue-50 text-[#0066FF]'
                 : 'bg-zinc-100 text-zinc-500 group-hover:text-zinc-700'
             }`}
           >
@@ -253,7 +253,7 @@ export function HeroUIDateRangePicker({
                 key={preset.days}
                 type="button"
                 onClick={() => handleQuickPreset(preset.days)}
-                className="rounded-lg border border-zinc-200/80 bg-zinc-50 px-2.5 py-1 text-xs font-semibold text-zinc-700 transition-colors hover:border-[#009688] hover:bg-teal-50 hover:text-[#00796b]"
+                className="rounded-lg border border-zinc-200/80 bg-zinc-50 px-2.5 py-1 text-xs font-semibold text-zinc-700 transition-colors hover:border-[#0066FF] hover:bg-blue-50 hover:text-[#0066FF]"
               >
                 {preset.label}
               </button>
@@ -324,9 +324,9 @@ export function HeroUIDateRangePicker({
                 <div
                   key={dateStr}
                   className={`relative flex h-9 items-center justify-center ${
-                    isInRange || isHoveredRange ? 'bg-teal-50/80' : ''
-                  } ${isStart && endDate ? 'rounded-l-full bg-teal-50/80' : ''} ${
-                    isEnd && startDate ? 'rounded-r-full bg-teal-50/80' : ''
+                    isInRange || isHoveredRange ? 'bg-blue-50/80' : ''
+                  } ${isStart && endDate ? 'rounded-l-full bg-blue-50/80' : ''} ${
+                    isEnd && startDate ? 'rounded-r-full bg-blue-50/80' : ''
                   }`}
                   onMouseEnter={() => setHoverDate(dateStr)}
                   onMouseLeave={() => setHoverDate(null)}
@@ -336,9 +336,9 @@ export function HeroUIDateRangePicker({
                     onClick={() => handleDayClick(dateStr)}
                     className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all cursor-pointer ${
                       isStart || isEnd
-                        ? 'bg-[#009688] text-white shadow-md shadow-teal-500/30 scale-105'
+                        ? 'bg-[#0066FF] text-white shadow-md shadow-blue-500/30 scale-105'
                         : isInRange || isHoveredRange
-                        ? 'text-[#00796b] font-extrabold hover:bg-[#009688]/20'
+                        ? 'text-[#0066FF] font-extrabold hover:bg-[#0066FF]/20'
                         : 'text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950'
                     }`}
                   >
@@ -362,7 +362,7 @@ export function HeroUIDateRangePicker({
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="font-bold text-[#009688] hover:underline"
+                className="font-bold text-[#0066FF] hover:underline"
               >
                 Confirmar
               </button>

@@ -147,13 +147,13 @@ export function StripeConfigModal({
         {/* Header */}
         <div className="flex items-start justify-between border-b border-zinc-100 pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-[#009688]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF]">
               <span className="font-black text-xl tracking-tight">S</span>
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-bold text-[#101828]">Configuración de Stripe</h3>
-                <span className="rounded-md bg-teal-50 px-2 py-0.5 text-[10px] font-black uppercase text-[#009688] border border-teal-200/60">
+                <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-black uppercase text-[#0066FF] border border-blue-200/60">
                   Stripe Payments
                 </span>
               </div>
@@ -172,7 +172,7 @@ export function StripeConfigModal({
         </div>
 
         {/* Wizard Quick Connect Banner */}
-        <div className="flex items-center justify-between rounded-2xl border border-[#009688]/20 bg-teal-50/50 p-4">
+        <div className="flex items-center justify-between rounded-2xl border border-[#0066FF]/20 bg-blue-50/50 p-4">
           <div className="space-y-0.5">
             <p className="text-xs font-bold text-[#101828]">Conectar cuenta con Stripe Connect</p>
             <p className="text-[11px] text-zinc-600">Onboarding oficial alojado en los servidores de Stripe.</p>
@@ -181,7 +181,7 @@ export function StripeConfigModal({
             type="button"
             disabled={isConnectingLive}
             onClick={handleConnectStripeLive}
-            className="rounded-xl bg-[#009688] px-3.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] disabled:opacity-50 transition cursor-pointer shrink-0 flex items-center gap-1.5"
+            className="rounded-xl bg-[#0066FF] px-3.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] disabled:opacity-50 transition cursor-pointer shrink-0 flex items-center gap-1.5"
           >
             {isConnectingLive && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             <span>Ir a Stripe oficial</span>
@@ -229,7 +229,7 @@ export function StripeConfigModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tu-email@agencia.com"
-              className="w-full rounded-xl border border-zinc-300 p-2.5 text-xs text-zinc-900 focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/20"
+              className="w-full rounded-xl border border-zinc-300 p-2.5 text-xs text-zinc-900 focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20"
             />
           </div>
 
@@ -245,7 +245,7 @@ export function StripeConfigModal({
                 value={publishableKey}
                 onChange={(e) => setPublishableKey(e.target.value)}
                 placeholder={testMode ? 'pk_test_51...' : 'pk_live_51...'}
-                className="w-full rounded-xl border border-zinc-300 p-2.5 font-mono text-xs text-zinc-900 focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/20"
+                className="w-full rounded-xl border border-zinc-300 p-2.5 font-mono text-xs text-zinc-900 focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20"
               />
             </div>
 
@@ -259,7 +259,7 @@ export function StripeConfigModal({
                 value={secretKey}
                 onChange={(e) => setSecretKey(e.target.value)}
                 placeholder={testMode ? 'sk_test_51...' : 'sk_live_51...'}
-                className="w-full rounded-xl border border-zinc-300 p-2.5 font-mono text-xs text-zinc-900 focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/20"
+                className="w-full rounded-xl border border-zinc-300 p-2.5 font-mono text-xs text-zinc-900 focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20"
               />
             </div>
 
@@ -273,7 +273,7 @@ export function StripeConfigModal({
                 value={webhookSecret}
                 onChange={(e) => setWebhookSecret(e.target.value)}
                 placeholder="whsec_..."
-                className="w-full rounded-xl border border-zinc-300 p-2.5 font-mono text-xs text-zinc-900 focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/20"
+                className="w-full rounded-xl border border-zinc-300 p-2.5 font-mono text-xs text-zinc-900 focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20"
               />
             </div>
           </div>
@@ -365,7 +365,7 @@ export function StripeConfigModal({
               <button
                 type="submit"
                 disabled={!email.trim()}
-                className="rounded-xl bg-[#009688] px-5 py-2 font-bold text-white shadow-xs hover:bg-[#00796b] disabled:opacity-50 transition cursor-pointer"
+                className="rounded-xl bg-[#0066FF] px-5 py-2 font-bold text-white shadow-xs hover:bg-[#0052CC] disabled:opacity-50 transition cursor-pointer"
               >
                 Guardar cambios
               </button>

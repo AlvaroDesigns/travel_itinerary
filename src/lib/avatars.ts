@@ -97,14 +97,14 @@ export const AVATAR_PRESETS: AvatarPreset[] = [
     </svg>`,
   },
   {
-    id: 'tour-guide-emerald',
-    name: 'Guía Turístico (Verde)',
+    id: 'tour-guide-blue',
+    name: 'Guía Turístico (Azul)',
     category: 'illustrated',
-    bgColor: '#009688',
-    accentColor: '#80cbc4',
+    bgColor: '#0066FF',
+    accentColor: '#00C6FF',
     svg: `<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="60" cy="60" r="60" fill="#009688"/>
-      <path d="M24 114C24 95 38 85 60 85C82 85 96 95 96 114V120H24V114Z" fill="#004d40"/>
+      <circle cx="60" cy="60" r="60" fill="#0066FF"/>
+      <path d="M24 114C24 95 38 85 60 85C82 85 96 95 96 114V120H24V114Z" fill="#003399"/>
       <!-- Binoculars hanging -->
       <circle cx="54" cy="98" r="6" fill="#263238"/>
       <circle cx="66" cy="98" r="6" fill="#263238"/>

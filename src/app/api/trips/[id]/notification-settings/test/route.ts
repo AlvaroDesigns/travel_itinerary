@@ -65,7 +65,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'La frecuencia debe estar entre 1 y 365 días' }, { status: 400 });
     }
     const isSurprise = body.countdownMode === 'surprise';
-    const countdownValue = `Faltan ${reminderIntervalDays} ${reminderIntervalDays === 1 ? 'día' : 'días'}`;
+    const startsAt = new Date(`${trip.start_date}T00:00:00.000Z`);
+    const millisecondsUntilTrip = startsAt.getTime() - Date.now();
+    const daysUntilDeparture = Math.max(1, Math.ceil(millisecondsUntilTrip / (24 * 60 * 60 * 1000)));
+    const countdownValue = `Faltan ${daysUntilDeparture} ${daysUntilDeparture === 1 ? 'día' : 'días'}`;
     const itineraryUrl = trip.public_access_enabled && trip.public_access_token
       ? `${appUrl}/publico/${encodeURIComponent(trip.public_access_token)}`
       : `${appUrl}/viaje/${encodeURIComponent(id)}`;

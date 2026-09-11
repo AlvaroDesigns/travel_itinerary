@@ -115,7 +115,7 @@ export function ItineraryAssistantChat({ trip }: { trip: Trip }) {
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-label={open ? 'Cerrar asistente de viaje' : 'Abrir asistente de viaje'}
-        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-[#009688] text-white shadow-xl shadow-teal-500/30 transition-all hover:scale-105 hover:bg-[#00796b] active:scale-95"
+        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-[#0066FF] text-white shadow-xl shadow-blue-500/30 transition-all hover:scale-105 hover:bg-[#0052CC] active:scale-95"
       >
         {open ? <X className="h-6 w-6" /> : <Sparkles className="h-6 w-6 text-white" />}
       </button>
@@ -124,14 +124,14 @@ export function ItineraryAssistantChat({ trip }: { trip: Trip }) {
       {open && (
         <section className="fixed bottom-24 right-4 z-40 flex h-[min(640px,calc(100vh-8rem))] w-[calc(100vw-2rem)] max-w-md flex-col overflow-hidden rounded-3xl border border-zinc-200/80 bg-white/95 shadow-2xl backdrop-blur-2xl sm:right-6">
           {/* Header */}
-          <header className="flex items-center justify-between border-b border-teal-900 bg-zinc-950 px-5 py-4 text-white">
+          <header className="flex items-center justify-between border-b border-blue-950 bg-zinc-950 px-5 py-4 text-white">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#009688]/20 text-[#26a69a]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0066FF]/20 text-[#00C6FF]">
                 <Bot className="h-5 w-5" />
               </div>
               <div>
                 <h2 className="text-sm font-bold">Asistente de Itinerario</h2>
-                <p className="text-[10px] font-medium uppercase tracking-wider text-teal-300">
+                <p className="text-[10px] font-medium uppercase tracking-wider text-blue-300">
                   Propuestas inteligentes
                 </p>
               </div>
@@ -151,7 +151,7 @@ export function ItineraryAssistantChat({ trip }: { trip: Trip }) {
                 key={index}
                 className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${
                   message.role === 'user'
-                    ? 'ml-auto bg-[#009688] text-white shadow-sm'
+                    ? 'ml-auto bg-[#0066FF] text-white shadow-sm'
                     : 'border border-zinc-200/80 bg-white text-zinc-800 shadow-xs'
                 }`}
               >

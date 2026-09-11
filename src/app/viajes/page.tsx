@@ -10,6 +10,7 @@ import { HeroUIDateRangePicker } from '@/components/HeroUIDateRangePicker';
 import { DashboardShell } from '@/components/DashboardShell';
 import { TableSkeleton } from '@/components/TableSkeleton';
 import { CreateTripModal } from '@/components/CreateTripModal';
+import { TravelerMobileHome } from '@/components/TravelerMobileHome';
 import {
   Search,
   Plus,
@@ -242,7 +243,7 @@ export default function MisViajesPage() {
   const getAvatarVibrantBg = (seed?: string) => {
     const styles = [
       'bg-[#0066ff] text-white shadow-xs',
-      'bg-[#009688] text-white shadow-xs',
+      'bg-[#0066FF] text-white shadow-xs',
       'bg-[#7c3aed] text-white shadow-xs',
       'bg-[#e11d48] text-white shadow-xs',
       'bg-[#d97706] text-white shadow-xs',
@@ -272,17 +273,30 @@ export default function MisViajesPage() {
     );
   }
 
+  const isAgent =
+    user?.role === 'admin' ||
+    user?.role === 'superadmin' ||
+    user?.role === 'superuser' ||
+    (Boolean(user?.tenantId) && user?.tenantId !== 'particular');
+
   return (
-    <DashboardShell activeMenu="viajes" onOpenCreateTrip={() => setIsCreateModalOpen(true)}>
-      <div onClick={() => setOpenDropdownId(null)} className="w-full space-y-5">
-        {/* View Title */}
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#101828]">
-            Mis viajes
-          </h1>
-          <p className="text-xs text-[#667085] mt-0.5">
-            Gestiona y personaliza tus itinerarios, actividades y presupuestos de viaje.
-          </p>
+    <>
+      {!isAgent && (
+        <div className="block md:hidden">
+          <TravelerMobileHome onOpenCreateTrip={() => setIsCreateModalOpen(true)} />
+        </div>
+      )}
+      <div className={!isAgent ? 'hidden md:block' : 'block'}>
+        <DashboardShell activeMenu="viajes" onOpenCreateTrip={() => setIsCreateModalOpen(true)}>
+          <div onClick={() => setOpenDropdownId(null)} className="w-full space-y-5">
+            {/* View Title */}
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-[#101828]">
+                Mis viajes
+              </h1>
+              <p className="text-xs text-[#667085] mt-0.5">
+                Gestiona y personaliza tus itinerarios, actividades y presupuestos de viaje.
+              </p>
         </div>
 
         {/* HeroUI Tabs Segmented Filter */}
@@ -324,7 +338,7 @@ export default function MisViajesPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar viajes..."
-                className="w-full rounded-2xl border border-[#d0d5dd] bg-white py-2 pl-9 pr-3 text-xs text-[#101828] placeholder-[#98a2b3] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                className="w-full rounded-2xl border border-[#d0d5dd] bg-white py-2 pl-9 pr-3 text-xs text-[#101828] placeholder-[#98a2b3] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
               />
             </div>
 
@@ -374,7 +388,7 @@ export default function MisViajesPage() {
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-full bg-[#009688] px-3.5 sm:px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#00796b] transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] px-3.5 sm:px-4 py-2 text-xs font-bold text-white shadow-sm hover:opacity-90 transition-all active:scale-95 cursor-pointer whitespace-nowrap"
             >
               <Plus className="h-4 w-4" />
               <span>Crear viaje</span>
@@ -384,9 +398,9 @@ export default function MisViajesPage() {
 
         {/* Bulk Selection Bar */}
         {selectedTrips.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-teal-200/90 bg-teal-50/90 px-4 py-2.5 text-xs shadow-xs animate-scale-in">
-            <div className="flex items-center gap-2 text-[#004d40] font-bold">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#009688] text-[10px] text-white shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-blue-200/90 bg-blue-50/90 px-4 py-2.5 text-xs shadow-xs animate-scale-in">
+            <div className="flex items-center gap-2 text-[#003399] font-bold">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#0066FF] text-[10px] text-white shadow-xs">
                 {selectedTrips.length}
               </span>
               <span>
@@ -407,7 +421,7 @@ export default function MisViajesPage() {
               <button
                 type="button"
                 onClick={() => setSelectedTrips([])}
-                className="rounded-full border border-teal-300 bg-white px-3 py-1.5 text-xs font-semibold text-teal-800 hover:bg-teal-100 transition-all cursor-pointer"
+                className="rounded-full border border-blue-300 bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-100 transition-all cursor-pointer"
               >
                 Deseleccionar
               </button>
@@ -427,7 +441,7 @@ export default function MisViajesPage() {
                         type="checkbox"
                         checked={selectedTrips.length > 0 && selectedTrips.length === filteredTrips.length}
                         onChange={handleSelectAll}
-                        className="h-4 w-4 rounded border-[#d0d5dd] text-[#009688] focus:ring-[#009688] cursor-pointer"
+                        className="h-4 w-4 rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF] cursor-pointer"
                       />
                     </th>
                     <th className="px-4 py-3.5 font-semibold text-[#475467]">Código</th>
@@ -480,7 +494,7 @@ export default function MisViajesPage() {
                               type="checkbox"
                               checked={selectedTrips.includes(trip.id)}
                               onChange={(e) => handleToggleSelectTrip(trip.id, e as unknown as React.MouseEvent)}
-                              className="h-4 w-4 rounded border-[#d0d5dd] text-[#009688] focus:ring-[#009688] cursor-pointer"
+                              className="h-4 w-4 rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF] cursor-pointer"
                             />
                           </td>
 
@@ -495,7 +509,7 @@ export default function MisViajesPage() {
                                 className="text-[#98a2b3] hover:text-[#101828] cursor-pointer"
                               >
                                 {copiedCode === tripCode ? (
-                                  <Check className="h-3 w-3 text-[#009688]" />
+                                  <Check className="h-3 w-3 text-[#0066FF]" />
                                 ) : (
                                   <Copy className="h-3 w-3" />
                                 )}
@@ -505,7 +519,7 @@ export default function MisViajesPage() {
 
                           {/* Title */}
                           <td className="px-4 py-3 font-bold text-[#101828]">
-                            <span className="hover:text-[#009688] transition-colors">{trip.name}</span>
+                            <span className="hover:text-[#0066FF] transition-colors">{trip.name}</span>
                           </td>
 
                           {/* Views Pill */}
@@ -561,7 +575,7 @@ export default function MisViajesPage() {
                                       setSelectedClientId(assignedClient.id);
                                       setIsQuickCreateClientOpen(false);
                                     }}
-                                    className="inline-flex items-center gap-1.5 rounded-full bg-[#e0f2f1] px-2.5 py-1 text-[11px] font-bold text-[#00796b] hover:bg-[#b2dfdb] transition-colors cursor-pointer"
+                                    className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-[#0066FF] hover:bg-blue-100 transition-colors cursor-pointer"
                                   >
                                     <UserCheck className="h-3 w-3" />
                                     <span className="truncate max-w-[120px]">{assignedClient.name}</span>
@@ -576,7 +590,7 @@ export default function MisViajesPage() {
                                     setSelectedClientId('');
                                     setIsQuickCreateClientOpen(false);
                                   }}
-                                  className="text-[11px] font-medium text-[#667085] hover:text-[#009688] hover:underline cursor-pointer"
+                                  className="text-[11px] font-medium text-[#667085] hover:text-[#0066FF] hover:underline cursor-pointer"
                                 >
                                   Asignar cliente
                                 </button>
@@ -635,7 +649,7 @@ export default function MisViajesPage() {
                                       }}
                                       className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-xs font-bold text-[#344054] hover:bg-[#f4f5f8] cursor-pointer"
                                     >
-                                      <Edit className="h-4 w-4 text-[#009688]" />
+                                      <Edit className="h-4 w-4 text-[#0066FF]" />
                                       <span>Editar viaje</span>
                                     </button>
 
@@ -815,7 +829,7 @@ export default function MisViajesPage() {
                 </button>
                 <button
                   type="button"
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#009688] text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition-colors cursor-pointer"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-[#0066FF] to-[#00C6FF] text-xs font-bold text-white shadow-xs hover:opacity-90 transition-colors cursor-pointer"
                 >
                   1
                 </button>
@@ -831,7 +845,7 @@ export default function MisViajesPage() {
 
               <div className="flex items-center gap-2 text-xs text-[#475467]">
                 <span>Elementos por página</span>
-                <select className="rounded-xl border border-[#d0d5dd] bg-white px-2.5 py-1.5 text-xs font-semibold text-[#101828] focus:border-[#009688] focus:outline-hidden cursor-pointer">
+                <select className="rounded-xl border border-[#d0d5dd] bg-white px-2.5 py-1.5 text-xs font-semibold text-[#101828] focus:border-[#0066FF] focus:outline-hidden cursor-pointer">
                   <option>25</option>
                   <option>50</option>
                   <option>100</option>
@@ -859,7 +873,7 @@ export default function MisViajesPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                   <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
                     <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-teal-300">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-300">
                         {getTripCode(trip.id)}
                       </span>
                       <h3 className="text-base font-bold leading-tight">{trip.name}</h3>
@@ -874,10 +888,10 @@ export default function MisViajesPage() {
 
                   <div className="flex items-center justify-between border-t border-[#eaecf0] pt-3 text-xs text-[#475467]">
                     <div className="flex items-center gap-1.5">
-                      <Calendar className="h-3.5 w-3.5 text-[#009688]" />
+                      <Calendar className="h-3.5 w-3.5 text-[#0066FF]" />
                       <span>{formatFullDate(trip.startDate)}</span>
                     </div>
-                    <span className="font-bold text-[#00796b]">
+                    <span className="font-bold text-[#0066FF]">
                       {trip.budget > 0 ? `${trip.budget} €` : 'Personalizado'}
                     </span>
                   </div>
@@ -903,7 +917,7 @@ export default function MisViajesPage() {
           <div className="w-full max-w-md rounded-3xl border border-white/20 bg-white p-6 shadow-2xl text-left">
             <div className="flex items-center justify-between border-b border-[#eaecf0] pb-3">
               <div className="flex items-center gap-2">
-                <ExternalLink className="h-5 w-5 text-[#009688]" />
+                <ExternalLink className="h-5 w-5 text-[#0066FF]" />
                 <h3 className="text-base font-bold text-[#101828]">Compartir itinerario</h3>
               </div>
               <button
@@ -935,7 +949,7 @@ export default function MisViajesPage() {
                   setCopiedShareLink(true);
                   setTimeout(() => setCopiedShareLink(false), 2000);
                 }}
-                className="rounded-full bg-[#009688] px-4 py-1.5 text-xs font-bold text-white hover:bg-[#00796b] cursor-pointer"
+                className="rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] px-4 py-1.5 text-xs font-bold text-white hover:opacity-90 cursor-pointer"
               >
                 {copiedShareLink ? '¡Copiado!' : 'Copiar'}
               </button>
@@ -960,7 +974,7 @@ export default function MisViajesPage() {
           <div className="w-full max-w-md rounded-3xl border border-white/20 bg-white p-6 shadow-2xl text-left">
             <div className="flex items-center justify-between border-b border-[#eaecf0] pb-3">
               <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-[#009688]" />
+                <User className="h-5 w-5 text-[#0066FF]" />
                 <h3 className="text-base font-bold text-[#101828]">Cambiar propietario</h3>
               </div>
               <button
@@ -995,12 +1009,12 @@ export default function MisViajesPage() {
                   placeholder="agente@wanderlust.com"
                   value={newOwnerEmail}
                   onChange={(e) => setNewOwnerEmail(e.target.value)}
-                  className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                  className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                 />
               </div>
 
               {ownerChangeSuccess && (
-                <div className="rounded-xl bg-[#e0f2f1] p-3 text-xs font-bold text-[#00796b]">
+                <div className="rounded-xl bg-blue-50 p-3 text-xs font-bold text-[#0066FF]">
                   ✓ Propietario transferido correctamente
                 </div>
               )}
@@ -1015,7 +1029,7 @@ export default function MisViajesPage() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-full bg-[#009688] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] cursor-pointer"
+                  className="rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] px-5 py-2 text-xs font-bold text-white shadow-xs hover:opacity-90 cursor-pointer"
                 >
                   Transferir
                 </button>
@@ -1031,7 +1045,7 @@ export default function MisViajesPage() {
           <div className="w-full max-w-lg rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-2xl text-left">
             <div className="flex items-center justify-between border-b border-[#eaecf0] pb-4">
               <div className="flex items-center gap-2.5">
-                <Users className="h-5 w-5 text-[#009688]" />
+                <Users className="h-5 w-5 text-[#0066FF]" />
                 <div>
                   <h3 className="text-base font-bold text-[#101828]">Asignar cliente al viaje</h3>
                   <p className="text-xs text-[#667085]">{assignClientTrip.name}</p>
@@ -1054,7 +1068,7 @@ export default function MisViajesPage() {
                     <button
                       type="button"
                       onClick={() => setIsQuickCreateClientOpen(true)}
-                      className="font-bold text-[#009688] hover:underline cursor-pointer"
+                      className="font-bold text-[#0066FF] hover:underline cursor-pointer"
                     >
                       + Crear nuevo cliente
                     </button>
@@ -1062,7 +1076,7 @@ export default function MisViajesPage() {
                   <select
                     value={selectedClientId}
                     onChange={(e) => setSelectedClientId(e.target.value)}
-                    className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                    className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                   >
                     <option value="">-- Sin cliente asignado --</option>
                     {clients.map((c) => (
@@ -1074,7 +1088,7 @@ export default function MisViajesPage() {
                 </div>
 
                 {selectedClientId && (
-                  <div className="rounded-2xl border border-[#e0f2f1] bg-[#f0fdfa] p-3.5 text-xs">
+                  <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-3.5 text-xs">
                     {(() => {
                       const selClient = clients.find((c) => c.id === selectedClientId);
                       if (!selClient) return null;
@@ -1131,7 +1145,7 @@ export default function MisViajesPage() {
                           setIsAssigningClient(false);
                         }
                       }}
-                      className="rounded-full bg-[#009688] px-5 py-2 font-bold text-white shadow-xs hover:bg-[#00796b] disabled:opacity-50 cursor-pointer"
+                      className="rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] px-5 py-2 font-bold text-white shadow-xs hover:opacity-90 disabled:opacity-50 cursor-pointer"
                     >
                       Guardar asignación
                     </button>
@@ -1177,7 +1191,7 @@ export default function MisViajesPage() {
                     placeholder="ej. Carlos Mendoza"
                     value={newClientName}
                     onChange={(e) => setNewClientName(e.target.value)}
-                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                   />
                 </div>
 
@@ -1188,7 +1202,7 @@ export default function MisViajesPage() {
                     placeholder="carlos@ejemplo.com"
                     value={newClientEmail}
                     onChange={(e) => setNewClientEmail(e.target.value)}
-                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                   />
                 </div>
 
@@ -1199,7 +1213,7 @@ export default function MisViajesPage() {
                     placeholder="+34 600 000 000"
                     value={newClientPhone}
                     onChange={(e) => setNewClientPhone(e.target.value)}
-                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                   />
                 </div>
 
@@ -1214,7 +1228,7 @@ export default function MisViajesPage() {
                   <button
                     type="submit"
                     disabled={isAssigningClient}
-                    className="rounded-full bg-[#009688] px-5 py-2 font-bold text-white shadow-xs hover:bg-[#00796b] disabled:opacity-50 cursor-pointer"
+                    className="rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] px-5 py-2 font-bold text-white shadow-xs hover:opacity-90 disabled:opacity-50 cursor-pointer"
                   >
                     Crear y asignar
                   </button>
@@ -1266,7 +1280,7 @@ export default function MisViajesPage() {
       {/* Floating Bulk Action Bar (fixed bottom pill) */}
       {selectedTrips.length > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 rounded-full border border-[#eaecf0] bg-white/95 px-5 py-3 shadow-2xl backdrop-blur-md animate-slide-up">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-50 text-xs font-bold text-[#00796b]">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-[#0066FF]">
             {selectedTrips.length}
           </span>
           <span className="text-xs font-bold text-[#101828]">
@@ -1329,5 +1343,7 @@ export default function MisViajesPage() {
         </div>
       )}
     </DashboardShell>
+  </div>
+</>
   );
 }

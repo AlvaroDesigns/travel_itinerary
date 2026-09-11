@@ -103,7 +103,7 @@ const THEMES: ThemeConfig[] = [
 ];
 
 const COLOR_PALETTES = [
-  { name: 'Teal Wanderlust', value: '#009688', bg: 'bg-[#009688]' },
+  { name: 'Azul Eléctrico', value: '#0066FF', bg: 'bg-[#0066FF]' },
   { name: 'Índigo Royal', value: '#140b2a', bg: 'bg-[#140b2a]' },
   { name: 'Esmeralda', value: '#059669', bg: 'bg-[#059669]' },
   { name: 'Océano', value: '#0284c7', bg: 'bg-[#0284c7]' },
@@ -184,12 +184,12 @@ export function TripEditorSidebar({
                 title={item.label}
                 className={`group relative flex h-10 w-10 items-center justify-center rounded-2xl transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#009688] text-white shadow-md shadow-[#009688]/25'
+                    ? 'bg-[#0066FF] text-white shadow-md shadow-[#0066FF]/25'
                     : 'text-[#667085] hover:bg-[#f2f4f7] hover:text-[#101828]'
                 }`}
               >
                 {isActive && (
-                  <span className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-[#009688]" />
+                  <span className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-[#0066FF]" />
                 )}
                 <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'group-hover:scale-110'} transition-transform`} />
               </button>
@@ -237,7 +237,7 @@ export function TripEditorSidebar({
                   <button
                     type="button"
                     onClick={() => toggleCategory('esenciales')}
-                    className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#009688] cursor-pointer"
+                    className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#0066FF] cursor-pointer"
                   >
                     <span className="flex items-center gap-1.5">
                       {categoriesOpen.esenciales ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
@@ -294,7 +294,7 @@ export function TripEditorSidebar({
                         icon={CalendarCheck}
                         type="booking"
                         badge="ACTIVO"
-                        badgeColor="bg-teal-100 text-teal-800"
+                        badgeColor="bg-blue-100 text-blue-800"
                         onAdd={onAddBlock}
                         onDragStart={onDragStartBlock}
                       />
@@ -307,7 +307,7 @@ export function TripEditorSidebar({
                   <button
                     type="button"
                     onClick={() => toggleCategory('multimedia')}
-                    className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#009688] cursor-pointer"
+                    className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#0066FF] cursor-pointer"
                   >
                     <span className="flex items-center gap-1.5">
                       {categoriesOpen.multimedia ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
@@ -340,7 +340,7 @@ export function TripEditorSidebar({
                   <button
                     type="button"
                     onClick={() => toggleCategory('otros')}
-                    className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#009688] cursor-pointer"
+                    className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#0066FF] cursor-pointer"
                   >
                     <span className="flex items-center gap-1.5">
                       {categoriesOpen.otros ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
@@ -380,7 +380,7 @@ export function TripEditorSidebar({
                   <button
                     type="button"
                     onClick={() => toggleCategory('servicios')}
-                    className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#009688] cursor-pointer"
+                    className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#0066FF] cursor-pointer"
                   >
                     <span className="flex items-center gap-1.5">
                       {categoriesOpen.servicios ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
@@ -460,7 +460,7 @@ export function TripEditorSidebar({
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between border-b border-[#eaecf0] p-4 bg-[#fafafa]">
                 <div className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-[#009688]" />
+                  <BookOpen className="h-4 w-4 text-[#0066FF]" />
                   <div>
                     <h3 className="text-sm font-extrabold text-[#101828]">Plantillas de Viaje</h3>
                     <p className="text-[11px] text-[#667085]">Aplica itinerarios prediseñados</p>
@@ -479,7 +479,7 @@ export function TripEditorSidebar({
                 {TRIP_TEMPLATES.map((tpl) => (
                   <div
                     key={tpl.id}
-                    className="group rounded-2xl border border-zinc-200 bg-white p-3.5 hover:border-[#009688] hover:shadow-md transition-all flex flex-col justify-between"
+                    className="group rounded-2xl border border-zinc-200 bg-white p-3.5 hover:border-[#0066FF] hover:shadow-md transition-all flex flex-col justify-between"
                   >
                     <div>
                       <div className="relative h-32 w-full rounded-xl overflow-hidden mb-2.5">
@@ -497,12 +497,12 @@ export function TripEditorSidebar({
                           {tpl.durationDays} días
                         </div>
                       </div>
-                      <h4 className="text-xs font-extrabold text-[#101828] group-hover:text-[#009688] transition-colors line-clamp-1">
+                      <h4 className="text-xs font-extrabold text-[#101828] group-hover:text-[#0066FF] transition-colors line-clamp-1">
                         {tpl.title}
                       </h4>
                       <p className="text-[11px] text-[#667085] line-clamp-2 mt-0.5">{tpl.description}</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-[11px] font-extrabold text-[#00796b] bg-[#e0f2f1] px-2 py-0.5 rounded-full">
+                        <span className="text-[11px] font-extrabold text-[#0052CC] bg-blue-50 px-2 py-0.5 rounded-full">
                           ~{tpl.estimatedBudget} €
                         </span>
                         <span className="text-[10px] text-zinc-500">{tpl.activities.length} actividades</span>
@@ -512,7 +512,7 @@ export function TripEditorSidebar({
                     <button
                       type="button"
                       onClick={() => onSelectTemplate && onSelectTemplate(tpl)}
-                      className="mt-3 flex items-center justify-center gap-1.5 w-full rounded-xl bg-[#009688] py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition-all cursor-pointer"
+                      className="mt-3 flex items-center justify-center gap-1.5 w-full rounded-xl bg-[#0066FF] py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] transition-all cursor-pointer"
                     >
                       <Sparkles className="h-3.5 w-3.5" />
                       <span>Aplicar al itinerario</span>
@@ -531,7 +531,7 @@ export function TripEditorSidebar({
               {/* Header */}
               <div className="flex items-center justify-between border-b border-[#eaecf0] p-4 bg-[#fafafa]">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#e0f2f1] text-[#009688]">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-[#0066FF]">
                     <Palette className="h-4 w-4" />
                   </div>
                   <div>
@@ -562,12 +562,12 @@ export function TripEditorSidebar({
                       type="checkbox"
                       checked={themeSettings.useAccountTheme}
                       onChange={(e) => onUpdateThemeSettings({ useAccountTheme: e.target.checked })}
-                      className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[#009688] focus:ring-[#009688]"
+                      className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[#0066FF] focus:ring-[#0066FF]"
                     />
                     <div className="text-xs">
                       <span className="font-bold text-[#101828]">Usar el tema de tu cuenta</span>
                       <p className="text-[11px] text-[#667085]">
-                        Ahora mismo: <strong className="text-[#009688] capitalize">{themeSettings.selectedTheme}</strong>
+                        Ahora mismo: <strong className="text-[#0066FF] capitalize">{themeSettings.selectedTheme}</strong>
                       </p>
                     </div>
                   </label>
@@ -581,7 +581,7 @@ export function TripEditorSidebar({
                           key={th.id}
                           className={`group relative flex flex-col justify-between rounded-2xl border-2 p-3 transition-all ${
                             isSelected
-                              ? 'border-[#009688] bg-[#f0fdfa]/40 shadow-sm'
+                              ? 'border-[#0066FF] bg-blue-50/50 shadow-sm'
                               : 'border-[#eaecf0] bg-white hover:border-zinc-300 hover:shadow-xs'
                           }`}
                         >
@@ -634,7 +634,7 @@ export function TripEditorSidebar({
                             onClick={() => onUpdateThemeSettings({ selectedTheme: th.id })}
                             className={`mt-2.5 w-full rounded-xl py-1.5 text-[11px] font-bold transition-all cursor-pointer ${
                               isSelected
-                                ? 'bg-[#009688] text-white shadow-xs'
+                                ? 'bg-[#0066FF] text-white shadow-xs'
                                 : 'border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f9fafb]'
                             }`}
                           >
@@ -669,7 +669,7 @@ export function TripEditorSidebar({
                           type="checkbox"
                           checked={themeSettings.showLogoInPublic}
                           onChange={(e) => onUpdateThemeSettings({ showLogoInPublic: e.target.checked })}
-                          className="rounded border-zinc-300 text-[#009688] focus:ring-[#009688]"
+                          className="rounded border-zinc-300 text-[#0066FF] focus:ring-[#0066FF]"
                         />
                         <span>Mostrar en vista cliente</span>
                       </label>
@@ -690,7 +690,7 @@ export function TripEditorSidebar({
                           title={col.name}
                           onClick={() => onUpdateThemeSettings({ primaryColor: col.value })}
                           className={`h-9 w-9 rounded-full ${col.bg} flex items-center justify-center transition-transform cursor-pointer ${
-                            isColActive ? 'ring-3 ring-offset-2 ring-[#009688] scale-110 shadow-sm' : 'hover:scale-105 opacity-90'
+                            isColActive ? 'ring-3 ring-offset-2 ring-[#0066FF] scale-110 shadow-sm' : 'hover:scale-105 opacity-90'
                           }`}
                         >
                           {isColActive && <Check className="h-4 w-4 text-white" />}
@@ -706,7 +706,7 @@ export function TripEditorSidebar({
                   <select
                     value={themeSettings.fontFamily}
                     onChange={(e) => onUpdateThemeSettings({ fontFamily: e.target.value })}
-                    className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                    className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                   >
                     {FONTS.map((f) => (
                       <option key={f.value} value={f.value}>
@@ -751,7 +751,7 @@ export function TripEditorSidebar({
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between border-b border-[#eaecf0] p-4 bg-[#fafafa]">
                 <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-[#009688]" />
+                  <Globe className="h-4 w-4 text-[#0066FF]" />
                   <div>
                     <h3 className="text-sm font-extrabold text-[#101828]">Idioma & Región</h3>
                     <p className="text-[11px] text-[#667085]">Idiomas, moneda y traducción IA</p>
@@ -787,12 +787,12 @@ export function TripEditorSidebar({
                           onClick={() => onUpdateLanguageSettings && onUpdateLanguageSettings({ selectedLanguage: lang.code as any })}
                           className={`flex items-center justify-between rounded-xl p-3 text-xs font-bold transition-all cursor-pointer ${
                             isSelected
-                              ? 'bg-[#e0f2f1] text-[#00796b] border border-[#009688]'
+                              ? 'bg-blue-50 text-[#0052CC] border border-[#0066FF]'
                               : 'border border-[#eaecf0] bg-white text-[#344054] hover:bg-[#f9fafb]'
                           }`}
                         >
                           <span>{lang.label}</span>
-                          {isSelected && <Check className="h-4 w-4 text-[#009688]" />}
+                          {isSelected && <Check className="h-4 w-4 text-[#0066FF]" />}
                         </button>
                       );
                     })}
@@ -810,7 +810,7 @@ export function TripEditorSidebar({
                         onClick={() => onUpdateLanguageSettings && onUpdateLanguageSettings({ currency: curr })}
                         className={`rounded-xl py-2 text-xs font-bold transition-all cursor-pointer ${
                           languageSettings.currency === curr
-                            ? 'bg-[#009688] text-white shadow-xs'
+                            ? 'bg-[#0066FF] text-white shadow-xs'
                             : 'border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f9fafb]'
                         }`}
                       >
@@ -826,7 +826,7 @@ export function TripEditorSidebar({
                   <select
                     value={languageSettings.dateFormat}
                     onChange={(e) => onUpdateLanguageSettings && onUpdateLanguageSettings({ dateFormat: e.target.value as any })}
-                    className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                    className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                   >
                     <option value="DD/MM/YYYY">DD/MM/YYYY (Europa - 18/09/2026)</option>
                     <option value="MM/DD/YYYY">MM/DD/YYYY (EE.UU. - 09/18/2026)</option>
@@ -841,7 +841,7 @@ export function TripEditorSidebar({
                       type="checkbox"
                       checked={languageSettings.autoTranslate}
                       onChange={(e) => onUpdateLanguageSettings && onUpdateLanguageSettings({ autoTranslate: e.target.checked })}
-                      className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[#009688] focus:ring-[#009688]"
+                      className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[#0066FF] focus:ring-[#0066FF]"
                     />
                     <div className="text-xs">
                       <span className="font-bold text-[#101828]">Traducción dinámica con IA</span>
@@ -862,7 +862,7 @@ export function TripEditorSidebar({
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between border-b border-[#eaecf0] p-4 bg-[#fafafa]">
                 <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-[#009688]" />
+                  <Users className="h-4 w-4 text-[#0066FF]" />
                   <h3 className="text-sm font-extrabold text-[#101828]">Viajeros & Clientes</h3>
                 </div>
                 <button
@@ -890,7 +890,7 @@ export function TripEditorSidebar({
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between border-b border-[#eaecf0] p-4 bg-[#fafafa]">
                 <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-[#009688]" />
+                  <FileText className="h-4 w-4 text-[#0066FF]" />
                   <h3 className="text-sm font-extrabold text-[#101828]">Documento & Exportación</h3>
                 </div>
                 <button
@@ -906,7 +906,7 @@ export function TripEditorSidebar({
                 <button
                   type="button"
                   onClick={() => alert('Generando propuesta en formato PDF imprimible...')}
-                  className="w-full rounded-xl bg-[#009688] py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition cursor-pointer"
+                  className="w-full rounded-xl bg-[#0066FF] py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] transition cursor-pointer"
                 >
                   Descargar PDF de la propuesta
                 </button>
@@ -921,7 +921,7 @@ export function TripEditorSidebar({
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between border-b border-[#eaecf0] p-4 bg-[#fafafa]">
                 <div className="flex items-center gap-2">
-                  <Settings className="h-4 w-4 text-[#009688]" />
+                  <Settings className="h-4 w-4 text-[#0066FF]" />
                   <h3 className="text-sm font-extrabold text-[#101828]">Configuración del viaje</h3>
                 </div>
                 <button
@@ -973,13 +973,13 @@ function BlockGridItem({
         onDragStart(type, e);
       }}
       onClick={() => onAdd(type)}
-      className="group relative flex flex-col justify-between rounded-2xl border border-[#eaecf0] bg-white p-3.5 text-left transition-all hover:border-[#009688] hover:shadow-md cursor-grab active:cursor-grabbing select-none"
+      className="group relative flex flex-col justify-between rounded-2xl border border-[#eaecf0] bg-white p-3.5 text-left transition-all hover:border-[#0066FF] hover:shadow-md cursor-grab active:cursor-grabbing select-none"
     >
       <div className="flex items-start justify-between">
-        <span className="text-xs font-bold text-[#101828] group-hover:text-[#009688] transition-colors leading-tight line-clamp-2">
+        <span className="text-xs font-bold text-[#101828] group-hover:text-[#0066FF] transition-colors leading-tight line-clamp-2">
           {label}
         </span>
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-[#667085] group-hover:text-[#009688] transition-colors">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-[#667085] group-hover:text-[#0066FF] transition-colors">
           <Icon className="h-4 w-4" />
         </div>
       </div>

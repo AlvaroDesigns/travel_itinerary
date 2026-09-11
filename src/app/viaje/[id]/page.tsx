@@ -159,7 +159,7 @@ const THEMES: ThemeConfig[] = [
 ];
 
 const COLOR_PALETTES = [
-  { name: 'Teal Wanderlust', value: '#009688', bg: 'bg-[#009688]' },
+  { name: 'Azul Eléctrico', value: '#0066FF', bg: 'bg-[#0066FF]' },
   { name: 'Índigo Royal', value: '#140b2a', bg: 'bg-[#140b2a]' },
   { name: 'Esmeralda', value: '#059669', bg: 'bg-[#059669]' },
   { name: 'Océano', value: '#0284c7', bg: 'bg-[#0284c7]' },
@@ -314,7 +314,7 @@ function ModalIconPreview({
   }
 
   return (
-    <div className="flex h-full w-full items-center justify-center text-[#009688]">
+    <div className="flex h-full w-full items-center justify-center text-[#0066FF]">
       {type === 'flight' && <Plane className="h-4 w-4" />}
       {type === 'hotel' && <Bed className="h-4 w-4" />}
       {type === 'excursion' && <MapPin className="h-4 w-4" />}
@@ -342,7 +342,7 @@ function ActivityCardIcon({ act, isDraft }: { act: Activity; isDraft: boolean })
           ? 'bg-white border border-slate-100 shadow-2xs p-1'
           : isDraft
           ? 'bg-amber-100 text-amber-700'
-          : 'bg-[#e0f2f1] text-[#009688]'
+          : 'bg-[#eff6ff] text-[#0066FF]'
       }`}
     >
       {effectiveSrc ? (
@@ -360,7 +360,7 @@ function ActivityCardIcon({ act, isDraft }: { act: Activity; isDraft: boolean })
           {act.type === 'excursion' && <MapPin className="h-5 w-5" />}
           {act.type === 'food' && <Utensils className="h-5 w-5" />}
           {act.type === 'transfer' && <Car className="h-5 w-5" />}
-          {act.type === 'booking' && <CalendarCheck className="h-5 w-5 text-[#009688]" />}
+          {act.type === 'booking' && <CalendarCheck className="h-5 w-5 text-[#0066FF]" />}
         </>
       )}
     </div>
@@ -500,7 +500,7 @@ export default function ViajeDetalle({ params }: PageProps) {
     selectedTheme: 'classic',
     logoUrl: '/wanderlust_horizontal_negro.png',
     showLogoInPublic: true,
-    primaryColor: '#009688',
+    primaryColor: '#0066FF',
     fontFamily: 'var(--font-outfit), sans-serif',
     headerStyle: 'standard',
   });
@@ -1387,6 +1387,7 @@ export default function ViajeDetalle({ params }: PageProps) {
         address: '',
         checkIn: '14:00',
         checkOut: '11:00',
+        checkoutDate: getNextDateStr(dateToUse),
         description: '',
       };
     } else if (type === 'food') {
@@ -1605,13 +1606,13 @@ export default function ViajeDetalle({ params }: PageProps) {
     // Theme-specific wrapper classes
     const getCardThemeClasses = () => {
       if (isBeingDragged) {
-        return 'opacity-40 scale-[0.98] border-dashed border-[#009688] bg-[#e0f2f1]/40 rounded-2xl';
+        return 'opacity-40 scale-[0.98] border-dashed border-[#0066FF] bg-[#eff6ff]/40 rounded-2xl';
       }
       switch (theme) {
         case 'bold':
           return isDraft
             ? 'rounded-lg border-2 border-amber-500 border-l-[8px] border-l-amber-500 bg-amber-50/40 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] hover:-translate-y-0.5'
-            : 'rounded-lg border-2 border-[#0f172a] border-l-[8px] border-l-[#009688] bg-white shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] hover:-translate-y-0.5';
+            : 'rounded-lg border-2 border-[#0f172a] border-l-[8px] border-l-[#0066FF] bg-white shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] hover:shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] hover:-translate-y-0.5';
         case 'elegant':
           return isDraft
             ? 'rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-50/40 via-stone-50/30 to-white shadow-xs hover:shadow-lg hover:border-amber-400'
@@ -1623,8 +1624,8 @@ export default function ViajeDetalle({ params }: PageProps) {
         case 'classic':
         default:
           return isDraft
-            ? 'rounded-2xl border border-amber-300 bg-amber-50/30 hover:border-[#009688] hover:bg-white hover:shadow-md shadow-xs'
-            : 'rounded-2xl border border-[#eaecf0] bg-white hover:border-[#009688]/50 hover:shadow-md shadow-xs';
+            ? 'rounded-2xl border border-amber-300 bg-amber-50/30 hover:border-[#0066FF] hover:bg-white hover:shadow-md shadow-xs'
+            : 'rounded-2xl border border-[#eaecf0] bg-white hover:border-[#0066FF]/50 hover:shadow-md shadow-xs';
       }
     };
 
@@ -1798,7 +1799,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                       : 'rounded-full bg-[#f4f5f8] px-2.5 py-0.5 text-[#344054]'
                   }`}
                 >
-                  <Clock className="h-3 w-3 text-[#009688]" />
+                  <Clock className="h-3 w-3 text-[#0066FF]" />
                   {act.time}
                 </span>
 
@@ -1932,7 +1933,7 @@ export default function ViajeDetalle({ params }: PageProps) {
               {act.type === 'booking' && (
                 <div className="space-y-1">
                   <p className="text-xs text-[#667085] truncate">
-                    Pasarela: <strong className="text-[#101828] uppercase font-bold">{(act as BookingActivity).paymentProvider || 'redsys'}</strong> · Depósito inicial: <strong className="text-[#009688] font-bold">{(act as BookingActivity).depositAmount || Math.round((act.price || 1250) * 0.2)} €</strong>
+                    Pasarela: <strong className="text-[#101828] uppercase font-bold">{(act as BookingActivity).paymentProvider || 'redsys'}</strong> · Depósito inicial: <strong className="text-[#0066FF] font-bold">{(act as BookingActivity).depositAmount || Math.round((act.price || 1250) * 0.2)} €</strong>
                   </p>
                   {act.description && (
                     <p className="text-xs text-[#475467] line-clamp-2">{act.description}</p>
@@ -1954,7 +1955,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                 theme === 'bold'
                   ? isDraft
                     ? 'rounded-md border-2 border-slate-900 bg-amber-400 text-slate-950 font-black shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
-                    : 'rounded-md border-2 border-slate-900 bg-[#009688] text-white font-black shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none'
+                    : 'rounded-md border-2 border-slate-900 bg-[#0066FF] text-white font-black shadow-[2px_2px_0px_0px_rgba(15,23,42,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none'
                   : theme === 'elegant'
                   ? isDraft
                     ? 'rounded-xl border border-amber-300 bg-amber-100 text-amber-900 font-serif'
@@ -1964,11 +1965,11 @@ export default function ViajeDetalle({ params }: PageProps) {
                     ? 'rounded-md bg-amber-100 text-amber-900'
                     : 'rounded-md border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-100'
                   : isDraft
-                  ? 'rounded-full bg-[#009688] text-white hover:bg-[#00796b]'
-                  : 'rounded-full border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f4f5f8] hover:border-[#009688]'
+                  ? 'rounded-full bg-[#0066FF] text-white hover:bg-[#0052CC]'
+                  : 'rounded-full border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f4f5f8] hover:border-[#0066FF]'
               }`}
             >
-              <Edit2 className={`h-3.5 w-3.5 ${isDraft && theme === 'classic' ? 'text-white' : theme === 'bold' ? 'text-current' : 'text-[#009688]'}`} />
+              <Edit2 className={`h-3.5 w-3.5 ${isDraft && theme === 'classic' ? 'text-white' : theme === 'bold' ? 'text-current' : 'text-[#0066FF]'}`} />
               <span>{isDraft ? 'Rellenar datos' : 'Editar'}</span>
             </button>
             <button
@@ -2013,7 +2014,7 @@ export default function ViajeDetalle({ params }: PageProps) {
   const essentialBlocks = [
     { type: 'text', label: 'Texto descriptivo', desc: 'Párrafos, notas o mensajes', icon: Type, color: 'text-sky-600 bg-sky-50' },
     { type: 'title', label: 'Título de sección', desc: 'Separador y encabezado', icon: Heading, color: 'text-indigo-600 bg-indigo-50' },
-    { type: 'itinerary', label: 'Ruta e Itinerario', desc: 'Resumen global del recorrido', icon: Route, color: 'text-teal-600 bg-teal-50' },
+    { type: 'itinerary', label: 'Ruta e Itinerario', desc: 'Resumen global del recorrido', icon: Route, color: 'text-blue-600 bg-blue-50' },
     { type: 'services_summary', label: 'Resumen de servicios', desc: 'Lista de servicios contratados', icon: ListOrdered, color: 'text-emerald-600 bg-emerald-50' },
     { type: 'price', label: 'Desglose de Precios', desc: 'Tabla de importes y condiciones', icon: DollarSign, color: 'text-amber-600 bg-amber-50' },
     { type: 'file', label: 'Documentos & Vouchers', desc: 'PDFs, pólizas y billetes', icon: Paperclip, color: 'text-purple-600 bg-purple-50' },
@@ -2023,7 +2024,7 @@ export default function ViajeDetalle({ params }: PageProps) {
   const travelServiceBlocks = [
     { type: 'flight', label: 'Vuelo & Conexiones', desc: 'Horarios, aerolínea y terminales', icon: Plane, color: 'text-sky-600 bg-sky-50' },
     { type: 'hotel', label: 'Alojamiento & Hotel', desc: 'Resort, check-in y servicios', icon: Bed, color: 'text-indigo-600 bg-indigo-50' },
-    { type: 'activity', label: 'Excursión / Tour', desc: 'Visita guiada, entradas y duración', icon: MapPin, color: 'text-teal-600 bg-teal-50' },
+    { type: 'activity', label: 'Excursión / Tour', desc: 'Visita guiada, entradas y duración', icon: MapPin, color: 'text-blue-600 bg-blue-50' },
     { type: 'food', label: 'Restaurante / Comida', desc: 'Desayuno, almuerzo o cena gourmet', icon: Utensils, color: 'text-amber-600 bg-amber-50' },
     { type: 'transport', label: 'Traslado privado / Taxi', desc: 'Recogida con chofer o minivan', icon: Car, color: 'text-emerald-600 bg-emerald-50' },
     { type: 'cruise', label: 'Crucero & Navegación', desc: 'Embarque, camarote y escala', icon: Ship, color: 'text-cyan-600 bg-cyan-50' },
@@ -2057,19 +2058,19 @@ export default function ViajeDetalle({ params }: PageProps) {
           handleAddBlockDirectly(item.type as BlockType);
           if (isMobile) setIsMobileRightPanelOpen(false);
         }}
-        className="flex items-center gap-3 rounded-2xl border border-[#eaecf0] bg-white p-3 text-left transition-all hover:border-[#009688] hover:shadow-md group cursor-grab active:cursor-grabbing select-none"
+        className="flex items-center gap-3 rounded-2xl border border-[#eaecf0] bg-white p-3 text-left transition-all hover:border-[#0066FF] hover:shadow-md group cursor-grab active:cursor-grabbing select-none"
       >
-        <GripVertical className="h-4 w-4 text-[#cbd5e1] group-hover:text-[#009688] transition-colors shrink-0" />
+        <GripVertical className="h-4 w-4 text-[#cbd5e1] group-hover:text-[#0066FF] transition-colors shrink-0" />
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
           <Icon className="h-5 w-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="text-xs font-bold text-[#101828] group-hover:text-[#009688] transition-colors">
+          <h4 className="text-xs font-bold text-[#101828] group-hover:text-[#0066FF] transition-colors">
             {item.label}
           </h4>
           <p className="text-[11px] text-[#667085] truncate">{item.desc}</p>
         </div>
-        <Plus className="h-4 w-4 text-[#98a2b3] group-hover:text-[#009688] shrink-0" />
+        <Plus className="h-4 w-4 text-[#98a2b3] group-hover:text-[#0066FF] shrink-0" />
       </div>
     );
   };
@@ -2100,12 +2101,12 @@ export default function ViajeDetalle({ params }: PageProps) {
                   title={item.label}
                   className={`group relative flex h-9 w-9 items-center justify-center rounded-xl transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-[#009688] text-white shadow-sm shadow-[#009688]/30'
+                      ? 'bg-[#0066FF] text-white shadow-sm shadow-[#0066FF]/30'
                       : 'text-[#667085] hover:bg-[#f2f4f7] hover:text-[#101828]'
                   }`}
                 >
                   {isActive && (
-                    <span className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-4 w-1 rounded-r-full bg-[#009688]" />
+                    <span className="absolute -left-1.5 top-1/2 -translate-y-1/2 h-4 w-1 rounded-r-full bg-[#0066FF]" />
                   )}
                   <Icon className={`h-4 w-4 ${isActive ? 'text-white' : 'group-hover:scale-110'} transition-transform`} />
                 </button>
@@ -2157,7 +2158,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                   : 'text-[#71717a] hover:text-[#18181b] hover:bg-black/[0.02]'
               }`}
             >
-              <Layers className={`h-4 w-4 ${rightPanelTab === 'blocks' ? 'text-[#009688]' : 'text-[#71717a]'}`} />
+              <Layers className={`h-4 w-4 ${rightPanelTab === 'blocks' ? 'text-[#0066FF]' : 'text-[#71717a]'}`} />
               <span>Bloques</span>
             </button>
 
@@ -2171,7 +2172,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                   : 'text-[#71717a] hover:text-[#18181b] hover:bg-black/[0.02]'
               }`}
             >
-              <Sparkles className={`h-4 w-4 ${rightPanelTab === 'agent' ? 'text-[#009688]' : 'text-[#71717a]'}`} />
+              <Sparkles className={`h-4 w-4 ${rightPanelTab === 'agent' ? 'text-[#0066FF]' : 'text-[#71717a]'}`} />
               <span>Agente IA</span>
             </button>
           </div>
@@ -2182,9 +2183,9 @@ export default function ViajeDetalle({ params }: PageProps) {
       {/* ============================================================= */}
       {rightPanelTab === 'blocks' && (
         <div className="flex-1 overflow-y-auto p-4 space-y-4 [scrollbar-width:thin]">
-          <div className="rounded-2xl border border-[#009688]/20 bg-[#e0f2f1]/40 p-3 flex items-start gap-2.5">
-            <Sparkles className="h-4 w-4 text-[#009688] shrink-0 mt-0.5" />
-            <p className="text-xs text-[#004d40]">
+          <div className="rounded-2xl border border-[#0066FF]/20 bg-[#eff6ff]/40 p-3 flex items-start gap-2.5">
+            <Sparkles className="h-4 w-4 text-[#0066FF] shrink-0 mt-0.5" />
+            <p className="text-xs text-[#1e3a8a]">
               <strong>Arrastra</strong> cualquier bloque al itinerario o <strong>haz clic</strong> para añadirlo al día ({activeDate}).
             </p>
           </div>
@@ -2194,7 +2195,7 @@ export default function ViajeDetalle({ params }: PageProps) {
             <button
               type="button"
               onClick={() => toggleBlockCategory('servicios')}
-              className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#009688] cursor-pointer"
+              className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#0066FF] cursor-pointer"
             >
               <span className="flex items-center gap-1.5">
                 {blockCategoriesOpen.servicios ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
@@ -2214,7 +2215,7 @@ export default function ViajeDetalle({ params }: PageProps) {
             <button
               type="button"
               onClick={() => toggleBlockCategory('esenciales')}
-              className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#009688] cursor-pointer"
+              className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#0066FF] cursor-pointer"
             >
               <span className="flex items-center gap-1.5">
                 {blockCategoriesOpen.esenciales ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
@@ -2234,7 +2235,7 @@ export default function ViajeDetalle({ params }: PageProps) {
             <button
               type="button"
               onClick={() => toggleBlockCategory('multimedia')}
-              className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#009688] cursor-pointer"
+              className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#0066FF] cursor-pointer"
             >
               <span className="flex items-center gap-1.5">
                 {blockCategoriesOpen.multimedia ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
@@ -2254,7 +2255,7 @@ export default function ViajeDetalle({ params }: PageProps) {
             <button
               type="button"
               onClick={() => toggleBlockCategory('otros')}
-              className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#009688] cursor-pointer"
+              className="flex w-full items-center justify-between text-left text-xs font-black uppercase tracking-wider text-[#344054] hover:text-[#0066FF] cursor-pointer"
             >
               <span className="flex items-center gap-1.5">
                 {blockCategoriesOpen.otros ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
@@ -2291,7 +2292,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                   }`}
                 >
                   {msg.sender === 'agent' && (
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#009688] mb-1">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#0066FF] mb-1">
                       <Bot className="h-3.5 w-3.5" />
                       <span>Wanderlust Agent</span>
                     </div>
@@ -2333,12 +2334,12 @@ export default function ViajeDetalle({ params }: PageProps) {
                               className={`rounded-xl border p-2.5 transition-all text-left ${
                                 isApplied
                                   ? 'bg-[#f0fdf4] border-[#bbf7d0]'
-                                  : 'bg-white border-[#e5e7eb] shadow-2xs hover:border-[#009688]/40'
+                                  : 'bg-white border-[#e5e7eb] shadow-2xs hover:border-[#0066FF]/40'
                               }`}
                             >
                               <div className="flex items-start justify-between gap-2 mb-1.5">
                                 <div className="flex items-center gap-1.5 min-w-0">
-                                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#e0f2f1] text-[#00796b]">
+                                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#eff6ff] text-[#0052CC]">
                                     {act.type === 'food' && <Utensils className="h-3.5 w-3.5" />}
                                     {act.type === 'hotel' && <Bed className="h-3.5 w-3.5" />}
                                     {act.type === 'excursion' && <Compass className="h-3.5 w-3.5" />}
@@ -2358,7 +2359,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                                 </div>
 
                                 {act.payload?.price ? (
-                                  <span className="shrink-0 text-[11px] font-bold text-[#00796b] bg-[#e0f2f1] px-1.5 py-0.5 rounded-md">
+                                  <span className="shrink-0 text-[11px] font-bold text-[#0052CC] bg-[#eff6ff] px-1.5 py-0.5 rounded-md">
                                     {act.payload.price}€
                                   </span>
                                 ) : null}
@@ -2392,7 +2393,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                                   <button
                                     type="button"
                                     onClick={() => handleApplySuggestedAction(act, actionKey)}
-                                    className="inline-flex items-center gap-1 rounded-lg bg-[#009688] px-2.5 py-1 text-[11px] font-bold text-white shadow-xs hover:bg-[#00796b] transition-all cursor-pointer"
+                                    className="inline-flex items-center gap-1 rounded-lg bg-[#0066FF] px-2.5 py-1 text-[11px] font-bold text-white shadow-xs hover:bg-[#0052CC] transition-all cursor-pointer"
                                   >
                                     <Plus className="h-3 w-3" />
                                     Añadir
@@ -2412,7 +2413,7 @@ export default function ViajeDetalle({ params }: PageProps) {
 
             {isAgentThinking && (
               <div className="flex items-center gap-2 text-xs text-[#667085] bg-[#f4f5f8] rounded-2xl p-3 border border-[#eaecf0] max-w-[80%]">
-                <Sparkles className="h-3.5 w-3.5 animate-spin text-[#009688]" />
+                <Sparkles className="h-3.5 w-3.5 animate-spin text-[#0066FF]" />
                 <span>Generando recomendaciones...</span>
               </div>
             )}
@@ -2435,7 +2436,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                   key={chip}
                   type="button"
                   onClick={() => handleSendMessage(`Recomienda un ${chip}`)}
-                  className="rounded-full bg-[#f4f5f8] px-2.5 py-1 text-[11px] font-semibold text-[#344054] hover:bg-[#e0f2f1] hover:text-[#00796b] transition-colors cursor-pointer"
+                  className="rounded-full bg-[#f4f5f8] px-2.5 py-1 text-[11px] font-semibold text-[#344054] hover:bg-[#eff6ff] hover:text-[#0052CC] transition-colors cursor-pointer"
                 >
                   + {chip}
                 </button>
@@ -2457,13 +2458,13 @@ export default function ViajeDetalle({ params }: PageProps) {
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 placeholder="Continúa la conversación..."
-                className="w-full rounded-full border border-[#d0d5dd] bg-white py-2 pl-4 pr-16 text-xs text-[#101828] placeholder-[#98a2b3] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                className="w-full rounded-full border border-[#d0d5dd] bg-white py-2 pl-4 pr-16 text-xs text-[#101828] placeholder-[#98a2b3] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
               />
               <div className="absolute right-1.5 flex items-center gap-1">
                 <button
                   type="submit"
                   disabled={!chatInput.trim()}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-[#009688] text-white disabled:opacity-40 hover:bg-[#00796b] transition-colors cursor-pointer"
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0066FF] text-white disabled:opacity-40 hover:bg-[#0052CC] transition-colors cursor-pointer"
                 >
                   <Send className="h-3.5 w-3.5" />
                 </button>
@@ -2481,11 +2482,11 @@ export default function ViajeDetalle({ params }: PageProps) {
       {/* ============================================================= */}
       {rightPanelTab === 'templates' && (
         <div className="flex-1 overflow-y-auto p-4 space-y-3.5 [scrollbar-width:thin]">
-          <div className="rounded-2xl border border-[#009688]/20 bg-[#e0f2f1]/40 p-3 flex items-start gap-2.5">
-            <BookOpen className="h-4 w-4 text-[#009688] shrink-0 mt-0.5" />
+          <div className="rounded-2xl border border-[#0066FF]/20 bg-[#eff6ff]/40 p-3 flex items-start gap-2.5">
+            <BookOpen className="h-4 w-4 text-[#0066FF] shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-bold text-[#004d40]">Plantillas de itinerario prediseñadas</p>
-              <p className="text-[11px] text-[#00796b] mt-0.5">
+              <p className="text-xs font-bold text-[#1e3a8a]">Plantillas de itinerario prediseñadas</p>
+              <p className="text-[11px] text-[#0052CC] mt-0.5">
                 Aplica una plantilla para importar actividades y servicios configurados directamente en este viaje.
               </p>
             </div>
@@ -2495,7 +2496,7 @@ export default function ViajeDetalle({ params }: PageProps) {
             {TRIP_TEMPLATES.map((tpl) => (
               <div
                 key={tpl.id}
-                className="group rounded-2xl border border-zinc-200 bg-white p-3.5 hover:border-[#009688] hover:shadow-md transition-all flex flex-col justify-between"
+                className="group rounded-2xl border border-zinc-200 bg-white p-3.5 hover:border-[#0066FF] hover:shadow-md transition-all flex flex-col justify-between"
               >
                 <div className="relative h-28 w-full rounded-xl overflow-hidden mb-2.5 bg-slate-100">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -2507,13 +2508,13 @@ export default function ViajeDetalle({ params }: PageProps) {
                   <div className="absolute top-2 left-2 rounded-full bg-black/60 backdrop-blur-xs px-2 py-0.5 text-[10px] font-bold text-white">
                     {tpl.code}
                   </div>
-                  <div className="absolute top-2 right-2 rounded-full bg-teal-600/90 px-2 py-0.5 text-[10px] font-bold text-white">
+                  <div className="absolute top-2 right-2 rounded-full bg-blue-600/90 px-2 py-0.5 text-[10px] font-bold text-white">
                     {tpl.category}
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-extrabold text-zinc-900 group-hover:text-[#009688] transition-colors leading-snug">
+                  <h4 className="text-xs font-extrabold text-zinc-900 group-hover:text-[#0066FF] transition-colors leading-snug">
                     {tpl.title}
                   </h4>
                   <p className="text-[11px] text-zinc-500 line-clamp-2 mt-1 leading-relaxed">
@@ -2532,7 +2533,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                       handleApplyTemplate(tpl);
                       if (isMobile) setIsMobileRightPanelOpen(false);
                     }}
-                    className="rounded-xl bg-[#009688] px-3 py-1.5 text-[11px] font-bold text-white shadow-xs hover:bg-[#00796b] transition-all cursor-pointer flex items-center gap-1"
+                    className="rounded-xl bg-[#0066FF] px-3 py-1.5 text-[11px] font-bold text-white shadow-xs hover:bg-[#0052CC] transition-all cursor-pointer flex items-center gap-1"
                   >
                     <Plus className="h-3 w-3" />
                     <span>Aplicar</span>
@@ -2559,12 +2560,12 @@ export default function ViajeDetalle({ params }: PageProps) {
                 type="checkbox"
                 checked={themeSettings.useAccountTheme}
                 onChange={(e) => handleUpdateThemeSettings({ useAccountTheme: e.target.checked })}
-                className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[#009688] focus:ring-[#009688]"
+                className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[#0066FF] focus:ring-[#0066FF]"
               />
               <div className="text-xs">
                 <span className="font-bold text-[#101828]">Usar el tema de tu cuenta</span>
                 <p className="text-[11px] text-[#667085]">
-                  Ahora mismo: <strong className="text-[#009688] capitalize">{themeSettings.selectedTheme}</strong>
+                  Ahora mismo: <strong className="text-[#0066FF] capitalize">{themeSettings.selectedTheme}</strong>
                 </p>
               </div>
             </label>
@@ -2578,7 +2579,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                     key={th.id}
                     className={`group relative flex flex-col justify-between rounded-2xl border-2 p-3 transition-all ${
                       isSelected
-                        ? 'border-[#009688] bg-[#f0fdfa]/40 shadow-sm'
+                        ? 'border-[#0066FF] bg-[#f0fdfa]/40 shadow-sm'
                         : 'border-[#eaecf0] bg-white hover:border-zinc-300 hover:shadow-xs'
                     }`}
                   >
@@ -2632,7 +2633,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                       onClick={() => handleUpdateThemeSettings({ selectedTheme: th.id })}
                       className={`mt-2.5 w-full rounded-xl py-1.5 text-[11px] font-bold transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-[#009688] text-white shadow-xs'
+                          ? 'bg-[#0066FF] text-white shadow-xs'
                           : 'border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f9fafb]'
                       }`}
                     >
@@ -2666,14 +2667,14 @@ export default function ViajeDetalle({ params }: PageProps) {
                     type="checkbox"
                     checked={themeSettings.showLogoInPublic}
                     onChange={(e) => handleUpdateThemeSettings({ showLogoInPublic: e.target.checked })}
-                    className="rounded border-zinc-300 text-[#009688] focus:ring-[#009688]"
+                    className="rounded border-zinc-300 text-[#0066FF] focus:ring-[#0066FF]"
                   />
                   <span>Mostrar en vista viajero</span>
                 </label>
                 <button
                   type="button"
                   onClick={() => showToast('✨ Logotipo actualizado desde configuración de agencia')}
-                  className="mt-1 text-[10px] font-bold text-[#009688] hover:underline cursor-pointer"
+                  className="mt-1 text-[10px] font-bold text-[#0066FF] hover:underline cursor-pointer"
                 >
                   Personalizar logo
                 </button>
@@ -2694,7 +2695,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                     title={col.name}
                     onClick={() => handleUpdateThemeSettings({ primaryColor: col.value })}
                     className={`h-9 w-9 rounded-full ${col.bg} flex items-center justify-center transition-transform cursor-pointer ${
-                      isColActive ? 'ring-3 ring-offset-2 ring-[#009688] scale-110 shadow-sm' : 'hover:scale-105 opacity-90'
+                      isColActive ? 'ring-3 ring-offset-2 ring-[#0066FF] scale-110 shadow-sm' : 'hover:scale-105 opacity-90'
                     }`}
                   >
                     {isColActive && <Check className="h-4 w-4 text-white" />}
@@ -2710,7 +2711,7 @@ export default function ViajeDetalle({ params }: PageProps) {
             <select
               value={themeSettings.fontFamily}
               onChange={(e) => handleUpdateThemeSettings({ fontFamily: e.target.value })}
-              className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20 font-medium"
+              className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20 font-medium"
             >
               {FONTS.map((f) => (
                 <option key={f.value} value={f.value}>
@@ -2775,7 +2776,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                     }}
                     className={`flex w-full items-center justify-between rounded-2xl p-3 text-xs font-bold transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-[#e0f2f1] border-2 border-[#009688] text-[#00796b] shadow-xs'
+                        ? 'bg-[#eff6ff] border-2 border-[#0066FF] text-[#0052CC] shadow-xs'
                         : 'border border-[#eaecf0] bg-white text-[#344054] hover:bg-[#fafafa]'
                     }`}
                   >
@@ -2783,7 +2784,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                       <span className="text-base">{lang.flag}</span>
                       <span>{lang.label}</span>
                     </span>
-                    {isSelected && <Check className="h-4 w-4 text-[#009688]" />}
+                    {isSelected && <Check className="h-4 w-4 text-[#0066FF]" />}
                   </button>
                 );
               })}
@@ -2827,7 +2828,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                 setLanguageSettings((prev) => ({ ...prev, dateFormat: e.target.value as any }));
                 showToast('📅 Formato de fecha actualizado');
               }}
-              className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden font-medium"
+              className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden font-medium"
             >
               <option value="DD/MM/YYYY">DD/MM/YYYY (ej: 18/09/2026)</option>
               <option value="MM/DD/YYYY">MM/DD/YYYY (ej: 09/18/2026)</option>
@@ -2845,7 +2846,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                   setLanguageSettings((prev) => ({ ...prev, autoTranslate: e.target.checked }));
                   showToast(e.target.checked ? '✨ Traducción IA activada' : 'Traducción IA desactivada');
                 }}
-                className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[#009688] focus:ring-[#009688]"
+                className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[#0066FF] focus:ring-[#0066FF]"
               />
               <div className="text-xs">
                 <span className="font-bold text-[#101828]">Traducción dinámica con IA</span>
@@ -2863,11 +2864,11 @@ export default function ViajeDetalle({ params }: PageProps) {
       {/* ============================================================= */}
       {rightPanelTab === 'clients' && (
         <div className="flex-1 overflow-y-auto p-4 space-y-4 [scrollbar-width:thin]">
-          <div className="rounded-2xl border border-[#009688]/20 bg-[#e0f2f1]/40 p-3 flex items-start gap-2.5">
-            <Users className="h-4 w-4 text-[#009688] shrink-0 mt-0.5" />
+          <div className="rounded-2xl border border-[#0066FF]/20 bg-[#eff6ff]/40 p-3 flex items-start gap-2.5">
+            <Users className="h-4 w-4 text-[#0066FF] shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-bold text-[#004d40]">Pasajeros & Viajeros del itinerario</p>
-              <p className="text-[11px] text-[#00796b] mt-0.5">
+              <p className="text-xs font-bold text-[#1e3a8a]">Pasajeros & Viajeros del itinerario</p>
+              <p className="text-[11px] text-[#0052CC] mt-0.5">
                 Datos asignados de los clientes para billetes, traslados y reservas.
               </p>
             </div>
@@ -2896,11 +2897,11 @@ export default function ViajeDetalle({ params }: PageProps) {
       {/* ============================================================= */}
       {rightPanelTab === 'document' && (
         <div className="flex-1 overflow-y-auto p-4 space-y-4 [scrollbar-width:thin]">
-          <div className="rounded-2xl border border-[#009688]/20 bg-[#e0f2f1]/40 p-3 flex items-start gap-2.5">
-            <FileText className="h-4 w-4 text-[#009688] shrink-0 mt-0.5" />
+          <div className="rounded-2xl border border-[#0066FF]/20 bg-[#eff6ff]/40 p-3 flex items-start gap-2.5">
+            <FileText className="h-4 w-4 text-[#0066FF] shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-bold text-[#004d40]">Exportación de la propuesta</p>
-              <p className="text-[11px] text-[#00796b] mt-0.5">
+              <p className="text-xs font-bold text-[#1e3a8a]">Exportación de la propuesta</p>
+              <p className="text-[11px] text-[#0052CC] mt-0.5">
                 Genera versiones impresas o digitales listas para entregar al viajero.
               </p>
             </div>
@@ -2914,7 +2915,7 @@ export default function ViajeDetalle({ params }: PageProps) {
             <button
               type="button"
               onClick={() => showToast('📄 Preparando descarga del dossier PDF...')}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#009688] py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#0066FF] py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] transition cursor-pointer"
             >
               <Download className="h-4 w-4" />
               <span>Descargar propuesta en PDF</span>
@@ -2931,7 +2932,7 @@ export default function ViajeDetalle({ params }: PageProps) {
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[#101828]/95 px-5 py-2.5 text-xs font-semibold text-white shadow-2xl backdrop-blur-md animate-fade-in border border-white/10">
-          <Sparkles className="h-4 w-4 text-[#009688]" />
+          <Sparkles className="h-4 w-4 text-[#0066FF]" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -2947,13 +2948,13 @@ export default function ViajeDetalle({ params }: PageProps) {
           {/* Breadcrumb Navigation & Top Action Pills */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <nav className="flex items-center gap-1.5 sm:gap-2 text-xs text-[#667085] flex-wrap">
-              <Link href="/viajes" className="hover:text-[#009688] transition-colors flex items-center gap-1 shrink-0">
+              <Link href="/viajes" className="hover:text-[#0066FF] transition-colors flex items-center gap-1 shrink-0">
                 <ArrowLeft className="h-3.5 w-3.5" />
                 <span>Mis viajes</span>
               </Link>
               <span>/</span>
               <span className="font-bold text-[#101828] truncate max-w-[140px] sm:max-w-[240px]">{activeTrip.name}</span>
-              <span className="rounded-full bg-[#e0f2f1] px-2.5 py-0.5 text-[10px] font-bold text-[#00796b] shrink-0">
+              <span className="rounded-full bg-[#eff6ff] px-2.5 py-0.5 text-[10px] font-bold text-[#0052CC] shrink-0">
                 Itinerario
               </span>
             </nav>
@@ -2963,9 +2964,9 @@ export default function ViajeDetalle({ params }: PageProps) {
               <button
                 type="button"
                 onClick={() => setIsMobileRightPanelOpen(true)}
-                className="xl:hidden flex items-center gap-1.5 rounded-full border border-[#009688]/40 bg-[#e0f2f1] px-3.5 py-1.5 text-xs font-bold text-[#00796b] shadow-2xs hover:bg-[#b2dfdb] transition-all cursor-pointer"
+                className="xl:hidden flex items-center gap-1.5 rounded-full border border-[#0066FF]/40 bg-[#eff6ff] px-3.5 py-1.5 text-xs font-bold text-[#0052CC] shadow-2xs hover:bg-[#b2dfdb] transition-all cursor-pointer"
               >
-                <Sparkles className="h-3.5 w-3.5 text-[#009688]" />
+                <Sparkles className="h-3.5 w-3.5 text-[#0066FF]" />
                 <span>Bloques & Agente IA</span>
               </button>
 
@@ -2989,7 +2990,7 @@ export default function ViajeDetalle({ params }: PageProps) {
               <Link
                 href={`/publico/${encodeURIComponent(tripCode)}`}
                 target="_blank"
-                className="flex items-center gap-1.5 rounded-full bg-[#009688] px-4 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition-all cursor-pointer"
+                className="flex items-center gap-1.5 rounded-full bg-[#0066FF] px-4 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] transition-all cursor-pointer"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
                 <span>Portal del viajero</span>
@@ -3026,7 +3027,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                 <span
                   className={`text-[10px] font-bold uppercase tracking-wider ${
                     themeSettings.selectedTheme === 'bold'
-                      ? 'text-teal-400 font-mono'
+                      ? 'text-blue-400 font-mono'
                       : 'text-[#667085]'
                   }`}
                 >
@@ -3047,12 +3048,12 @@ export default function ViajeDetalle({ params }: PageProps) {
                   style={{ color: themeSettings.selectedTheme === 'bold' ? '#5eead4' : themeSettings.primaryColor }}
                   className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-bold mb-2 ${
                     themeSettings.selectedTheme === 'bold'
-                      ? 'rounded-xs border border-teal-500/40 bg-teal-950/60 font-black uppercase'
+                      ? 'rounded-xs border border-blue-500/40 bg-blue-950/60 font-black uppercase'
                       : themeSettings.selectedTheme === 'elegant'
                       ? 'rounded-full bg-amber-50/80 border border-amber-200 text-amber-900 font-serif'
                       : themeSettings.selectedTheme === 'minimal'
                       ? 'bg-zinc-100 text-zinc-700 rounded-sm'
-                      : 'rounded-full bg-[#e0f2f1]'
+                      : 'rounded-full bg-[#eff6ff]'
                   }`}
                 >
                   <Sparkles className="h-3.5 w-3.5" />
@@ -3068,15 +3069,15 @@ export default function ViajeDetalle({ params }: PageProps) {
                       onKeyDown={(e) => e.key === 'Enter' && handleSaveTripTitle()}
                       className={`rounded-2xl border px-3 py-1 text-2xl font-extrabold focus:outline-hidden ${
                         themeSettings.selectedTheme === 'bold'
-                          ? 'border-teal-400 bg-slate-800 text-white'
-                          : 'border-[#009688] text-[#101828] ring-2 ring-[#009688]/20'
+                          ? 'border-blue-400 bg-slate-800 text-white'
+                          : 'border-[#0066FF] text-[#101828] ring-2 ring-[#0066FF]/20'
                       }`}
                       autoFocus
                     />
                     <button
                       type="button"
                       onClick={handleSaveTripTitle}
-                      className="rounded-full bg-[#009688] p-2 text-white hover:bg-[#00796b] transition-all cursor-pointer"
+                      className="rounded-full bg-[#0066FF] p-2 text-white hover:bg-[#0052CC] transition-all cursor-pointer"
                     >
                       <Check className="h-4 w-4" />
                     </button>
@@ -3116,7 +3117,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                   <span
                     className={`font-mono font-bold px-2 py-0.5 rounded-md ${
                       themeSettings.selectedTheme === 'bold'
-                        ? 'bg-slate-800 text-teal-400 border border-slate-700'
+                        ? 'bg-slate-800 text-blue-400 border border-slate-700'
                         : 'bg-[#f2f4f7] text-[#344054]'
                     }`}
                   >
@@ -3126,9 +3127,9 @@ export default function ViajeDetalle({ params }: PageProps) {
                   <button
                     type="button"
                     onClick={() => setIsDatePickerOpen(true)}
-                    className="font-medium hover:text-[#009688] transition-colors flex items-center gap-1 cursor-pointer"
+                    className="font-medium hover:text-[#0066FF] transition-colors flex items-center gap-1 cursor-pointer"
                   >
-                    <Calendar className="h-3.5 w-3.5 text-[#009688]" />
+                    <Calendar className="h-3.5 w-3.5 text-[#0066FF]" />
                     <span>{formatFullDate(activeTrip.startDate)} — {formatFullDate(activeTrip.endDate)}</span>
                   </button>
                   <span>·</span>
@@ -3145,7 +3146,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                   }}
                   className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold transition-all cursor-pointer shadow-2xs ${
                     themeSettings.selectedTheme === 'bold'
-                      ? 'rounded-md border-2 border-teal-400 bg-slate-800 text-teal-300 hover:bg-slate-700'
+                      ? 'rounded-md border-2 border-blue-400 bg-slate-800 text-blue-300 hover:bg-slate-700'
                       : themeSettings.selectedTheme === 'elegant'
                       ? 'rounded-full border border-stone-300 bg-white font-serif text-stone-800 hover:bg-stone-50'
                       : themeSettings.selectedTheme === 'minimal'
@@ -3153,7 +3154,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                       : 'rounded-full border border-[#eaecf0] bg-[#f8fafc] text-[#344054] hover:bg-[#eaecf0]'
                   }`}
                 >
-                  <DollarSign className="h-3.5 w-3.5 text-[#009688]" />
+                  <DollarSign className="h-3.5 w-3.5 text-[#0066FF]" />
                   <span>Presupuesto: {formatPrice(activeTrip.budget || 2500)}</span>
                 </button>
               </div>
@@ -3168,7 +3169,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                   ? 'rounded-2xl border border-stone-200 bg-stone-50/60 p-2 shadow-xs'
                   : themeSettings.selectedTheme === 'minimal'
                   ? 'rounded-none border-0 bg-transparent p-0'
-                  : 'rounded-2xl border-2 border-dashed border-[#d0d5dd] bg-[#fafafa] p-3 hover:border-[#009688] hover:bg-[#e0f2f1]/20'
+                  : 'rounded-2xl border-2 border-dashed border-[#d0d5dd] bg-[#fafafa] p-3 hover:border-[#0066FF] hover:bg-[#eff6ff]/20'
               }`}
             >
               {activeTrip.imageUrl ? (
@@ -3216,10 +3217,10 @@ export default function ViajeDetalle({ params }: PageProps) {
                     setIsPhotoModalOpen(true);
                   }}
                 >
-                  <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#e0f2f1] text-[#009688] shadow-2xs">
+                  <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#eff6ff] text-[#0066FF] shadow-2xs">
                     <Upload className="h-4 w-4" />
                   </div>
-                  <p className="mt-2 text-xs font-bold text-[#009688]">
+                  <p className="mt-2 text-xs font-bold text-[#0066FF]">
                     Añadir imagen de portada
                   </p>
                 </div>
@@ -3294,7 +3295,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                         : 'text-[#71717a] hover:text-[#18181b]'
                     }`}
                   >
-                    <Calendar className={`h-3.5 w-3.5 ${itineraryViewMode === 'day' ? 'text-[#009688]' : 'text-[#a1a1aa]'}`} />
+                    <Calendar className={`h-3.5 w-3.5 ${itineraryViewMode === 'day' ? 'text-[#0066FF]' : 'text-[#a1a1aa]'}`} />
                     <span>Por día</span>
                   </button>
                   <button
@@ -3312,9 +3313,9 @@ export default function ViajeDetalle({ params }: PageProps) {
                         : 'text-[#71717a] hover:text-[#18181b]'
                     }`}
                   >
-                    <ListOrdered className={`h-3.5 w-3.5 ${itineraryViewMode === 'all' ? 'text-[#009688]' : 'text-[#a1a1aa]'}`} />
+                    <ListOrdered className={`h-3.5 w-3.5 ${itineraryViewMode === 'all' ? 'text-[#0066FF]' : 'text-[#a1a1aa]'}`} />
                     <span>Todo el viaje</span>
-                    <span className="rounded-full bg-[#e0f2f1] text-[#00796b] px-1.5 py-0.2 text-[10px] font-bold">
+                    <span className="rounded-full bg-[#eff6ff] text-[#0052CC] px-1.5 py-0.2 text-[10px] font-bold">
                       {activeTrip.activities.length}
                     </span>
                   </button>
@@ -3325,12 +3326,12 @@ export default function ViajeDetalle({ params }: PageProps) {
                   onClick={() => handleOpenAddActivity('flight', activeDate)}
                   className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
                     themeSettings.selectedTheme === 'bold'
-                      ? 'rounded-md border-2 border-slate-900 bg-[#009688] text-white font-black shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none'
+                      ? 'rounded-md border-2 border-slate-900 bg-[#0066FF] text-white font-black shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none'
                       : themeSettings.selectedTheme === 'elegant'
                       ? 'rounded-full bg-stone-900 text-white hover:bg-stone-800 font-serif shadow-xs'
                       : themeSettings.selectedTheme === 'minimal'
                       ? 'rounded-md border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-100'
-                      : 'rounded-full bg-[#009688] text-white shadow-xs hover:bg-[#00796b]'
+                      : 'rounded-full bg-[#0066FF] text-white shadow-xs hover:bg-[#0052CC]'
                   }`}
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -3372,11 +3373,11 @@ export default function ViajeDetalle({ params }: PageProps) {
 
                       const getTabClasses = () => {
                         if (isDropTarget) {
-                          return 'ring-2 ring-[#009688] bg-[#e0f2f1] text-[#00796b] scale-105 shadow-md';
+                          return 'ring-2 ring-[#0066FF] bg-[#eff6ff] text-[#0052CC] scale-105 shadow-md';
                         }
                         if (themeSettings.selectedTheme === 'bold') {
                           return isSelected
-                            ? 'rounded-md border-2 border-slate-900 bg-[#009688] text-white font-black shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
+                            ? 'rounded-md border-2 border-slate-900 bg-[#0066FF] text-white font-black shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
                             : 'rounded-md text-slate-700 hover:text-slate-950 font-bold hover:bg-slate-200';
                         }
                         if (themeSettings.selectedTheme === 'elegant') {
@@ -3386,7 +3387,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                         }
                         if (themeSettings.selectedTheme === 'minimal') {
                           return isSelected
-                            ? 'border-b-2 border-[#009688] text-[#009688] font-bold rounded-none pb-1'
+                            ? 'border-b-2 border-[#0066FF] text-[#0066FF] font-bold rounded-none pb-1'
                             : 'text-zinc-500 hover:text-zinc-900 rounded-none pb-1';
                         }
                         return isSelected
@@ -3410,7 +3411,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                         >
                           <Calendar
                             className={`h-3.5 w-3.5 ${
-                              isDropTarget || isSelected ? 'text-[#009688]' : 'text-[#a1a1aa]'
+                              isDropTarget || isSelected ? 'text-[#0066FF]' : 'text-[#a1a1aa]'
                             }`}
                           />
                           <span>Día {dIdx + 1}</span>
@@ -3456,7 +3457,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           : 'rounded-2xl border-2 border-dashed border-[#eaecf0] bg-[#fafafa]'
                       }`}
                     >
-                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688] mb-3">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eff6ff] text-[#0066FF] mb-3">
                         <Plane className="h-6 w-6" />
                       </div>
                       <h3
@@ -3533,11 +3534,11 @@ export default function ViajeDetalle({ params }: PageProps) {
                         : 'rounded-2xl border-2 border-dashed border-[#eaecf0] bg-[#fafafa]'
                     } ${
                       dragOverDayDate === activeDate
-                        ? 'border-[#009688] bg-[#e0f2f1]/60 ring-4 ring-[#009688]/20 scale-[1.01]'
+                        ? 'border-[#0066FF] bg-[#eff6ff]/60 ring-4 ring-[#0066FF]/20 scale-[1.01]'
                         : ''
                     }`}
                   >
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#009688] shadow-2xs mb-1">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#0066FF] shadow-2xs mb-1">
                       <Plus className="h-3.5 w-3.5" />
                     </div>
                     <p className="text-xs font-medium text-[#667085]">
@@ -3577,7 +3578,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           : 'rounded-2xl border border-[#eaecf0] bg-[#fafbfc] p-5'
                       } ${
                         isDayOver
-                          ? 'border-[#009688] bg-[#e0f2f1]/30 ring-2 ring-[#009688]/30 shadow-md'
+                          ? 'border-[#0066FF] bg-[#eff6ff]/30 ring-2 ring-[#0066FF]/30 shadow-md'
                           : ''
                       }`}
                     >
@@ -3601,7 +3602,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                                 : 'rounded-full bg-[#101828] text-white'
                             }`}
                           >
-                            <Calendar className="h-3.5 w-3.5 text-[#009688]" />
+                            <Calendar className="h-3.5 w-3.5 text-[#0066FF]" />
                             <span>Día {dIdx + 1}</span>
                           </span>
                           <span
@@ -3635,10 +3636,10 @@ export default function ViajeDetalle({ params }: PageProps) {
                                 ? 'rounded-xs border border-slate-900 bg-white hover:bg-slate-100 text-slate-900 font-black shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
                                 : themeSettings.selectedTheme === 'elegant'
                                 ? 'rounded-full border border-stone-200 bg-white font-serif text-stone-800 hover:bg-stone-50'
-                                : 'rounded-full border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f9fafb] hover:border-[#009688]'
+                                : 'rounded-full border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f9fafb] hover:border-[#0066FF]'
                             }`}
                           >
-                            <Plus className="h-3 w-3 text-[#009688]" />
+                            <Plus className="h-3 w-3 text-[#0066FF]" />
                             <span>Añadir a Día {dIdx + 1}</span>
                           </button>
                         </div>
@@ -3660,11 +3661,11 @@ export default function ViajeDetalle({ params }: PageProps) {
                         <div
                           className={`flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 px-4 text-center transition-all ${
                             isDayOver
-                              ? 'border-[#009688] bg-[#e0f2f1] text-[#00796b]'
+                              ? 'border-[#0066FF] bg-[#eff6ff] text-[#0052CC]'
                               : 'border-[#e4e4e7] bg-white text-[#667085]'
                           }`}
                         >
-                          <Plus className="h-3.5 w-3.5 text-[#009688]" />
+                          <Plus className="h-3.5 w-3.5 text-[#0066FF]" />
                         </div>
                       </div>
                     </div>
@@ -3735,11 +3736,11 @@ export default function ViajeDetalle({ params }: PageProps) {
               {/* Top Badges */}
               <div className="relative z-10 flex items-center justify-start gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold text-white shadow-xs">
-                  {activityType === 'flight' && <Plane className="h-3.5 w-3.5 text-[#80cbc4]" />}
-                  {activityType === 'hotel' && <Bed className="h-3.5 w-3.5 text-[#80cbc4]" />}
-                  {activityType === 'excursion' && <MapPin className="h-3.5 w-3.5 text-[#80cbc4]" />}
-                  {activityType === 'food' && <Utensils className="h-3.5 w-3.5 text-[#80cbc4]" />}
-                  {activityType === 'transfer' && <Car className="h-3.5 w-3.5 text-[#80cbc4]" />}
+                  {activityType === 'flight' && <Plane className="h-3.5 w-3.5 text-[#93C5FD]" />}
+                  {activityType === 'hotel' && <Bed className="h-3.5 w-3.5 text-[#93C5FD]" />}
+                  {activityType === 'excursion' && <MapPin className="h-3.5 w-3.5 text-[#93C5FD]" />}
+                  {activityType === 'food' && <Utensils className="h-3.5 w-3.5 text-[#93C5FD]" />}
+                  {activityType === 'transfer' && <Car className="h-3.5 w-3.5 text-[#93C5FD]" />}
                   <span className="capitalize">
                     {activityType === 'flight' && 'Vuelo'}
                     {activityType === 'hotel' && 'Alojamiento'}
@@ -3752,7 +3753,7 @@ export default function ViajeDetalle({ params }: PageProps) {
 
               {/* Bottom Contextual Preview */}
               <div className="relative z-10 space-y-2 pt-12 md:pt-0">
-                <p className="text-[10px] font-black uppercase tracking-widest text-[#80cbc4]">
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#93C5FD]">
                   {editingActivity ? 'Editando servicio' : 'Nuevo servicio'}
                 </p>
 
@@ -3774,14 +3775,14 @@ export default function ViajeDetalle({ params }: PageProps) {
                         />
                       )}
                       <p className="text-xs text-slate-200 flex items-center gap-1.5 font-medium">
-                        <span className="font-bold text-[#80cbc4]">{airline || 'Aerolínea'}</span>
+                        <span className="font-bold text-[#93C5FD]">{airline || 'Aerolínea'}</span>
                         {flightNumber && <span>· Vuelo {flightNumber}</span>}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-white/90 mt-2 font-mono">
                       <span className="font-bold text-white">{actTime || '10:00'}</span>
                       <span>➔</span>
-                      <span className="font-bold text-[#80cbc4]">{arrivalTime || '—'}</span>
+                      <span className="font-bold text-[#93C5FD]">{arrivalTime || '—'}</span>
                     </div>
                   </div>
                 )}
@@ -3794,6 +3795,14 @@ export default function ViajeDetalle({ params }: PageProps) {
                     <p className="text-xs text-slate-200 mt-1 line-clamp-2">
                       {hotelAddress || 'Ubicación / Dirección'}
                     </p>
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/90 mt-2.5 font-medium">
+                      <span className="bg-white/10 px-2.5 py-1 rounded-lg border border-white/10">
+                        Entrada: {targetModalDate || activeDate} ({hotelCheckIn || '14:00'})
+                      </span>
+                      <span className="bg-white/10 px-2.5 py-1 rounded-lg border border-white/10">
+                        Salida: {hotelCheckoutDate || '—'} ({hotelCheckOut || '11:00'})
+                      </span>
+                    </div>
                   </div>
                 )}
 
@@ -3813,7 +3822,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                     <h4 className="text-lg font-black text-white leading-tight">
                       {restaurantName || 'Restaurante Gourmet'}
                     </h4>
-                    <p className="text-xs text-[#80cbc4] mt-1 capitalize font-bold">
+                    <p className="text-xs text-[#93C5FD] mt-1 capitalize font-bold">
                       {mealType === 'breakfast' && 'Desayuno'}
                       {mealType === 'lunch' && 'Almuerzo / Comida'}
                       {mealType === 'dinner' && 'Cena gourmet'}
@@ -3881,7 +3890,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                             : 'text-[#71717a] hover:text-[#18181b]'
                         }`}
                       >
-                        <tab.icon className="h-3.5 w-3.5 text-[#009688]" />
+                        <tab.icon className="h-3.5 w-3.5 text-[#0066FF]" />
                         <span>{tab.label}</span>
                       </button>
                     ))}
@@ -3900,7 +3909,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                             Nº de Vuelo
                           </label>
                           {detectAirlineFromFlightNumber(flightNumber) && (
-                            <span className="text-[11px] font-semibold text-[#00796b] bg-[#e0f2f1] px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                            <span className="text-[11px] font-semibold text-[#0052CC] bg-[#eff6ff] px-2.5 py-0.5 rounded-full flex items-center gap-1">
                               ✈ {detectAirlineFromFlightNumber(flightNumber)}
                             </span>
                           )}
@@ -3917,7 +3926,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                             }
                           }}
                           placeholder="ej: FR1486 o IB3820"
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden font-medium"
+                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden font-medium"
                         />
                       </div>
 
@@ -3933,7 +3942,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                             onChange={(e) => setOrigin(e.target.value)}
                             placeholder="ej: PMI"
                             required
-                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden font-medium"
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden font-medium"
                           />
                         </div>
                         <div>
@@ -3946,7 +3955,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                             onChange={(e) => setDestination(e.target.value)}
                             placeholder="ej: PSA"
                             required
-                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden font-medium"
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden font-medium"
                           />
                         </div>
                       </div>
@@ -3962,7 +3971,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                             value={actTime}
                             onChange={(e) => setActTime(e.target.value)}
                             required
-                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                           />
                         </div>
                         <div>
@@ -3973,7 +3982,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                             type="time"
                             value={arrivalTime}
                             onChange={(e) => setArrivalTime(e.target.value)}
-                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                           />
                         </div>
                       </div>
@@ -3989,7 +3998,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           onChange={(e) => setActPrice(Number(e.target.value))}
                           min={0}
                           placeholder="0"
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                         />
                       </div>
 
@@ -4003,7 +4012,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           onChange={(e) => setActDescription(e.target.value)}
                           placeholder="Detalles del billete, terminal, equipaje o notas adicionales..."
                           rows={2}
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden resize-none"
+                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden resize-none"
                         />
                       </div>
                     </div>
@@ -4020,7 +4029,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           onChange={(e) => setHotelName(e.target.value)}
                           placeholder="ej: The Grand Luxury Resort & Spa"
                           required
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                         />
                       </div>
                       <div className="relative">
@@ -4034,11 +4043,11 @@ export default function ViajeDetalle({ params }: PageProps) {
                               if (addressSuggestions.length > 0 && activeAddressField === 'hotelAddress') setShowAddressSuggestions(true);
                             }}
                             placeholder="ej: Via Vicinale Ludovico Lazzaro Zamenhof 5, Pisa"
-                            className="w-full rounded-2xl border border-[#d0d5dd] pl-3.5 pr-9 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                            className="w-full rounded-2xl border border-[#d0d5dd] pl-3.5 pr-9 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                           />
                           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                             {isSearchingAddress && activeAddressField === 'hotelAddress' ? (
-                              <span className="h-3.5 w-3.5 block rounded-full border-2 border-[#009688] border-t-transparent animate-spin" />
+                              <span className="h-3.5 w-3.5 block rounded-full border-2 border-[#0066FF] border-t-transparent animate-spin" />
                             ) : (
                               <MapPin className="h-3.5 w-3.5 text-[#98a2b3]" />
                             )}
@@ -4065,9 +4074,9 @@ export default function ViajeDetalle({ params }: PageProps) {
                                 onClick={() => handleSelectAddressSuggestion(item)}
                                 className="w-full px-3.5 py-2.5 text-left hover:bg-[#f0fdfa] transition-colors border-b border-[#f2f4f7] last:border-0 flex items-start gap-2.5 cursor-pointer group"
                               >
-                                <MapPin className="h-4 w-4 text-[#009688] shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                                <MapPin className="h-4 w-4 text-[#0066FF] shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
                                 <div className="min-w-0">
-                                  <p className="text-xs font-bold text-[#101828] group-hover:text-[#00796b] truncate">
+                                  <p className="text-xs font-bold text-[#101828] group-hover:text-[#0052CC] truncate">
                                     {item.title}
                                   </p>
                                   {item.subtitle && (
@@ -4081,6 +4090,41 @@ export default function ViajeDetalle({ params }: PageProps) {
                           </div>
                         )}
                       </div>
+                      {/* Fechas de Entrada y Salida */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-bold text-[#344054] mb-1">
+                            Fecha de entrada / Check-in
+                          </label>
+                          <input
+                            type="date"
+                            value={targetModalDate || activeDate}
+                            onChange={(e) => {
+                              const newInDate = e.target.value;
+                              setTargetModalDate(newInDate);
+                              if (!hotelCheckoutDate || hotelCheckoutDate <= newInDate) {
+                                setHotelCheckoutDate(getNextDateStr(newInDate));
+                              }
+                            }}
+                            required
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden font-medium"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-[#344054] mb-1">
+                            Fecha de salida / Check-out <span className="text-[10px] font-normal text-[#98a2b3]">(opcional)</span>
+                          </label>
+                          <input
+                            type="date"
+                            value={hotelCheckoutDate}
+                            onChange={(e) => setHotelCheckoutDate(e.target.value)}
+                            min={targetModalDate || activeDate}
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden font-medium"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Horas de Check-in y Check-out */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-bold text-[#344054] mb-1">Hora Check-in</label>
@@ -4088,7 +4132,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                             type="time"
                             value={hotelCheckIn}
                             onChange={(e) => setHotelCheckIn(e.target.value)}
-                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                           />
                         </div>
                         <div>
@@ -4097,20 +4141,9 @@ export default function ViajeDetalle({ params }: PageProps) {
                             type="time"
                             value={hotelCheckOut}
                             onChange={(e) => setHotelCheckOut(e.target.value)}
-                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                           />
                         </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-[#344054] mb-1">
-                          Fecha de salida / Check-out <span className="text-[10px] font-normal text-[#98a2b3]">(opcional, día siguiente por defecto)</span>
-                        </label>
-                        <input
-                          type="date"
-                          value={hotelCheckoutDate}
-                          onChange={(e) => setHotelCheckoutDate(e.target.value)}
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
-                        />
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-[#344054] mb-1">Más detalles / Tipo de habitación <span className="text-[10px] font-normal text-[#98a2b3]">(opcional)</span></label>
@@ -4119,7 +4152,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           onChange={(e) => setActDescription(e.target.value)}
                           rows={2}
                           placeholder="Tipo de cama, régimen de comidas, vistas o notas de la reserva..."
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden resize-none"
+                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden resize-none"
                         />
                       </div>
                       <div>
@@ -4132,7 +4165,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           onChange={(e) => setActPrice(Number(e.target.value))}
                           min={0}
                           placeholder="0"
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                         />
                       </div>
                     </div>
@@ -4149,7 +4182,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           onChange={(e) => setExcursionTitle(e.target.value)}
                           placeholder="ej: Tour en Catamarán Privado con Snorkel"
                           required
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
@@ -4160,7 +4193,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                             value={actTime}
                             onChange={(e) => setActTime(e.target.value)}
                             required
-                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                           />
                         </div>
                         <div>
@@ -4170,7 +4203,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                             value={excursionDuration}
                             onChange={(e) => setExcursionDuration(e.target.value)}
                             placeholder="ej: 4 horas"
-                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                           />
                         </div>
                       </div>
@@ -4184,7 +4217,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           }}
                           rows={2}
                           placeholder="Describe la experiencia y detalles de la visita..."
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden resize-none"
+                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden resize-none"
                         />
                       </div>
                       <div>
@@ -4197,7 +4230,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           onChange={(e) => setActPrice(Number(e.target.value))}
                           min={0}
                           placeholder="0"
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                         />
                       </div>
                     </div>
@@ -4214,7 +4247,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           onChange={(e) => setRestaurantName(e.target.value)}
                           placeholder="ej: Restaurante Cenacolo"
                           required
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
@@ -4225,7 +4258,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                             value={actTime}
                             onChange={(e) => setActTime(e.target.value)}
                             required
-                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                           />
                         </div>
                         <div>
@@ -4233,7 +4266,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           <select
                             value={mealType}
                             onChange={(e) => setMealType(e.target.value as any)}
-                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                           >
                             <option value="breakfast">Desayuno</option>
                             <option value="lunch">Almuerzo / Comida</option>
@@ -4252,7 +4285,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           onChange={(e) => setActPrice(Number(e.target.value))}
                           min={0}
                           placeholder="0"
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                         />
                       </div>
                       <div>
@@ -4264,7 +4297,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           onChange={(e) => setActDescription(e.target.value)}
                           placeholder="Mesa reservada, tipo de menú, código de vestimenta o notas..."
                           rows={2}
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden resize-none"
+                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden resize-none"
                         />
                       </div>
                     </div>
@@ -4279,7 +4312,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           <select
                             value={transferType}
                             onChange={(e) => setTransferType(e.target.value as any)}
-                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                           >
                             <option value="taxi">Taxi / Coche privado</option>
                             <option value="bus">Autobús / Minivan</option>
@@ -4296,7 +4329,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                             value={transferDuration}
                             onChange={(e) => setTransferDuration(e.target.value)}
                             placeholder="ej: 45 min"
-                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                           />
                         </div>
                       </div>
@@ -4313,11 +4346,11 @@ export default function ViajeDetalle({ params }: PageProps) {
                                 if (addressSuggestions.length > 0 && activeAddressField === 'transferOrigin') setShowAddressSuggestions(true);
                               }}
                               placeholder="ej: Aeropuerto Pisa / Estación"
-                              className="w-full rounded-2xl border border-[#d0d5dd] pl-3.5 pr-9 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                              className="w-full rounded-2xl border border-[#d0d5dd] pl-3.5 pr-9 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                             />
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                               {isSearchingAddress && activeAddressField === 'transferOrigin' ? (
-                                <span className="h-3.5 w-3.5 block rounded-full border-2 border-[#009688] border-t-transparent animate-spin" />
+                                <span className="h-3.5 w-3.5 block rounded-full border-2 border-[#0066FF] border-t-transparent animate-spin" />
                               ) : (
                                 <MapPin className="h-3.5 w-3.5 text-[#98a2b3]" />
                               )}
@@ -4344,9 +4377,9 @@ export default function ViajeDetalle({ params }: PageProps) {
                                   onClick={() => handleSelectAddressSuggestion(item)}
                                   className="w-full px-3.5 py-2.5 text-left hover:bg-[#f0fdfa] transition-colors border-b border-[#f2f4f7] last:border-0 flex items-start gap-2.5 cursor-pointer group"
                                 >
-                                  <MapPin className="h-4 w-4 text-[#009688] shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                                  <MapPin className="h-4 w-4 text-[#0066FF] shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
                                   <div className="min-w-0">
-                                    <p className="text-xs font-bold text-[#101828] group-hover:text-[#00796b] truncate">
+                                    <p className="text-xs font-bold text-[#101828] group-hover:text-[#0052CC] truncate">
                                       {item.title}
                                     </p>
                                     {item.subtitle && (
@@ -4373,11 +4406,11 @@ export default function ViajeDetalle({ params }: PageProps) {
                                 if (addressSuggestions.length > 0 && activeAddressField === 'transferDest') setShowAddressSuggestions(true);
                               }}
                               placeholder="ej: Hotel Grand Palace / Centro"
-                              className="w-full rounded-2xl border border-[#d0d5dd] pl-3.5 pr-9 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                              className="w-full rounded-2xl border border-[#d0d5dd] pl-3.5 pr-9 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                             />
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                               {isSearchingAddress && activeAddressField === 'transferDest' ? (
-                                <span className="h-3.5 w-3.5 block rounded-full border-2 border-[#009688] border-t-transparent animate-spin" />
+                                <span className="h-3.5 w-3.5 block rounded-full border-2 border-[#0066FF] border-t-transparent animate-spin" />
                               ) : (
                                 <MapPin className="h-3.5 w-3.5 text-[#98a2b3]" />
                               )}
@@ -4404,9 +4437,9 @@ export default function ViajeDetalle({ params }: PageProps) {
                                   onClick={() => handleSelectAddressSuggestion(item)}
                                   className="w-full px-3.5 py-2.5 text-left hover:bg-[#f0fdfa] transition-colors border-b border-[#f2f4f7] last:border-0 flex items-start gap-2.5 cursor-pointer group"
                                 >
-                                  <MapPin className="h-4 w-4 text-[#009688] shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                                  <MapPin className="h-4 w-4 text-[#0066FF] shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
                                   <div className="min-w-0">
-                                    <p className="text-xs font-bold text-[#101828] group-hover:text-[#00796b] truncate">
+                                    <p className="text-xs font-bold text-[#101828] group-hover:text-[#0052CC] truncate">
                                       {item.title}
                                     </p>
                                     {item.subtitle && (
@@ -4429,7 +4462,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                             value={actTime}
                             onChange={(e) => setActTime(e.target.value)}
                             required
-                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                           />
                         </div>
                         <div>
@@ -4442,7 +4475,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                             onChange={(e) => setActPrice(Number(e.target.value))}
                             min={0}
                             placeholder="0"
-                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                            className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                           />
                         </div>
                       </div>
@@ -4455,7 +4488,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           onChange={(e) => setActDescription(e.target.value)}
                           placeholder="Punto de encuentro, conductor, matrícula o notas del traslado..."
                           rows={2}
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden resize-none"
+                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden resize-none"
                         />
                       </div>
                     </div>
@@ -4481,7 +4514,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                           value={customIconUrl}
                           onChange={(e) => setCustomIconUrl(e.target.value)}
                           placeholder="ej: https://logo.clearbit.com/airbnb.com o URL de imagen..."
-                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden font-medium"
+                          className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden font-medium"
                         />
                       </div>
                       {customIconUrl && (
@@ -4514,7 +4547,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                 <button
                   type="submit"
                   form="activityForm"
-                  className="rounded-full bg-[#009688] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition-all cursor-pointer"
+                  className="rounded-full bg-[#0066FF] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] transition-all cursor-pointer"
                 >
                   {editingActivity ? 'Guardar cambios' : 'Añadir al itinerario'}
                 </button>
@@ -4569,7 +4602,7 @@ export default function ViajeDetalle({ params }: PageProps) {
           <div className="w-full max-w-sm rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-2xl animate-scale-in">
             <div className="flex items-center justify-between border-b border-[#eaecf0] pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-[#009688]" />
+                <DollarSign className="h-4 w-4 text-[#0066FF]" />
                 <h3 className="text-sm font-bold text-[#101828]">Presupuesto total del viaje</h3>
               </div>
               <button
@@ -4600,7 +4633,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                   value={budgetInput}
                   onChange={(e) => setBudgetInput(Number(e.target.value))}
                   required
-                  className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2.5 text-sm font-bold text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                  className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2.5 text-sm font-bold text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                 />
               </div>
 
@@ -4614,7 +4647,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-full bg-[#009688] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition-all cursor-pointer"
+                  className="rounded-full bg-[#0066FF] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] transition-all cursor-pointer"
                 >
                   Guardar
                 </button>
@@ -4632,7 +4665,7 @@ export default function ViajeDetalle({ params }: PageProps) {
           <div className="w-full max-w-md rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-2xl animate-scale-in">
             <div className="flex items-center justify-between border-b border-[#eaecf0] pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <Upload className="h-4 w-4 text-[#009688]" />
+                <Upload className="h-4 w-4 text-[#0066FF]" />
                 <h3 className="text-sm font-bold text-[#101828]">Foto de portada</h3>
               </div>
               <button
@@ -4661,7 +4694,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                   onChange={(e) => setPhotoUrlInput(e.target.value)}
                   placeholder="https://images.unsplash.com/..."
                   required
-                  className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                  className="w-full rounded-2xl border border-[#d0d5dd] px-3.5 py-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                 />
               </div>
 
@@ -4682,7 +4715,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-full bg-[#009688] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition-all cursor-pointer"
+                  className="rounded-full bg-[#0066FF] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] transition-all cursor-pointer"
                 >
                   Actualizar portada
                 </button>
@@ -4698,7 +4731,7 @@ export default function ViajeDetalle({ params }: PageProps) {
           <div className="w-full max-w-md rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-2xl animate-scale-in">
             <div className="flex items-center justify-between border-b border-[#eaecf0] pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-[#009688]" />
+                <Calendar className="h-4 w-4 text-[#0066FF]" />
                 <h3 className="text-sm font-bold text-[#101828]">Modificar fechas del viaje</h3>
               </div>
               <button
@@ -4727,7 +4760,7 @@ export default function ViajeDetalle({ params }: PageProps) {
               <button
                 type="button"
                 onClick={() => setIsDatePickerOpen(false)}
-                className="rounded-full bg-[#009688] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition-all cursor-pointer"
+                className="rounded-full bg-[#0066FF] px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] transition-all cursor-pointer"
               >
                 Listo
               </button>

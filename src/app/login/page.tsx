@@ -186,7 +186,7 @@ export default function Login() {
   ) : null;
 
   return (
-    <div className="min-h-screen w-full bg-white text-zinc-900 font-sans flex flex-col selection:bg-[#009688]/20 selection:text-[#00796b]">
+    <div className="min-h-screen w-full bg-white text-zinc-900 font-sans flex flex-col selection:bg-[#0066FF]/20 selection:text-[#0052CC]">
       {/* ========================================================================= */}
       {/* 100% FULL-SCREEN 2-COLUMN SPLIT LAYOUT                                    */}
       {/* ========================================================================= */}
@@ -210,7 +210,7 @@ export default function Login() {
             {/* Top Badge */}
             <div className="relative z-10 self-start">
               <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/40 flex items-center gap-2 text-xs font-bold text-zinc-900">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#009688] animate-pulse" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#0066FF] animate-pulse" />
                 <span>Acceso Seguro a tu Panel</span>
               </div>
             </div>
@@ -218,8 +218,8 @@ export default function Login() {
             {/* Bottom Testimonial / Features Card */}
             <div className="relative z-10 p-6 rounded-3xl bg-white/95 backdrop-blur-md border border-white/60 shadow-2xl space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 font-bold text-xs text-[#00796b]">
-                  <Globe className="w-4 h-4 text-[#009688]" />
+                <div className="flex items-center gap-2 font-bold text-xs text-[#0066FF]">
+                  <Globe className="w-4 h-4 text-[#0066FF]" />
                   <span className="uppercase tracking-wider">Santorini & Islas Cícladas</span>
                 </div>
                 <div className="flex text-amber-400 gap-0.5">
@@ -235,7 +235,7 @@ export default function Login() {
 
               <div className="flex items-center justify-between pt-2 border-t border-zinc-200/70 text-[11px] font-semibold text-zinc-500">
                 <div className="flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5 text-[#009688]" />
+                  <Shield className="w-3.5 h-3.5 text-[#0066FF]" />
                   <span>Seguridad SSL · Cifrado bancario</span>
                 </div>
                 <span className="font-bold text-zinc-800">10 Días · Exclusivo</span>
@@ -295,7 +295,7 @@ export default function Login() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="ejemplo@correo.com"
                       disabled={isLoading}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/15 transition-all bg-white"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
                     />
                   </div>
                 </div>
@@ -312,7 +312,7 @@ export default function Login() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       disabled={isLoading}
-                      className="w-full pl-10 pr-11 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/15 transition-all bg-white"
+                      className="w-full pl-10 pr-11 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
                     />
                     <button
                       type="button"
@@ -331,7 +331,7 @@ export default function Login() {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-4 h-4 rounded text-[#009688] focus:ring-[#009688] accent-[#009688] border-zinc-300"
+                      className="w-4 h-4 rounded text-[#0066FF] focus:ring-[#0066FF] accent-[#0066FF] border-zinc-300"
                     />
                     <span>Recordarme en este equipo</span>
                   </label>
@@ -343,7 +343,7 @@ export default function Login() {
                       setError(null);
                       setNotice(null);
                     }}
-                    className="text-zinc-500 hover:text-[#009688] font-medium cursor-pointer"
+                    className="text-zinc-500 hover:text-[#0066FF] font-medium cursor-pointer"
                   >
                     ¿Olvidaste tu contraseña?
                   </button>
@@ -353,7 +353,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3.5 rounded-xl bg-[#009688] hover:bg-[#00796b] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+                  className="w-full py-3.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
                 >
                   {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -399,7 +399,7 @@ export default function Login() {
                 {/* Sign Up Footer */}
                 <div className="text-center pt-2 text-xs text-zinc-500">
                   <span>¿Aún no tienes una cuenta? </span>
-                  <Link href="/registro" className="font-bold text-[#009688] hover:underline">
+                  <Link href="/registro" className="font-bold text-[#0066FF] hover:underline">
                     Regístrate gratis
                   </Link>
                 </div>
@@ -420,7 +420,7 @@ export default function Login() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="ejemplo@correo.com"
                       disabled={isLoading}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/15 transition-all bg-white"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
                     />
                   </div>
                 </div>
@@ -428,7 +428,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3.5 rounded-xl bg-[#009688] hover:bg-[#00796b] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full py-3.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Enviar código de recuperación</span>}
                 </button>
@@ -464,7 +464,7 @@ export default function Login() {
                           <InputOTP.Slot
                             key={index}
                             index={index}
-                            className="h-12 w-11 rounded-xl border border-zinc-300 bg-zinc-50 text-lg font-bold text-zinc-900 focus:border-[#009688]"
+                            className="h-12 w-11 rounded-xl border border-zinc-300 bg-zinc-50 text-lg font-bold text-zinc-900 focus:border-[#0066FF]"
                           />
                         ))}
                       </InputOTP.Group>
@@ -483,7 +483,7 @@ export default function Login() {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Mínimo 6 caracteres"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/15 transition-all bg-white"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
                     />
                   </div>
                 </div>
@@ -499,7 +499,7 @@ export default function Login() {
                       value={confirmation}
                       onChange={(e) => setConfirmation(e.target.value)}
                       placeholder="Repite la contraseña"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/15 transition-all bg-white"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
                     />
                   </div>
                 </div>
@@ -507,7 +507,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isLoading || otp.length !== 6}
-                  className="w-full py-3.5 rounded-xl bg-[#009688] hover:bg-[#00796b] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+                  className="w-full py-3.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
                 >
                   {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>{isInvitation ? 'Activar mi cuenta' : 'Guardar nueva contraseña'}</span>}
                 </button>

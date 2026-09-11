@@ -24,7 +24,7 @@ export function AvatarPickerModal({
   const [customImageUrl, setCustomImageUrl] = useState<string>(
     currentAvatar?.startsWith('http') || currentAvatar?.startsWith('data:') ? currentAvatar : ''
   );
-  const [selectedColor, setSelectedColor] = useState<string>('#009688');
+  const [selectedColor, setSelectedColor] = useState<string>('#0066FF');
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -84,7 +84,7 @@ export function AvatarPickerModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e0f2f1] text-[#009688]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-[#0066FF]">
               <Sparkles className="h-4 w-4" />
             </div>
             <div>
@@ -136,7 +136,7 @@ export function AvatarPickerModal({
                     onClick={() => handleSelectPreset(p)}
                     className={`group relative flex flex-col items-center gap-1.5 rounded-2xl p-2 transition-all cursor-pointer ${
                       isSelected
-                        ? 'ring-3 ring-[#009688] bg-[#e0f2f1]/40 scale-105 shadow-sm'
+                        ? 'ring-3 ring-[#0066FF] bg-blue-50/60 scale-105 shadow-sm'
                         : 'hover:bg-zinc-100/80 hover:scale-102'
                     }`}
                   >
@@ -148,8 +148,8 @@ export function AvatarPickerModal({
                         className="h-full w-full object-cover transition group-hover:scale-105"
                       />
                       {isSelected && (
-                        <div className="absolute inset-0 bg-[#009688]/30 flex items-center justify-center">
-                          <div className="rounded-full bg-[#009688] p-1 text-white shadow-xs">
+                        <div className="absolute inset-0 bg-[#0066FF]/30 flex items-center justify-center">
+                          <div className="rounded-full bg-[#0066FF] p-1 text-white shadow-xs">
                             <Check className="h-3.5 w-3.5" />
                           </div>
                         </div>
@@ -168,8 +168,8 @@ export function AvatarPickerModal({
         {/* Tab 2: Upload / URL */}
         {activeTab === 'upload' && (
           <div className="space-y-4 py-2">
-            <label className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50 p-6 text-center hover:border-[#009688] hover:bg-[#e0f2f1]/20 transition cursor-pointer">
-              <Upload className="h-8 w-8 text-[#009688] mb-2" />
+            <label className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50 p-6 text-center hover:border-[#0066FF] hover:bg-blue-50/30 transition cursor-pointer">
+              <Upload className="h-8 w-8 text-[#0066FF] mb-2" />
               <span className="text-xs font-bold text-zinc-800">Haz clic para subir una foto</span>
               <span className="text-[11px] text-zinc-500 mt-0.5">PNG, JPG o WEBP (máx. 2MB)</span>
               <input
@@ -197,13 +197,13 @@ export function AvatarPickerModal({
                 value={customImageUrl}
                 onChange={(e) => setCustomImageUrl(e.target.value)}
                 placeholder="https://ejemplo.com/mi-avatar.jpg"
-                className="flex-1 rounded-xl border border-zinc-300 px-3 py-2 text-xs focus:outline-hidden focus:border-[#009688] focus:ring-1 focus:ring-[#009688]"
+                className="flex-1 rounded-xl border border-zinc-300 px-3 py-2 text-xs focus:outline-hidden focus:border-[#0066FF] focus:ring-1 focus:ring-[#0066FF]"
               />
               <button
                 type="button"
                 onClick={handleSaveCustomImage}
                 disabled={!customImageUrl.trim()}
-                className="rounded-xl bg-[#009688] px-4 py-2 text-xs font-bold text-white hover:bg-[#00796b] disabled:opacity-50 transition cursor-pointer"
+                className="rounded-xl bg-[#0066FF] px-4 py-2 text-xs font-bold text-white hover:bg-[#0052CC] disabled:opacity-50 transition cursor-pointer"
               >
                 Aplicar
               </button>
@@ -298,7 +298,7 @@ export function UserAvatarDisplay({
 
   return (
     <div
-      className={`flex shrink-0 items-center justify-center rounded-full bg-[#009688] font-black text-white shadow-xs ${sizeClasses[size]} ${className}`}
+      className={`flex shrink-0 items-center justify-center rounded-full bg-[#0066FF] font-black text-white shadow-xs ${sizeClasses[size]} ${className}`}
     >
       {initials}
     </div>

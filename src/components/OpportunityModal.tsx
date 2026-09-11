@@ -235,7 +235,7 @@ export function OpportunityModal({
                 placeholder="Ej. Japón en familia, Luna de miel en Bali..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-3 text-xs text-[#101828] focus:border-[#009688] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20 transition-all"
+                className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-3 text-xs text-[#101828] focus:border-[#0066FF] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20 transition-all"
               />
             </div>
 
@@ -249,7 +249,7 @@ export function OpportunityModal({
                   <select
                     value={stage}
                     onChange={(e) => setStage(e.target.value as OpportunityStage)}
-                    className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-3 pr-8 text-xs font-semibold text-[#101828] focus:border-[#009688] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20 cursor-pointer appearance-none transition-all"
+                    className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-3 pr-8 text-xs font-semibold text-[#101828] focus:border-[#0066FF] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20 cursor-pointer appearance-none transition-all"
                   >
                     <option value="nuevo">Nuevo</option>
                     <option value="contactado">Contactado</option>
@@ -265,7 +265,7 @@ export function OpportunityModal({
                 <label className="block text-xs font-bold uppercase tracking-wider text-[#344054] mb-1.5">
                   Importe <span className="text-red-500">*</span>
                 </label>
-                <div className="flex rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 overflow-hidden focus-within:border-[#009688] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#009688]/20 transition-all">
+                <div className="flex rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 overflow-hidden focus-within:border-[#0066FF] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0066FF]/20 transition-all">
                   <input
                     type="number"
                     min="0"
@@ -299,7 +299,7 @@ export function OpportunityModal({
                   required
                   value={agentName}
                   onChange={(e) => setAgentName(e.target.value)}
-                  className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-3 pr-8 text-xs font-semibold text-[#101828] focus:border-[#009688] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20 cursor-pointer appearance-none transition-all"
+                  className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-3 pr-8 text-xs font-semibold text-[#101828] focus:border-[#0066FF] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20 cursor-pointer appearance-none transition-all"
                 >
                   <option value="" disabled>
                     Selecciona un agente de la empresa...
@@ -332,7 +332,7 @@ export function OpportunityModal({
                     value="existing"
                     checked={contactMode === 'existing'}
                     onChange={() => setContactMode('existing')}
-                    className="h-4 w-4 text-[#009688] focus:ring-[#009688]"
+                    className="h-4 w-4 text-[#0066FF] focus:ring-[#0066FF]"
                   />
                   <span>Contacto(s) existente</span>
                 </label>
@@ -344,7 +344,7 @@ export function OpportunityModal({
                     value="new"
                     checked={contactMode === 'new'}
                     onChange={() => setContactMode('new')}
-                    className="h-4 w-4 text-[#009688] focus:ring-[#009688]"
+                    className="h-4 w-4 text-[#0066FF] focus:ring-[#0066FF]"
                   />
                   <span>Crear nuevo contacto</span>
                 </label>
@@ -359,7 +359,7 @@ export function OpportunityModal({
                     <select
                       value={selectedClientId}
                       onChange={(e) => setSelectedClientId(e.target.value)}
-                      className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-3 pr-8 text-xs text-[#101828] focus:border-[#009688] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20 cursor-pointer appearance-none transition-all"
+                      className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-3 pr-8 text-xs text-[#101828] focus:border-[#0066FF] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20 cursor-pointer appearance-none transition-all"
                     >
                       <option value="">Selecciona un contacto...</option>
                       {clients.map((c) => (
@@ -371,13 +371,13 @@ export function OpportunityModal({
                     <ChevronDown className="pointer-events-none absolute right-3 top-3.5 h-4 w-4 text-zinc-400" />
                   </div>
                   {clients.length === 0 && (
-                    <p className="mt-1 text-[11px] text-[#009688]">
+                    <p className="mt-1 text-[11px] text-[#0066FF]">
                       No tienes contactos creados aún. Elige "Crear nuevo contacto".
                     </p>
                   )}
                 </div>
               ) : (
-                <div className="space-y-3 rounded-2xl border border-[#e0f2f1] bg-[#f0fdfa] p-4">
+                <div className="space-y-3 rounded-2xl border border-blue-200/80 bg-blue-50/50 p-4">
                   <div>
                     <label className="block text-xs font-bold text-[#344054] mb-1">
                       Nombre del nuevo contacto <span className="text-red-500">*</span>
@@ -388,7 +388,7 @@ export function OpportunityModal({
                       placeholder="ej. Jordi Serra"
                       value={newClientName}
                       onChange={(e) => setNewClientName(e.target.value)}
-                      className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                      className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                     />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -399,7 +399,7 @@ export function OpportunityModal({
                         placeholder="jordi@ejemplo.com"
                         value={newClientEmail}
                         onChange={(e) => setNewClientEmail(e.target.value)}
-                        className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                        className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                       />
                     </div>
                     <div>
@@ -409,7 +409,7 @@ export function OpportunityModal({
                         placeholder="+34 612 345 678"
                         value={newClientPhone}
                         onChange={(e) => setNewClientPhone(e.target.value)}
-                        className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                        className="w-full rounded-xl border border-[#d0d5dd] bg-white p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                       />
                     </div>
                   </div>
@@ -430,7 +430,7 @@ export function OpportunityModal({
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20 transition-all"
+                    className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20 transition-all"
                   />
                 </div>
 
@@ -440,7 +440,7 @@ export function OpportunityModal({
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20 transition-all"
+                    className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20 transition-all"
                   />
                 </div>
               </div>
@@ -453,7 +453,7 @@ export function OpportunityModal({
                     placeholder="Ej. Japón, Maldivas, Riviera Maya..."
                     value={destination}
                     onChange={(e) => setDestination(e.target.value)}
-                    className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20 transition-all"
+                    className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20 transition-all"
                   />
                 </div>
 
@@ -465,7 +465,7 @@ export function OpportunityModal({
                     placeholder="2"
                     value={travelersCount}
                     onChange={(e) => setTravelersCount(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20 transition-all"
+                    className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20 transition-all"
                   />
                 </div>
               </div>
@@ -477,7 +477,7 @@ export function OpportunityModal({
                   placeholder="Añade contexto sobre este lead: cómo contactó, qué busca, preferencias de hotel, presupuesto máximo..."
                   value={initialNotes}
                   onChange={(e) => setInitialNotes(e.target.value)}
-                  className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-3 text-xs text-[#101828] focus:border-[#009688] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20 transition-all"
+                  className="w-full rounded-2xl border border-[#d0d5dd] bg-zinc-50/60 p-3 text-xs text-[#101828] focus:border-[#0066FF] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20 transition-all"
                 />
               </div>
             </div>
@@ -496,7 +496,7 @@ export function OpportunityModal({
               type="submit"
               form="opportunity-form"
               disabled={isSubmitting || !title.trim()}
-              className="flex items-center gap-2 rounded-full bg-[#009688] px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-[#009688]/20 hover:bg-[#00796b] disabled:opacity-50 cursor-pointer transition-all"
+              className="flex items-center gap-2 rounded-full bg-[#0066FF] px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-[#0066FF]/20 hover:bg-[#0052CC] disabled:opacity-50 cursor-pointer transition-all"
             >
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               <span>{opportunityToEdit ? 'Guardar cambios' : 'Crear oportunidad'}</span>

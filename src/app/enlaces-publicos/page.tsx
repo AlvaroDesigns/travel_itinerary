@@ -207,17 +207,17 @@ export default function EnlacesPublicosPage() {
               <p className="text-xs font-bold text-[#667085] uppercase tracking-wider">Total de Itinerarios</p>
               <p className="text-2xl sm:text-3xl font-black text-[#101828] mt-1">{trips.length}</p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF]">
               <Plane className="h-6 w-6" />
             </div>
           </div>
 
-          <div className="rounded-3xl border border-[#ccfbf1] bg-[#f0fdfa] p-5 shadow-xs flex items-center justify-between">
+          <div className="rounded-3xl border border-blue-200/80 bg-blue-50/50 p-5 shadow-xs flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold text-[#00796b] uppercase tracking-wider">Enlaces Habilitados</p>
-              <p className="text-2xl sm:text-3xl font-black text-[#00796b] mt-1">{totalEnabled || trips.length}</p>
+              <p className="text-xs font-bold text-[#0066FF] uppercase tracking-wider">Enlaces Habilitados</p>
+              <p className="text-2xl sm:text-3xl font-black text-[#0066FF] mt-1">{totalEnabled || trips.length}</p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#009688] text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0066FF] text-white">
               <LockOpen className="h-6 w-6" />
             </div>
           </div>
@@ -245,7 +245,7 @@ export default function EnlacesPublicosPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar por nombre de viaje, cliente o código..."
-              className="w-full rounded-2xl border border-transparent bg-[#f8fafc] pl-10 pr-4 py-2 text-xs font-semibold text-[#101828] placeholder-[#98a2b3] focus:border-[#009688] focus:bg-white focus:outline-none transition-all"
+              className="w-full rounded-2xl border border-transparent bg-[#f8fafc] pl-10 pr-4 py-2 text-xs font-semibold text-[#101828] placeholder-[#98a2b3] focus:border-[#0066FF] focus:bg-white focus:outline-none transition-all"
             />
           </div>
 
@@ -267,7 +267,7 @@ export default function EnlacesPublicosPage() {
               onClick={() => setStatusFilter('enabled')}
               className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                 statusFilter === 'enabled'
-                  ? 'bg-white text-[#00796b] shadow-xs'
+                  ? 'bg-white text-[#0066FF] shadow-xs'
                   : 'text-[#667085] hover:text-[#101828]'
               }`}
             >
@@ -332,7 +332,7 @@ export default function EnlacesPublicosPage() {
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={trip.imageUrl} alt={trip.name} className="h-full w-full object-cover" />
                               ) : (
-                                <div className="h-full w-full flex items-center justify-center text-[#009688] bg-[#e0f2f1]">
+                                <div className="h-full w-full flex items-center justify-center text-[#0066FF] bg-blue-50">
                                   <Plane className="h-4 w-4" />
                                 </div>
                               )}
@@ -340,7 +340,7 @@ export default function EnlacesPublicosPage() {
                             <div className="min-w-0">
                               <Link
                                 href={`/viaje/${trip.id}`}
-                                className="font-extrabold text-sm text-[#101828] hover:text-[#009688] transition-colors truncate block"
+                                className="font-extrabold text-sm text-[#101828] hover:text-[#0066FF] transition-colors truncate block"
                               >
                                 {trip.name}
                               </Link>
@@ -354,7 +354,7 @@ export default function EnlacesPublicosPage() {
                         {/* Fechas */}
                         <td className="px-4 py-4 whitespace-nowrap">
                           <span className="flex items-center gap-1.5 text-xs text-[#344054] font-semibold">
-                            <Calendar className="h-3.5 w-3.5 text-[#009688]" />
+                            <Calendar className="h-3.5 w-3.5 text-[#0066FF]" />
                             <span>{formatFullDate(trip.startDate)}</span>
                           </span>
                           <span className="text-[10px] text-[#667085] block mt-0.5">
@@ -393,7 +393,7 @@ export default function EnlacesPublicosPage() {
                           <span
                             className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                               setting.publicShowExpenses
-                                ? 'bg-teal-50 text-[#00796b] border border-teal-200'
+                                ? 'bg-blue-50 text-[#0066FF] border border-blue-200'
                                 : 'bg-amber-50 text-amber-700 border border-amber-200'
                             }`}
                           >
@@ -415,7 +415,7 @@ export default function EnlacesPublicosPage() {
                               onClick={() => handleCopyLink(trip.id)}
                               className={`shrink-0 rounded-xl p-1.5 transition-colors cursor-pointer border ${
                                 isCopied
-                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
                                   : 'bg-white text-[#475467] border-[#eaecf0] hover:bg-[#f8fafc]'
                               }`}
                               title="Copiar enlace"
@@ -432,17 +432,17 @@ export default function EnlacesPublicosPage() {
                               href={publicUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 rounded-xl bg-white border border-[#eaecf0] px-3 py-1.5 text-xs font-bold text-[#344054] hover:bg-[#f8fafc] hover:border-[#009688] transition shadow-2xs"
+                              className="inline-flex items-center gap-1 rounded-xl bg-white border border-[#eaecf0] px-3 py-1.5 text-xs font-bold text-[#344054] hover:bg-[#f8fafc] hover:border-[#0066FF] transition shadow-2xs"
                               title="Abrir en pestaña nueva"
                             >
-                              <ExternalLink className="h-3.5 w-3.5 text-[#009688]" />
+                              <ExternalLink className="h-3.5 w-3.5 text-[#0066FF]" />
                               <span>Ver</span>
                             </a>
 
                             <button
                               type="button"
                               onClick={() => setSelectedShareTrip(trip)}
-                              className="inline-flex items-center gap-1 rounded-xl bg-[#009688] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#00796b] transition shadow-2xs cursor-pointer"
+                              className="inline-flex items-center gap-1 rounded-xl bg-[#0066FF] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#0052CC] transition shadow-2xs cursor-pointer"
                             >
                               <Share2 className="h-3.5 w-3.5" />
                               <span>Compartir</span>
@@ -464,7 +464,7 @@ export default function EnlacesPublicosPage() {
             <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl animate-scale-in border border-[#eaecf0] space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-[#f2f4f7]">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF]">
                     <Share2 className="h-5 w-5" />
                   </div>
                   <div>
@@ -494,7 +494,7 @@ export default function EnlacesPublicosPage() {
                   <button
                     type="button"
                     onClick={() => handleCopyLink(selectedShareTrip.id)}
-                    className="rounded-2xl bg-[#009688] px-4 py-2 text-xs font-bold text-white hover:bg-[#00796b] transition cursor-pointer shrink-0"
+                    className="rounded-2xl bg-[#0066FF] px-4 py-2 text-xs font-bold text-white hover:bg-[#0052CC] transition cursor-pointer shrink-0"
                   >
                     {copiedId === selectedShareTrip.id ? '¡Copiado!' : 'Copiar'}
                   </button>

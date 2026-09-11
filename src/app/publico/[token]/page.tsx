@@ -30,6 +30,13 @@ import {
   ArrowRight,
   LayoutDashboard,
   Star,
+  Heart,
+  MoreVertical,
+  Maximize2,
+  Play,
+  ArrowLeft,
+  Building,
+  ExternalLink,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -41,6 +48,117 @@ import { WanderlustLoader } from "@/components/WanderlustLoader";
 
 interface PageProps {
   params: Promise<{ token: string }>;
+}
+
+const DUMMY_CATEGORY_IMAGES: Record<string, string[]> = {
+  flight: [
+    "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1540339832862-474599807836?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1506015391300-4802dc74de2e?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1569154941061-e231b4725ef1?auto=format&fit=crop&w=600&q=80",
+  ],
+  hotel: [
+    "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=600&q=80",
+  ],
+  food: [
+    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=600&q=80",
+  ],
+  transfer: [
+    "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=600&q=80",
+  ],
+  excursion: [
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80",
+  ],
+  booking: [
+    "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
+  ],
+};
+
+function getActivityHeroImage(act: PublicActivity, trip?: PublicTrip): string {
+  if (typeof act.customIconUrl === "string" && act.customIconUrl.trim().length > 0) {
+    return act.customIconUrl.trim();
+  }
+  if (typeof act.imageUrl === "string" && act.imageUrl.trim().length > 0) {
+    return act.imageUrl.trim();
+  }
+  const categoryImages = DUMMY_CATEGORY_IMAGES[act.type] || DUMMY_CATEGORY_IMAGES.excursion;
+  return categoryImages[0] || (trip?.imageUrl || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80");
+}
+
+function getThumbnailImage(act: PublicActivity, index: number): string {
+  const categoryImages = DUMMY_CATEGORY_IMAGES[act.type] || DUMMY_CATEGORY_IMAGES.excursion;
+  return categoryImages[index % categoryImages.length] || categoryImages[0];
+}
+
+function getActivityTitle(act: PublicActivity): string {
+  if (act.type === "hotel") {
+    return act.isCheckout
+      ? `Check-out: ${(act.hotelName as string) || "Alojamiento"}`
+      : (act.hotelName as string) || "Alojamiento Exclusivo";
+  }
+  if (act.type === "flight") {
+    return `${(act.airline as string) || "Vuelo"} ${act.flightNumber ? `(${act.flightNumber})` : ""}`;
+  }
+  if (act.type === "food") {
+    return (act.restaurantName as string) || "Restaurante Exclusivo";
+  }
+  if (act.type === "transfer") {
+    return `Traslado: ${(act.origin as string) || "Origen"} → ${(act.destination as string) || "Destino"}`;
+  }
+  if (act.type === "booking" || act.type === "pago") {
+    return (act.title as string) || "Condiciones de Reserva & Pago";
+  }
+  return (act.title as string) || "Servicio del Itinerario";
+}
+
+function getActivityLocation(act: PublicActivity, trip?: PublicTrip): string {
+  if (act.type === "flight") {
+    return `${(act.origin as string) || "Origen"} (${extractAirportCode(act.origin as string)}) → ${(act.destination as string) || "Destino"} (${extractAirportCode(act.destination as string)})`;
+  }
+  if (act.address && typeof act.address === "string") {
+    return act.address;
+  }
+  if (act.location && typeof act.location === "string") {
+    return act.location;
+  }
+  return trip?.name || "Destino del viaje";
+}
+
+function getActivityDescription(act: PublicActivity): string {
+  if (typeof act.description === "string" && act.description.trim().length > 0) {
+    return act.description.trim();
+  }
+  if (typeof act.notes === "string" && act.notes.trim().length > 0) {
+    return act.notes.trim();
+  }
+  if (act.type === "flight") {
+    return "Vuelo confirmado y emitido. Te sugerimos estar en el aeropuerto 2 horas antes de la salida con tu documentación en vigor.";
+  }
+  if (act.type === "hotel") {
+    return "Reserva de alojamiento confirmada con seguro de viaje y asistencia 24/7. Presenta tu documento de identidad en recepción.";
+  }
+  if (act.type === "food") {
+    return "Mesa reservada y confirmada para disfrutar de una experiencia gastronómica local durante tu estancia.";
+  }
+  if (act.type === "transfer") {
+    return "Servicio de traslado privado coordinado. Tu conductor te esperará en el punto de encuentro indicado.";
+  }
+  return "Servicio y actividad confirmados dentro de tu plan de viaje. Incluye asistencia y soporte permanente.";
 }
 
 type PublicActivity = {
@@ -98,15 +216,14 @@ function formatDate(date: string) {
 
 function formatDayLabel(date: string) {
   const d = toDate(date);
-  const weekday = new Intl.DateTimeFormat("es-ES", { weekday: "short" })
-    .format(d)
-    .replace(".", "")
-    .toUpperCase();
-  const dayNum = d.getDate();
-  const month = new Intl.DateTimeFormat("es-ES", { month: "short" })
+  const weekdayRaw = new Intl.DateTimeFormat("es-ES", { weekday: "short" })
     .format(d)
     .replace(".", "");
-  return { weekday, dayNum, month };
+  const weekday = weekdayRaw.charAt(0).toUpperCase() + weekdayRaw.slice(1);
+  const dayNum = d.getDate();
+  const month = new Intl.DateTimeFormat("es-ES", { month: "long" }).format(d);
+  const formattedFullDate = `${dayNum} de ${month.charAt(0).toUpperCase() + month.slice(1)}`;
+  return { weekday, dayNum, month, formattedFullDate };
 }
 
 function formatWeekday(date: string) {
@@ -189,9 +306,9 @@ function getAirlineMeta(airlineName?: string, flightNumber?: string) {
 
   let code = "";
   let airlineOfficialName = airlineName || "Vuelo Comercial";
-  let bgColor = "bg-[#009688]";
+  let bgColor = "bg-[#0066FF]";
   let textColor = "text-white";
-  let borderColor = "border-[#009688]/40";
+  let borderColor = "border-[#0066FF]/40";
   let logoText = "FL";
 
   if (num.startsWith("FR") || name.includes("ryanair")) {
@@ -388,7 +505,7 @@ function PublicActivityIcon({ act }: { act: PublicActivity }) {
   }
 
   return (
-    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688] shadow-2xs z-10 group-hover:scale-105 transition-transform mt-0.5 sm:mt-0">
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF] shadow-2xs z-10 group-hover:scale-105 transition-transform mt-0.5 sm:mt-0">
       {isHotel && <Bed className="h-5 w-5" />}
       {isFood && <UtensilsCrossed className="h-5 w-5" />}
       {isTransfer && <Car className="h-5 w-5" />}
@@ -400,13 +517,105 @@ function PublicActivityIcon({ act }: { act: PublicActivity }) {
 }
 
 function hasActivityDetails(act: PublicActivity): boolean {
-  if (act.type === "booking" || act.type === "pago") return true;
-  if (typeof act.description === "string" && act.description.trim().length > 0)
-    return true;
-  if (typeof act.notes === "string" && act.notes.trim().length > 0) return true;
-  if (act.type === "flight" && Array.isArray(act.legs) && act.legs.length > 1)
-    return true;
-  return false;
+  if (!act) return false;
+  if (act.type === "flight") {
+    return Boolean(
+      (Array.isArray(act.legs) && act.legs.length > 0) ||
+      act.description ||
+      act.flightNumber ||
+      act.airline ||
+      act.origin ||
+      act.destination ||
+      act.arrivalTime ||
+      act.customIconUrl
+    );
+  }
+  if (act.type === "hotel") {
+    return Boolean(
+      act.address ||
+      act.description ||
+      act.checkOut ||
+      act.checkoutDate ||
+      act.customIconUrl ||
+      act.notes
+    );
+  }
+  if (act.type === "food") {
+    return Boolean(
+      act.address ||
+      act.description ||
+      act.notes ||
+      act.customIconUrl
+    );
+  }
+  if (act.type === "transfer") {
+    return Boolean(
+      act.origin ||
+      act.destination ||
+      act.description ||
+      act.duration ||
+      act.notes
+    );
+  }
+  if (act.type === "booking" || act.type === "pago") {
+    return Boolean(
+      act.cancellationPolicy ||
+      act.depositAmount ||
+      act.description ||
+      act.paymentProvider
+    );
+  }
+  return Boolean(
+    act.description ||
+    act.address ||
+    act.notes ||
+    act.customIconUrl ||
+    (act.price && act.price > 0)
+  );
+}
+
+function extractFirstUrl(text?: string | null): string | null {
+  if (!text) return null;
+  const match = text.match(/(https?:\/\/[^\s]+|www\.[^\s]+)/i);
+  if (!match) return null;
+  const url = match[0].trim();
+  return url.startsWith("http") ? url : `https://${url}`;
+}
+
+function AutoLinkText({
+  text,
+  className = "",
+}: {
+  text?: string | null;
+  className?: string;
+}) {
+  if (!text) return null;
+  const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
+  const parts = text.split(urlRegex);
+
+  return (
+    <span className={className}>
+      {parts.map((part, index) => {
+        if (urlRegex.test(part)) {
+          const href = part.startsWith("http") ? part : `https://${part}`;
+          return (
+            <a
+              key={index}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1 font-semibold text-[#0066FF] hover:text-[#0052D9] underline underline-offset-2 break-all cursor-pointer transition-colors"
+            >
+              <span>{part}</span>
+              <ExternalLink className="h-3 w-3 inline shrink-0" />
+            </a>
+          );
+        }
+        return <span key={index}>{part}</span>;
+      })}
+    </span>
+  );
 }
 
 function PublicActivityCardItem({
@@ -439,11 +648,11 @@ function PublicActivityCardItem({
 
   return (
     <div
-      onClick={() => isClickable && onSelect(act)}
+      onClick={() => {
+        if (isClickable) onSelect(act);
+      }}
       className={`group relative flex flex-row items-stretch rounded-3xl border border-[#eaecf0] bg-white shadow-xs transition-all overflow-hidden min-h-[140px] sm:min-h-[155px] ${
-        isClickable
-          ? "cursor-pointer hover:border-[#009688] hover:shadow-md"
-          : ""
+        isClickable ? "cursor-pointer hover:shadow-md" : ""
       }`}
     >
       {showFullImage ? (
@@ -460,7 +669,7 @@ function PublicActivityCardItem({
         </div>
       ) : (
         <div className="p-3.5 sm:p-5 pr-0 shrink-0 self-start">
-          <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688] shadow-2xs z-10 group-hover:scale-105 transition-transform">
+          <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF] shadow-2xs z-10 group-hover:scale-105 transition-transform">
             {isHotel && <Bed className="h-5 w-5" />}
             {isFood && <UtensilsCrossed className="h-5 w-5" />}
             {isTransfer && <Car className="h-5 w-5" />}
@@ -521,7 +730,7 @@ function PublicActivityCardItem({
                 act.isCheckout
                   ? "bg-rose-50 border border-rose-200 text-rose-700"
                   : isBooking
-                  ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                  ? "bg-blue-50 border border-blue-200 text-blue-700"
                   : "bg-[#f2f4f7] text-[#475467]"
               }`}
             >
@@ -533,7 +742,7 @@ function PublicActivityCardItem({
               {isBooking && "Módulo de Pago & Reserva"}
               {act.type === "flight" && "Vuelo"}
             </span>
-            <span className="flex items-center gap-1 text-xs font-bold text-[#009688]">
+            <span className="flex items-center gap-1 text-xs font-bold text-[#0066FF]">
               <Clock3 className="h-3.5 w-3.5" />
               {act.time}
             </span>
@@ -544,7 +753,7 @@ function PublicActivityCardItem({
             <div>
               {Boolean(act.address) && (
                 <p className="text-xs text-[#667085] mt-1 flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5 text-[#009688] shrink-0" />
+                  <MapPin className="h-3.5 w-3.5 text-zinc-900 shrink-0" />
                   <span className="truncate">{act.address as string}</span>
                 </p>
               )}
@@ -582,7 +791,7 @@ function PublicActivityCardItem({
           {isBooking && (
             <div className="space-y-1 mt-1">
               <p className="text-xs text-[#667085]">
-                Pasarela: <strong className="text-[#101828] uppercase font-bold">{(act.paymentProvider as string) || "Redsys"}</strong> · Depósito inicial: <strong className="text-[#009688] font-bold">{Number(act.depositAmount || 250)} €</strong>
+                Pasarela: <strong className="text-[#101828] uppercase font-bold">{(act.paymentProvider as string) || "Redsys"}</strong> · Depósito inicial: <strong className="text-[#0066FF] font-bold">{Number(act.depositAmount || 250)} €</strong>
               </p>
               {Boolean(act.cancellationPolicy || act.description) && (
                 <p className="text-xs text-[#475467] line-clamp-2">
@@ -594,8 +803,8 @@ function PublicActivityCardItem({
         </div>
 
         {(Boolean(trip.showExpenses && act.price && act.price > 0) ||
-          isClickable ||
-          isBooking) && (
+          isBooking ||
+          isClickable) && (
           <div className="flex flex-wrap items-center justify-between gap-2 mt-2 pt-2 border-t border-[#f2f4f7]">
             {isBooking ? (
               onNavigateToPayments ? (
@@ -605,13 +814,13 @@ function PublicActivityCardItem({
                     e.stopPropagation();
                     onNavigateToPayments();
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[#009688] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[#00796b] shadow-xs cursor-pointer transition-all"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs cursor-pointer transition-all hover:scale-[1.02]"
                 >
                   <CreditCard className="h-3.5 w-3.5" />
                   <span>Ver plazos y pagar depósito</span>
                 </button>
               ) : (
-                <span className="rounded-full bg-[#e0f2f1] px-2.5 py-0.5 text-xs font-bold text-[#00796b]">
+                <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-[#0066FF]">
                   Depósito: {formatCurrency(Number(act.depositAmount || 250))}
                 </span>
               )
@@ -624,9 +833,9 @@ function PublicActivityCardItem({
             )}
 
             {isClickable && (
-              <div className="flex items-center gap-1 text-xs font-bold text-[#009688] group-hover:translate-x-1 transition-transform">
+              <div className="flex items-center gap-1 text-xs font-bold text-zinc-900 ml-auto">
                 <span>Ver detalles</span>
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-4 w-4 text-zinc-900" />
               </div>
             )}
           </div>
@@ -804,7 +1013,7 @@ export default function PublicTripPage({ params }: PageProps) {
           <p className="mt-2 text-xs leading-relaxed text-[#667085]">{error}</p>
           <a
             href="/"
-            className="mt-6 inline-block rounded-full bg-[#009688] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#00796b] transition-all"
+            className="mt-6 inline-block rounded-full bg-[#0066FF] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#0052CC] transition-all"
           >
             Volver al inicio
           </a>
@@ -825,10 +1034,10 @@ export default function PublicTripPage({ params }: PageProps) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#090e1a] p-5 font-sans">
         <div className="w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-2xl">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688]">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF]">
             <Sparkles className="h-8 w-8" />
           </div>
-          <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-[#009688]">
+          <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-[#0066FF]">
             Aventura en preparación
           </p>
           <h1 className="mt-2 text-2xl font-extrabold text-[#101828]">
@@ -966,11 +1175,11 @@ export default function PublicTripPage({ params }: PageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-sans text-[#101828] selection:bg-[#009688] selection:text-white">
+    <div className="min-h-screen bg-[#f8fafc] font-sans text-[#101828] selection:bg-[#0066FF] selection:text-white">
       {/* Toast Notification */}
       {copiedToast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-[#101828] px-5 py-2.5 text-xs font-semibold text-white shadow-2xl border border-white/10 animate-fade-in">
-          <Check className="h-4 w-4 text-[#009688]" />
+          <Check className="h-4 w-4 text-[#0066FF]" />
           <span>¡Enlace copiado al portapapeles!</span>
         </div>
       )}
@@ -998,7 +1207,7 @@ export default function PublicTripPage({ params }: PageProps) {
           {/* Left: White Logo */}
           <Link
             href="/"
-            className="flex items-center group transition-transform hover:scale-105"
+            className="flex items-center select-none"
             aria-label="Inicio"
           >
             <Image
@@ -1034,7 +1243,7 @@ export default function PublicTripPage({ params }: PageProps) {
                 </Link>
                 <Link
                   href="/registro"
-                  className="hidden sm:inline-flex rounded-full bg-[#009688] hover:bg-[#00796b] text-white shadow-md px-3.5 py-1.5 text-xs font-bold transition-all hover:scale-102"
+                  className="hidden sm:inline-flex rounded-full bg-[#0066FF] hover:bg-[#0052CC] text-white shadow-md px-3.5 py-1.5 text-xs font-bold transition-all hover:scale-102"
                 >
                   Regístrate gratis
                 </Link>
@@ -1050,7 +1259,7 @@ export default function PublicTripPage({ params }: PageProps) {
                   title={`Opciones de ${getUserDisplayName()}`}
                   className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full transition-all cursor-pointer overflow-hidden ${
                     isUserMenuOpen
-                      ? "ring-2 ring-[#009688] shadow-lg"
+                      ? "ring-2 ring-[#0066FF] shadow-lg"
                       : "hover:ring-2 hover:ring-white/40 shadow-md"
                   }`}
                 >
@@ -1075,7 +1284,7 @@ export default function PublicTripPage({ params }: PageProps) {
                       <p className="text-xs text-[#667085] mt-0.5 truncate">
                         {user.email}
                       </p>
-                      <span className="mt-1.5 inline-block rounded-full bg-[#e0f2f1] px-2.5 py-0.5 text-[10px] font-bold text-[#00796b]">
+                      <span className="mt-1.5 inline-block rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-[#0066FF]">
                         {user.role === "superuser" || user.role === "superadmin"
                           ? "SUPERUSER"
                           : user.role === "admin"
@@ -1091,7 +1300,7 @@ export default function PublicTripPage({ params }: PageProps) {
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors"
                       >
-                        <LayoutDashboard className="h-4 w-4 text-[#009688]" />
+                        <LayoutDashboard className="h-4 w-4 text-[#0066FF]" />
                         <span>Dashboard</span>
                       </Link>
 
@@ -1100,7 +1309,7 @@ export default function PublicTripPage({ params }: PageProps) {
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors"
                       >
-                        <Plane className="h-4 w-4 text-[#009688]" />
+                        <Plane className="h-4 w-4 text-[#0066FF]" />
                         <span>Mis Viajes</span>
                       </Link>
 
@@ -1109,7 +1318,7 @@ export default function PublicTripPage({ params }: PageProps) {
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors"
                       >
-                        <Users className="h-4 w-4 text-[#009688]" />
+                        <Users className="h-4 w-4 text-[#0066FF]" />
                         <span>Clientes</span>
                       </Link>
 
@@ -1131,7 +1340,7 @@ export default function PublicTripPage({ params }: PageProps) {
                           onClick={() => setIsUserMenuOpen(false)}
                           className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] hover:text-[#101828] transition-colors"
                         >
-                          <UserCog className="h-4 w-4 text-[#009688]" />
+                          <UserCog className="h-4 w-4 text-[#0066FF]" />
                           <span>Usuarios</span>
                         </Link>
                       )}
@@ -1161,13 +1370,13 @@ export default function PublicTripPage({ params }: PageProps) {
         {/* Hero Bottom Content */}
         <div className="absolute inset-x-0 bottom-0 mx-auto max-w-7xl px-4 sm:px-8 pb-6 sm:pb-8">
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="rounded-full bg-[#009688] px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-white shadow-md">
+            <span className="rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider text-white shadow-lg shadow-blue-500/25">
               {duration} Días · {Math.max(1, duration - 1)} Noches
             </span>
-            <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md border border-white/15 shadow-sm">
+            <span className="rounded-full bg-white/20 px-3.5 py-1.5 text-xs font-semibold text-white backdrop-blur-md border border-white/15 shadow-sm">
               {formatDate(trip.startDate)} — {formatDate(trip.endDate)}
             </span>
-            <span className="rounded-full bg-black/40 px-3 py-1 text-xs font-semibold text-[#80cbc4] backdrop-blur-md border border-white/15 flex items-center gap-1.5 shadow-sm">
+            <span className="rounded-full bg-black/40 px-3.5 py-1.5 text-xs font-semibold text-blue-200 backdrop-blur-md border border-white/15 flex items-center gap-1.5 shadow-sm">
               <Sparkles className="h-3.5 w-3.5" />
               <span>Itinerario Confirmado</span>
             </span>
@@ -1186,11 +1395,11 @@ export default function PublicTripPage({ params }: PageProps) {
       </div>
 
       {/* ----------------------------------------------------------- */}
-      {/* 2. NAVIGATION TABS (Segmented Tabs Style - Spacious & Touch-friendly) */}
+      {/* 2. NAVIGATION TABS (Segmented Tabs Style - Spacious & Rounded-Full) */}
       {/* ----------------------------------------------------------- */}
       <div className="mx-auto max-w-7xl px-4 sm:px-8 pt-5 sm:pt-7">
         <div className="w-full overflow-x-auto pb-1 [scrollbar-width:none]">
-          <div className="flex sm:inline-flex items-center gap-1.5 rounded-2xl sm:rounded-full bg-[#f1f3f5] p-1.5 border border-[#e4e7ec] shadow-xs w-full sm:w-auto">
+          <div className="flex sm:inline-flex items-center gap-2 rounded-full bg-[#f1f3f5] p-2 border border-[#e4e7ec] shadow-xs w-full sm:w-auto">
             {navTabs.map((tab) => {
               const isSelected = activeTab === tab.id;
               return (
@@ -1198,7 +1407,7 @@ export default function PublicTripPage({ params }: PageProps) {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 sm:flex-initial text-center rounded-xl sm:rounded-full px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-extrabold transition-all duration-200 cursor-pointer whitespace-nowrap select-none ${
+                  className={`flex-1 sm:flex-initial text-center rounded-full px-5 sm:px-7 py-3 sm:py-3.5 text-xs sm:text-sm font-extrabold transition-all duration-200 cursor-pointer whitespace-nowrap select-none ${
                     isSelected
                       ? "bg-white text-[#101828] shadow-md ring-1 ring-black/5"
                       : "text-[#667085] hover:text-[#101828] hover:bg-white/60"
@@ -1217,41 +1426,59 @@ export default function PublicTripPage({ params }: PageProps) {
       {/* ----------------------------------------------------------- */}
       {activeTab === "itinerario" && (
         <div className="mx-auto max-w-7xl px-4 sm:px-8 pt-4 sm:pt-6">
-          <div className="flex items-center gap-2.5 sm:gap-3.5 overflow-x-auto py-2 px-1 [scrollbar-width:none] justify-start">
-            {dates.map((dateStr) => {
-              const isSelected = activeDate === dateStr;
-              const { weekday, dayNum } = formatDayLabel(dateStr);
+          <div className="rounded-3xl bg-white p-4 sm:p-5 shadow-sm border border-zinc-200/80 text-zinc-900">
+            {/* Header: Hoy / Día X + Full Month Date */}
+            <div className="flex items-center justify-between pb-3.5 px-1">
+              <h3 className="text-base sm:text-lg font-black text-zinc-900 tracking-tight">
+                {new Date().toISOString().split("T")[0] === activeDate
+                  ? "Hoy"
+                  : `Día ${dates.indexOf(activeDate) + 1}`}
+              </h3>
+              <span className="text-xs sm:text-sm font-semibold text-zinc-500">
+                {formatDayLabel(activeDate).formattedFullDate}
+              </span>
+            </div>
 
-              return (
-                <button
-                  key={dateStr}
-                  onClick={() => setSelectedDate(dateStr)}
-                  className={`group flex shrink-0 flex-col items-center justify-center min-w-[62px] sm:min-w-[72px] py-3 sm:py-3.5 px-3.5 sm:px-4 rounded-2xl transition-all duration-200 cursor-pointer ${
-                    isSelected
-                      ? "bg-[#009688] text-white shadow-lg shadow-[#009688]/30 scale-105 ring-2 ring-[#009688]/20"
-                      : "bg-white text-[#475467] border border-[#eaecf0] shadow-xs hover:border-[#009688]/50 hover:bg-slate-50"
-                  }`}
-                  title={`${weekday} ${dayNum}`}
-                >
-                  <span
-                    className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider ${
+            {/* Capsule Day Pills Row */}
+            <div className="flex items-center gap-2.5 sm:gap-3.5 overflow-x-auto py-1 px-0.5 [scrollbar-width:none] justify-start">
+              {dates.map((dateStr) => {
+                const isSelected = activeDate === dateStr;
+                const { weekday, dayNum } = formatDayLabel(dateStr);
+
+                return (
+                  <button
+                    key={dateStr}
+                    type="button"
+                    onClick={() => setSelectedDate(dateStr)}
+                    className={`group flex shrink-0 flex-col items-center justify-center min-w-[56px] sm:min-w-[66px] h-[78px] sm:h-[86px] rounded-full transition-all duration-200 cursor-pointer select-none ${
                       isSelected
-                        ? "text-white/90"
-                        : "text-[#667085] group-hover:text-[#101828]"
+                        ? "bg-gradient-to-tr from-[#0066FF] to-[#00C6FF] text-white shadow-lg shadow-blue-500/25 scale-105 ring-4 ring-blue-500/15"
+                        : "bg-zinc-50 text-zinc-700 border border-zinc-200/80 hover:bg-zinc-100 hover:border-zinc-300 hover:text-zinc-900"
                     }`}
+                    title={`${weekday} ${dayNum}`}
                   >
-                    {weekday}
-                  </span>
-                  <span
-                    className={`text-lg sm:text-xl font-black leading-tight mt-0.5 ${
-                      isSelected ? "text-white" : "text-[#101828]"
-                    }`}
-                  >
-                    {dayNum}
-                  </span>
-                </button>
-              );
-            })}
+                    {/* Day number on top */}
+                    <span
+                      className={`text-xl sm:text-2xl font-black leading-tight ${
+                        isSelected ? "text-white drop-shadow-xs" : "text-zinc-900 group-hover:text-black"
+                      }`}
+                    >
+                      {dayNum}
+                    </span>
+                    {/* Weekday abbreviation on bottom */}
+                    <span
+                      className={`text-[11px] sm:text-xs font-semibold capitalize mt-1 ${
+                        isSelected
+                          ? "text-white/90 font-bold"
+                          : "text-zinc-500 group-hover:text-zinc-700"
+                      }`}
+                    >
+                      {weekday}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
@@ -1269,7 +1496,7 @@ export default function PublicTripPage({ params }: PageProps) {
               {/* Activities List */}
               {activeActivities.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-[#eaecf0] bg-white p-10 text-center shadow-xs">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688] shadow-sm">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF] shadow-sm">
                     <CalendarDays className="h-6 w-6" />
                   </div>
                   <h3 className="mt-3 text-base font-extrabold text-[#101828]">
@@ -1314,15 +1541,8 @@ export default function PublicTripPage({ params }: PageProps) {
                                 <div key={lIdx} className="space-y-3">
                                   {/* Individual Card for this flight leg */}
                                   <div
-                                    onClick={() =>
-                                      hasActivityDetails(act) &&
-                                      setSelectedActivity(act)
-                                    }
-                                    className={`group relative flex flex-col gap-3.5 rounded-3xl border border-[#eaecf0] bg-white p-4 sm:p-5 shadow-xs transition-all ${
-                                      hasActivityDetails(act)
-                                        ? "cursor-pointer hover:border-[#009688] hover:shadow-md"
-                                        : ""
-                                    }`}
+                                    onClick={() => setSelectedActivity(act)}
+                                    className="group relative flex flex-col gap-3.5 rounded-3xl border border-[#eaecf0] bg-white p-4 sm:p-5 shadow-xs transition-all cursor-pointer hover:shadow-md"
                                   >
                                     <div className="w-full space-y-3.5">
                                       {/* Header */}
@@ -1372,8 +1592,8 @@ export default function PublicTripPage({ params }: PageProps) {
                                         </div>
 
                                         <div className="flex items-center gap-2">
-                                          <span className="rounded-full bg-[#f0fdf4] border border-[#dcfce7] px-3 py-1 text-[11px] font-bold text-[#15803d] flex items-center gap-1.5 shadow-2xs">
-                                            <span className="h-1.5 w-1.5 rounded-full bg-[#16a34a]" />
+                                          <span className="rounded-full bg-blue-50 border border-blue-200 px-3 py-1 text-[11px] font-bold text-[#0066FF] flex items-center gap-1.5 shadow-2xs">
+                                            <span className="h-1.5 w-1.5 rounded-full bg-[#0066FF]" />
                                             <span>
                                               Tramo {lIdx + 1} de {legs.length}
                                             </span>
@@ -1399,7 +1619,7 @@ export default function PublicTripPage({ params }: PageProps) {
                                           <p className="text-xl sm:text-2xl font-black text-[#101828] tracking-tight mt-0.5">
                                             {extractAirportCode(leg.origin)}
                                           </p>
-                                          <p className="text-xs sm:text-sm font-extrabold text-[#009688] mt-0.5">
+                                          <p className="text-xs sm:text-sm font-extrabold text-[#0066FF] mt-0.5">
                                             {leg.departureTime || act.time}
                                           </p>
                                         </div>
@@ -1407,7 +1627,7 @@ export default function PublicTripPage({ params }: PageProps) {
                                         <div className="flex flex-col items-center justify-center px-2 sm:px-4 flex-1 max-w-[180px] sm:max-w-[240px]">
                                           <div className="relative w-full flex items-center justify-center">
                                             <div className="w-full border-t-2 border-dashed border-[#cbd5e1]" />
-                                            <div className="absolute flex h-7 w-7 items-center justify-center rounded-full bg-[#e0f2f1] text-[#009688] shadow-xs border border-white">
+                                            <div className="absolute flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 shadow-xs border border-white">
                                               <Plane className="h-4 w-4 rotate-90 sm:rotate-45" />
                                             </div>
                                           </div>
@@ -1425,7 +1645,7 @@ export default function PublicTripPage({ params }: PageProps) {
                                               leg.destination,
                                             )}
                                           </p>
-                                          <p className="text-xs sm:text-sm font-extrabold text-[#009688] mt-0.5">
+                                          <p className="text-xs sm:text-sm font-extrabold text-[#0066FF] mt-0.5">
                                             {leg.arrivalTime || "—"}
                                           </p>
                                         </div>
@@ -1433,9 +1653,9 @@ export default function PublicTripPage({ params }: PageProps) {
 
                                       {hasActivityDetails(act) && (
                                         <div className="flex items-center justify-end pt-1">
-                                          <div className="flex items-center gap-1 text-xs font-bold text-[#009688] group-hover:translate-x-1 transition-transform">
+                                          <div className="flex items-center gap-1 text-xs font-bold text-zinc-900">
                                             <span>Ver detalles</span>
-                                            <ChevronRight className="h-4 w-4" />
+                                            <ChevronRight className="h-4 w-4 text-zinc-900" />
                                           </div>
                                         </div>
                                       )}
@@ -1484,14 +1704,8 @@ export default function PublicTripPage({ params }: PageProps) {
                       return (
                         <div
                           key={act.id}
-                          onClick={() =>
-                            hasActivityDetails(act) && setSelectedActivity(act)
-                          }
-                          className={`group relative flex flex-col gap-3.5 rounded-3xl border border-[#eaecf0] bg-white p-4 sm:p-5 shadow-xs transition-all ${
-                            hasActivityDetails(act)
-                              ? "cursor-pointer hover:border-[#009688] hover:shadow-md"
-                              : ""
-                          }`}
+                          onClick={() => setSelectedActivity(act)}
+                          className="group relative flex flex-col gap-3.5 rounded-3xl border border-[#eaecf0] bg-white p-4 sm:p-5 shadow-xs transition-all cursor-pointer hover:shadow-md"
                         >
                           <div className="w-full space-y-3.5">
                             <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#f2f4f7]">
@@ -1542,8 +1756,8 @@ export default function PublicTripPage({ params }: PageProps) {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="rounded-full bg-[#f0fdf4] border border-[#dcfce7] px-3 py-1 text-[11px] font-bold text-[#15803d] flex items-center gap-1.5 shadow-2xs">
-                                  <span className="h-1.5 w-1.5 rounded-full bg-[#16a34a]" />
+                                <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-emerald-700 flex items-center gap-1.5 shadow-2xs">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                                   <span>Directo (Non-Stop)</span>
                                 </span>
                                 {trip.showExpenses &&
@@ -1564,14 +1778,14 @@ export default function PublicTripPage({ params }: PageProps) {
                                 <p className="text-xl sm:text-2xl font-black text-[#101828] tracking-tight mt-0.5">
                                   {extractAirportCode(act.origin as string)}
                                 </p>
-                                <p className="text-xs sm:text-sm font-extrabold text-[#009688] mt-0.5">
+                                <p className="text-xs sm:text-sm font-extrabold text-[#0066FF] mt-0.5">
                                   {act.time}
                                 </p>
                               </div>
                               <div className="flex flex-col items-center justify-center px-2 sm:px-4 flex-1 max-w-[180px] sm:max-w-[240px]">
                                 <div className="relative w-full flex items-center justify-center">
                                   <div className="w-full border-t-2 border-dashed border-[#cbd5e1]" />
-                                  <div className="absolute flex h-7 w-7 items-center justify-center rounded-full bg-[#e0f2f1] text-[#009688] shadow-xs border border-white">
+                                  <div className="absolute flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 shadow-xs border border-white">
                                     <Plane className="h-4 w-4 rotate-90 sm:rotate-45" />
                                   </div>
                                 </div>
@@ -1588,7 +1802,7 @@ export default function PublicTripPage({ params }: PageProps) {
                                     act.destination as string,
                                   )}
                                 </p>
-                                <p className="text-xs sm:text-sm font-extrabold text-[#009688] mt-0.5">
+                                <p className="text-xs sm:text-sm font-extrabold text-[#0066FF] mt-0.5">
                                   {(act.arrivalTime as string) || "—"}
                                 </p>
                               </div>
@@ -1596,9 +1810,9 @@ export default function PublicTripPage({ params }: PageProps) {
 
                             {hasActivityDetails(act) && (
                               <div className="flex items-center justify-end pt-1">
-                                <div className="flex items-center gap-1 text-xs font-bold text-[#009688] group-hover:translate-x-1 transition-transform">
+                                <div className="flex items-center gap-1 text-xs font-bold text-zinc-900">
                                   <span>Ver detalles</span>
-                                  <ChevronRight className="h-4 w-4" />
+                                  <ChevronRight className="h-4 w-4 text-zinc-900" />
                                 </div>
                               </div>
                             )}
@@ -1627,7 +1841,7 @@ export default function PublicTripPage({ params }: PageProps) {
             <aside className="lg:col-span-4 space-y-4 order-2 lg:order-1 lg:sticky lg:top-24">
               {/* Active Day Detail Card */}
               <div className="hidden lg:block rounded-3xl border border-[#eaecf0] bg-white p-5 shadow-xs space-y-3">
-                <span className="inline-block rounded-full bg-[#e0f2f1] px-3 py-1 text-[11px] font-extrabold text-[#00796b]">
+                <span className="inline-block rounded-full bg-blue-50 px-3 py-1 text-[11px] font-extrabold text-[#0052CC]">
                   Día {dates.indexOf(activeDate) + 1} de {dates.length}
                 </span>
                 <h3 className="text-lg font-black capitalize text-[#101828]">
@@ -1645,8 +1859,8 @@ export default function PublicTripPage({ params }: PageProps) {
               </div>
 
               {/* Trip Highlights Summary Widget */}
-              <div className="rounded-3xl border border-[#eaecf0] bg-gradient-to-br from-[#f0fdfa] to-white p-5 shadow-xs space-y-3">
-                <div className="flex items-center gap-2 text-[#009688]">
+              <div className="rounded-3xl border border-[#eaecf0] bg-gradient-to-br from-blue-50/50 to-white p-5 shadow-xs space-y-3">
+                <div className="flex items-center gap-2 text-[#0066FF]">
                   <ShieldCheck className="h-5 w-5" />
                   <h4 className="text-xs font-extrabold uppercase tracking-wider">
                     Garantía Wanderlust
@@ -1656,7 +1870,7 @@ export default function PublicTripPage({ params }: PageProps) {
                   Todos los traslados, hoteles y actividades cuentan con seguro
                   de viaje y soporte directo durante toda tu estancia.
                 </p>
-                <div className="pt-2 border-t border-[#ccfbf1]/60 flex items-center justify-between text-xs text-[#00796b] font-bold">
+                <div className="pt-2 border-t border-blue-100 flex items-center justify-between text-xs text-[#0052CC] font-bold">
                   <span>Asistencia 24/7 en ruta</span>
                   <Check className="h-4 w-4" />
                 </div>
@@ -1672,7 +1886,7 @@ export default function PublicTripPage({ params }: PageProps) {
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688] mb-3">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF] mb-3">
                   <Plane className="h-6 w-6" />
                 </div>
                 <p className="text-3xl font-black text-[#101828]">
@@ -1684,7 +1898,7 @@ export default function PublicTripPage({ params }: PageProps) {
               </div>
 
               <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688] mb-3">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF] mb-3">
                   <Bed className="h-6 w-6" />
                 </div>
                 <p className="text-3xl font-black text-[#101828]">
@@ -1696,7 +1910,7 @@ export default function PublicTripPage({ params }: PageProps) {
               </div>
 
               <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688] mb-3">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF] mb-3">
                   <MapPin className="h-6 w-6" />
                 </div>
                 <p className="text-3xl font-black text-[#101828]">
@@ -1708,7 +1922,7 @@ export default function PublicTripPage({ params }: PageProps) {
               </div>
 
               <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688] mb-3">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF] mb-3">
                   <Car className="h-6 w-6" />
                 </div>
                 <p className="text-3xl font-black text-[#101828]">
@@ -1737,12 +1951,12 @@ export default function PublicTripPage({ params }: PageProps) {
                         <span className="font-extrabold text-[#101828] text-sm">
                           {(hotelAct.hotelName as string) || "Hotel"}
                         </span>
-                        <span className="rounded-full bg-[#e0f2f1] px-2.5 py-0.5 text-[10px] font-bold text-[#009688]">
+                        <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-[#0066FF]">
                           {hotelAct.date}
                         </span>
                       </div>
                       <p className="text-xs text-[#667085] flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 text-[#009688]" />
+                        <MapPin className="h-3.5 w-3.5 text-[#0066FF]" />
                         <span>
                           {(hotelAct.address as string) || "Dirección"}
                         </span>
@@ -1885,7 +2099,7 @@ export default function PublicTripPage({ params }: PageProps) {
                               e.stopPropagation();
                               setIsPolicyInfoOpen(true);
                             }}
-                            className="underline font-medium text-[#101828] hover:text-[#009688] cursor-pointer"
+                            className="underline font-medium text-[#101828] hover:text-[#0066FF] cursor-pointer"
                           >
                             Más información
                           </button>
@@ -1944,7 +2158,7 @@ export default function PublicTripPage({ params }: PageProps) {
 
                       {paymentMethod === "redsys_bizum" && (
                         <div className="flex items-center gap-2">
-                          <span className="rounded-md bg-[#009688] px-2 py-0.5 text-[11px] font-bold text-white">
+                          <span className="rounded-md bg-[#0066FF] px-2 py-0.5 text-[11px] font-bold text-white">
                             BIZUM
                           </span>
                           <span className="font-semibold text-sm text-[#101828]">
@@ -1964,7 +2178,7 @@ export default function PublicTripPage({ params }: PageProps) {
 
                       {paymentMethod === "stripe_card" && (
                         <div className="flex items-center gap-2.5">
-                          <CreditCard className="h-4 w-4 text-[#009688]" />
+                          <CreditCard className="h-4 w-4 text-[#0066FF]" />
                           <span className="font-semibold text-sm text-[#101828]">
                             Tarjeta de crédito o débito
                           </span>
@@ -2046,19 +2260,19 @@ export default function PublicTripPage({ params }: PageProps) {
                       <button
                         type="button"
                         onClick={() => setIsPolicyInfoOpen(true)}
-                        className="underline font-medium text-[#101828] hover:text-[#009688] cursor-pointer"
+                        className="underline font-medium text-[#101828] hover:text-[#0066FF] cursor-pointer"
                       >
                         los términos de la reserva
                       </button>
                       .
                     </p>
 
-                    {/* WANDERLUST GREEN BUTTON (Matching the rest of the web app) */}
+                    {/* WANDERLUST ELECTRIC BLUE BUTTON */}
                     <button
                       type="button"
                       onClick={() => handlePayWithRedsys(amountDueToday, trip.name)}
                       disabled={isProcessingRedsys}
-                      className="w-full sm:w-auto min-w-[280px] rounded-2xl bg-[#009688] hover:bg-[#00796b] py-3.5 px-8 text-sm sm:text-base font-bold text-white shadow-lg shadow-[#009688]/30 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2.5"
+                      className="w-full sm:w-auto min-w-[280px] rounded-2xl bg-[#0066FF] hover:bg-[#0052CC] py-3.5 px-8 text-sm sm:text-base font-bold text-white shadow-lg shadow-[#0066FF]/30 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2.5"
                     >
                       {isProcessingRedsys ? (
                         <>
@@ -2100,7 +2314,7 @@ export default function PublicTripPage({ params }: PageProps) {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <div className="h-full w-full flex items-center justify-center text-[#009688]">
+                          <div className="h-full w-full flex items-center justify-center text-[#0066FF]">
                             <Plane className="h-7 w-7" />
                           </div>
                         )}
@@ -2130,7 +2344,7 @@ export default function PublicTripPage({ params }: PageProps) {
                         <button
                           type="button"
                           onClick={() => setIsPolicyInfoOpen(true)}
-                          className="underline font-medium text-[#101828] hover:text-[#009688] cursor-pointer"
+                          className="underline font-medium text-[#101828] hover:text-[#0066FF] cursor-pointer"
                         >
                           Política entera
                         </button>
@@ -2212,7 +2426,7 @@ export default function PublicTripPage({ params }: PageProps) {
                       <button
                         type="button"
                         onClick={() => setIsPriceDetailModalOpen(true)}
-                        className="underline text-xs font-medium text-[#101828] hover:text-[#009688] cursor-pointer"
+                        className="underline text-xs font-medium text-[#101828] hover:text-[#0066FF] cursor-pointer"
                       >
                         Desglose del precio
                       </button>
@@ -2459,7 +2673,7 @@ export default function PublicTripPage({ params }: PageProps) {
                                 }`}
                               >
                                 <div className="flex items-center gap-3">
-                                  <span className="rounded-md bg-[#009688] px-2 py-0.5 text-[10px] font-bold text-white">bizum</span>
+                                  <span className="rounded-md bg-[#0066FF] px-2 py-0.5 text-[10px] font-bold text-white">bizum</span>
                                   <span className="font-medium text-sm text-[#101828]">Bizum (Pago móvil directo)</span>
                                 </div>
                                 <div className="shrink-0 flex items-center justify-center">
@@ -2562,7 +2776,7 @@ export default function PublicTripPage({ params }: PageProps) {
                     <button
                       type="button"
                       onClick={() => setIsPolicyInfoOpen(false)}
-                      className="w-full py-3 rounded-2xl bg-[#009688] text-white font-bold text-xs hover:bg-[#00796b] cursor-pointer"
+                      className="w-full py-3 rounded-2xl bg-[#0066FF] text-white font-bold text-xs hover:bg-[#0052CC] cursor-pointer"
                     >
                       Cerrar
                     </button>
@@ -2613,7 +2827,7 @@ export default function PublicTripPage({ params }: PageProps) {
                     <button
                       type="button"
                       onClick={() => setIsPriceDetailModalOpen(false)}
-                      className="w-full py-3 rounded-2xl bg-[#009688] text-white font-bold text-xs hover:bg-[#00796b] cursor-pointer"
+                      className="w-full py-3 rounded-2xl bg-[#0066FF] text-white font-bold text-xs hover:bg-[#0052CC] cursor-pointer"
                     >
                       Cerrar
                     </button>
@@ -2633,7 +2847,7 @@ export default function PublicTripPage({ params }: PageProps) {
             {trip.description && (
               <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 sm:p-8 shadow-xs space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688]">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF]">
                     <FileText className="h-5 w-5" />
                   </div>
                   <div>
@@ -2654,7 +2868,7 @@ export default function PublicTripPage({ params }: PageProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688]">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF]">
                     <PhoneCall className="h-6 w-6" />
                   </div>
                   <div>
@@ -2679,7 +2893,7 @@ export default function PublicTripPage({ params }: PageProps) {
                     <span className="text-[#667085]">
                       WhatsApp de asistencia:
                     </span>
-                    <span className="font-bold text-[#009688]">
+                    <span className="font-bold text-[#0066FF]">
                       +34 600 000 000
                     </span>
                   </div>
@@ -2688,7 +2902,7 @@ export default function PublicTripPage({ params }: PageProps) {
 
               <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688]">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF]">
                     <ShieldCheck className="h-6 w-6" />
                   </div>
                   <div>
@@ -2711,190 +2925,365 @@ export default function PublicTripPage({ params }: PageProps) {
       </main>
 
       {/* ----------------------------------------------------------- */}
-      {/* 4. ACTIVITY DETAIL MODAL                                    */}
+      {/* 4. ACTIVITY DETAIL MODAL (FULL SCREEN MOBILE-FIRST)         */}
       {/* ----------------------------------------------------------- */}
       {selectedActivity && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl animate-scale-in border border-[#eaecf0]">
-            <div className="flex items-center justify-between pb-4 border-b border-[#f2f4f7]">
-              <div className="flex items-center gap-3">
-                <PublicActivityIcon act={selectedActivity} />
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#009688]">
-                    Detalle del Servicio
-                  </span>
-                  <h3 className="text-base font-extrabold text-[#101828]">
-                    {(selectedActivity.title as string) ||
-                      (selectedActivity.hotelName as string) ||
-                      (selectedActivity.airline as string) ||
-                      (selectedActivity.restaurantName as string) ||
-                      "Servicio del Itinerario"}
-                  </h3>
+        <div className="fixed inset-0 z-50 flex flex-col bg-white w-full h-full min-h-[100dvh] overflow-hidden animate-fade-in">
+          <div className="relative w-full h-full flex flex-col bg-white overflow-hidden">
+            {/* 1. Hero Image Container */}
+            <div className="relative h-[36vh] sm:h-[42vh] min-h-[250px] w-full shrink-0 overflow-hidden rounded-b-[34px] bg-slate-900">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={getActivityHeroImage(selectedActivity, trip)}
+                alt={getActivityTitle(selectedActivity)}
+                className="h-full w-full object-cover"
+              />
+              {/* Subtle Dark Vignette Gradients for contrast */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/30 pointer-events-none" />
+
+              {/* Top Header Overlay Bar */}
+              <div className="absolute top-4 inset-x-4 flex items-center justify-between z-20">
+                <button
+                  type="button"
+                  onClick={() => setSelectedActivity(null)}
+                  className="h-10 w-10 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md text-white flex items-center justify-center transition cursor-pointer shadow-md"
+                  title="Volver"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+                <span className="text-base font-extrabold text-white tracking-wide drop-shadow-md">
+                  Details
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof navigator !== "undefined" && navigator.share) {
+                      navigator.share({
+                        title: getActivityTitle(selectedActivity),
+                        url: window.location.href,
+                      }).catch(() => {});
+                    }
+                  }}
+                  className="h-10 w-10 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md text-white flex items-center justify-center transition cursor-pointer shadow-md"
+                  title="Más opciones"
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Bottom Right Expand Badge */}
+              <div className="absolute bottom-9 right-4 z-20">
+                <div className="h-9 w-9 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center shadow-md">
+                  <Maximize2 className="h-4 w-4" />
                 </div>
               </div>
-              <button
-                onClick={() => setSelectedActivity(null)}
-                className="rounded-full bg-[#f2f4f7] p-2 text-[#667085] hover:bg-[#e4e7ec] transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </button>
             </div>
 
-            <div className="mt-5 space-y-3.5 text-xs text-[#475467]">
-              {(selectedActivity.type === "booking" || selectedActivity.type === "pago") && (
-                <div className="rounded-2xl bg-[#f0fdfa] p-4 border border-[#ccfbf1] space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-[#009688]">
-                      Condiciones de Pago & Reserva
-                    </span>
-                    <span className="rounded-md bg-white border border-[#ccfbf1] px-2 py-0.5 text-[10px] font-black uppercase text-[#009688]">
-                      {(selectedActivity.paymentProvider as string) || "Redsys"}
-                    </span>
+            {/* 2. White Sheet Body */}
+            <div className="relative -mt-6 rounded-t-[34px] bg-white pt-6 px-6 pb-8 overflow-y-auto flex-1 flex flex-col justify-between space-y-4 scrollbar-hide max-w-2xl mx-auto w-full">
+              <div className="space-y-4">
+                {/* Title & Location Row */}
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black text-[#101828] leading-tight tracking-tight">
+                    {getActivityTitle(selectedActivity)}
+                  </h2>
+                  <div className="flex items-center gap-1.5 text-xs text-zinc-500 font-medium mt-1">
+                    <MapPin className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                    <span className="truncate">{getActivityLocation(selectedActivity, trip)}</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-white p-2.5 rounded-xl border border-[#ccfbf1]/60">
-                      <span className="text-[#667085] block text-[10px]">Depósito inicial:</span>
-                      <span className="font-extrabold text-[#009688] text-sm">
-                        {Number(selectedActivity.depositAmount || 250)} € ({Number(selectedActivity.depositPercentage || 20)}%)
-                      </span>
-                    </div>
-                    <div className="bg-white p-2.5 rounded-xl border border-[#ccfbf1]/60">
-                      <span className="text-[#667085] block text-[10px]">Importe total:</span>
-                      <span className="font-extrabold text-[#101828] text-sm">
-                        {Number(selectedActivity.totalAmount || selectedActivity.price || 1250)} €
-                      </span>
-                    </div>
-                  </div>
-                  {Boolean(selectedActivity.cancellationPolicy) && (
-                    <div className="pt-2 border-t border-[#ccfbf1]/60">
-                      <span className="text-[10px] font-bold text-[#009688] uppercase block mb-1">
-                        Política de cancelación:
-                      </span>
-                      <p className="text-[11px] text-[#475467] leading-relaxed">
-                        {String(selectedActivity.cancellationPolicy)}
-                      </p>
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedActivity(null);
-                      setActiveTab("pagos");
-                    }}
-                    className="w-full mt-2 rounded-xl bg-[#009688] py-2.5 text-xs font-bold text-white hover:bg-[#00796b] transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
-                  >
-                    <CreditCard className="h-3.5 w-3.5" />
-                    <span>Ir a la sección de Pagos & Depósito</span>
-                  </button>
                 </div>
-              )}
 
-              {selectedActivity.type === "flight" && (
-                <div className="rounded-2xl bg-[#f0fdfa] p-4 border border-[#ccfbf1] space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-[#009688]">
-                      Itinerario de vuelo
-                    </span>
-                    <span className="font-extrabold text-[#101828]">
-                      {(selectedActivity.airline as string) || "Aerolínea"} ·{" "}
-                      {(selectedActivity.flightNumber as string) || "Vuelo"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm font-bold text-[#101828]">
-                    <div>
-                      <p className="text-xs text-[#667085]">Salida</p>
-                      <p className="font-extrabold text-base">
-                        {(selectedActivity.origin as string) || "Origen"}
-                      </p>
-                      <p className="text-xs text-[#009688]">
-                        {selectedActivity.time}
-                      </p>
+                {/* 2 Metric Badges: Horario & Servicio (Rating removed per Image 2 red cross) */}
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  {/* Badge 1: Horario */}
+                  <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-amber-50/60 border border-amber-100">
+                    <div className="h-9 w-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                      <Clock3 className="h-4 w-4 text-amber-600" />
                     </div>
-                    <div className="flex flex-col items-center px-4">
-                      <Plane className="h-4 w-4 text-[#009688] rotate-90" />
-                      <span className="text-[10px] text-[#667085] mt-1">
-                        {Array.isArray(selectedActivity.legs) &&
-                        selectedActivity.legs.length > 1
-                          ? `${selectedActivity.legs.length - 1} escala`
-                          : "Directo"}
+                    <div className="min-w-0">
+                      <span className="text-[10px] text-zinc-400 block font-medium">Horario</span>
+                      <span className="text-xs sm:text-sm font-black text-zinc-900 block truncate">
+                        {selectedActivity.time || "Programado"}
                       </span>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs text-[#667085]">Llegada</p>
-                      <p className="font-extrabold text-base">
-                        {(selectedActivity.destination as string) || "Destino"}
-                      </p>
-                      <p className="text-xs text-[#009688]">
-                        {(selectedActivity.arrivalTime as string) || "—"}
-                      </p>
-                    </div>
                   </div>
 
-                  {Array.isArray(selectedActivity.legs) &&
-                    selectedActivity.legs.length > 1 && (
-                      <div className="pt-2 border-t border-[#ccfbf1] space-y-2">
-                        <p className="text-[10px] font-bold uppercase text-[#009688]">
+                  {/* Badge 2: Type / Category */}
+                  <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-blue-50/60 border border-blue-100">
+                    <div className="h-9 w-9 rounded-xl bg-blue-100 text-[#0066FF] flex items-center justify-center shrink-0">
+                      <Building className="h-4 w-4 text-[#0066FF]" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] text-zinc-400 block font-medium">Servicio</span>
+                      <span className="text-xs sm:text-sm font-black text-zinc-900 block truncate capitalize">
+                        {selectedActivity.type === "flight" ? "Vuelo" : selectedActivity.type === "hotel" ? "Hotel" : selectedActivity.type === "food" ? "Restaurante" : selectedActivity.type === "transfer" ? "Traslado" : selectedActivity.type === "booking" || selectedActivity.type === "pago" ? "Reserva" : "Actividad"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Short Description with Auto-Links */}
+                {Boolean(getActivityDescription(selectedActivity)) && (
+                  <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed font-normal pt-1 whitespace-pre-line">
+                    <AutoLinkText text={getActivityDescription(selectedActivity)} />
+                  </p>
+                )}
+
+                {/* Separator */}
+                <div className="h-px w-full bg-zinc-100 my-2" />
+
+              {/* Complete Information Breakdown (Hotel, flight, transport, payment etc) */}
+              <div className="space-y-3">
+                {/* Flight Details Card */}
+                {selectedActivity.type === "flight" && (
+                  <div className="rounded-2xl bg-blue-50/50 p-4 border border-blue-100 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#0066FF]">
+                        Itinerario de vuelo
+                      </span>
+                      <span className="font-extrabold text-xs text-zinc-900">
+                        {(selectedActivity.airline as string) || "Aerolínea"} · {(selectedActivity.flightNumber as string) || "Vuelo"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm font-bold text-zinc-900">
+                      <div>
+                        <p className="text-[11px] text-zinc-400">Salida</p>
+                        <p className="font-black text-base">
+                          {(selectedActivity.origin as string) || "Origen"}
+                        </p>
+                        <p className="text-xs text-[#0066FF] font-extrabold">
+                          {selectedActivity.time}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-center px-3">
+                        <Plane className="h-4 w-4 text-[#0066FF] rotate-90" />
+                        <span className="text-[10px] text-zinc-400 mt-1 font-bold">
+                          {Array.isArray(selectedActivity.legs) && selectedActivity.legs.length > 1
+                            ? `${selectedActivity.legs.length - 1} escala`
+                            : "Directo"}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[11px] text-zinc-400">Llegada</p>
+                        <p className="font-black text-base">
+                          {(selectedActivity.destination as string) || "Destino"}
+                        </p>
+                        <p className="text-xs text-[#0066FF] font-extrabold">
+                          {(selectedActivity.arrivalTime as string) || "—"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {Array.isArray(selectedActivity.legs) && selectedActivity.legs.length > 1 && (
+                      <div className="pt-2 border-t border-blue-100 space-y-2">
+                        <p className="text-[10px] font-bold uppercase text-[#0066FF]">
                           Escalas programadas:
                         </p>
                         {selectedActivity.legs.map((leg: any, idx: number) => (
                           <div
                             key={idx}
-                            className="flex justify-between items-center text-[11px] bg-white p-2 rounded-xl border border-[#ccfbf1]/60"
+                            className="flex justify-between items-center text-[11px] bg-white p-2 rounded-xl border border-blue-100"
                           >
                             <span className="font-bold">
                               {leg.origin} → {leg.destination}
                             </span>
-                            <span className="text-[#009688] font-semibold">
-                              {leg.departureTime} - {leg.arrivalTime} (
-                              {leg.flightNumber})
+                            <span className="text-[#0066FF] font-semibold">
+                              {leg.departureTime} - {leg.arrivalTime} ({leg.flightNumber})
                             </span>
                           </div>
                         ))}
                       </div>
                     )}
-                </div>
-              )}
+                  </div>
+                )}
 
-              <div className="flex items-center justify-between rounded-2xl bg-[#f8fafc] p-3.5 border border-[#eaecf0]">
-                <span className="font-semibold text-[#667085]">
-                  Fecha y Hora:
-                </span>
-                <span className="font-bold text-[#101828]">
-                  {selectedActivity.date} · {selectedActivity.time}
-                </span>
-              </div>
-
-              {selectedActivity.price &&
-                selectedActivity.price > 0 &&
-                trip.showExpenses && (
-                  <div className="flex items-center justify-between rounded-2xl bg-[#f0fdfa] p-3.5 border border-[#ccfbf1]">
-                    <span className="font-semibold text-[#009688]">
-                      Tarifa Incluida:
+                {/* Hotel / Airbnb Details Card */}
+                {selectedActivity.type === "hotel" && (
+                  <div className="rounded-2xl bg-blue-50/50 p-4 border border-blue-100 space-y-2.5 text-xs">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#0066FF] block">
+                      Detalles del Alojamiento
                     </span>
-                    <span className="font-black text-sm text-[#009688]">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-white p-2.5 rounded-xl border border-blue-100">
+                        <span className="text-zinc-400 block text-[10px]">Check-in:</span>
+                        <span className="font-bold text-zinc-900 text-xs">
+                          {selectedActivity.date} · {selectedActivity.time || "15:00"}
+                        </span>
+                      </div>
+                      <div className="bg-white p-2.5 rounded-xl border border-blue-100">
+                        <span className="text-zinc-400 block text-[10px]">Check-out:</span>
+                        <span className="font-bold text-zinc-900 text-xs">
+                          {(selectedActivity.checkoutDate as string) || "Día de salida"} · {(selectedActivity.checkOut as string) || "11:00"}
+                        </span>
+                      </div>
+                    </div>
+                    {Boolean(selectedActivity.address) && (
+                      <div className="bg-white p-2.5 rounded-xl border border-blue-100 flex items-start gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 text-[#0066FF] shrink-0 mt-0.5" />
+                        <span className="text-zinc-700 text-[11px] leading-tight font-medium">
+                          {String(selectedActivity.address)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Food / Restaurant Details */}
+                {selectedActivity.type === "food" && (
+                  <div className="rounded-2xl bg-blue-50/50 p-4 border border-blue-100 space-y-2 text-xs">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#0066FF] block">
+                      Detalles de la Reserva Gastronómica
+                    </span>
+                    <div className="bg-white p-2.5 rounded-xl border border-blue-100 flex justify-between items-center">
+                      <span className="text-zinc-500 font-medium">Hora de reserva:</span>
+                      <span className="font-bold text-zinc-900">{selectedActivity.time}</span>
+                    </div>
+                    {Boolean(selectedActivity.address) && (
+                      <div className="bg-white p-2.5 rounded-xl border border-blue-100 flex items-start gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 text-[#0066FF] shrink-0 mt-0.5" />
+                        <span className="text-zinc-700 text-[11px] font-medium">
+                          {String(selectedActivity.address)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Transfer Details */}
+                {selectedActivity.type === "transfer" && (
+                  <div className="rounded-2xl bg-blue-50/50 p-4 border border-blue-100 space-y-2 text-xs">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#0066FF] block">
+                      Detalles del Traslado
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-white p-2.5 rounded-xl border border-blue-100">
+                        <span className="text-zinc-400 block text-[10px]">Punto de origen:</span>
+                        <span className="font-bold text-zinc-900 text-xs">{(selectedActivity.origin as string) || "Origen"}</span>
+                      </div>
+                      <div className="bg-white p-2.5 rounded-xl border border-blue-100">
+                        <span className="text-zinc-400 block text-[10px]">Destino:</span>
+                        <span className="font-bold text-zinc-900 text-xs">{(selectedActivity.destination as string) || "Destino"}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Booking & Payment Conditions */}
+                {(selectedActivity.type === "booking" || selectedActivity.type === "pago") && (
+                  <div className="rounded-2xl bg-blue-50/50 p-4 border border-blue-100 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#0066FF]">
+                        Condiciones de Pago & Reserva
+                      </span>
+                      <span className="rounded-md bg-white border border-blue-200 px-2 py-0.5 text-[10px] font-black uppercase text-[#0066FF]">
+                        {(selectedActivity.paymentProvider as string) || "Redsys"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="bg-white p-2.5 rounded-xl border border-blue-100">
+                        <span className="text-zinc-400 block text-[10px]">Depósito inicial:</span>
+                        <span className="font-black text-[#0066FF] text-sm">
+                          {Number(selectedActivity.depositAmount || 250)} € ({Number(selectedActivity.depositPercentage || 20)}%)
+                        </span>
+                      </div>
+                      <div className="bg-white p-2.5 rounded-xl border border-blue-100">
+                        <span className="text-zinc-400 block text-[10px]">Importe total:</span>
+                        <span className="font-black text-zinc-900 text-sm">
+                          {Number(selectedActivity.totalAmount || selectedActivity.price || 1250)} €
+                        </span>
+                      </div>
+                    </div>
+                    {Boolean(selectedActivity.cancellationPolicy) && (
+                      <div className="pt-2 border-t border-blue-100">
+                        <span className="text-[10px] font-bold text-[#0066FF] uppercase block mb-1">
+                          Política de cancelación:
+                        </span>
+                        <p className="text-[11px] text-zinc-600 leading-relaxed whitespace-pre-line">
+                          <AutoLinkText text={String(selectedActivity.cancellationPolicy)} />
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Price Tag if applicable */}
+                {selectedActivity.price && selectedActivity.price > 0 && trip.showExpenses && (
+                  <div className="flex items-center justify-between rounded-2xl bg-zinc-50 p-3.5 border border-zinc-100">
+                    <span className="font-bold text-xs text-zinc-500">Tarifa Incluida:</span>
+                    <span className="font-black text-sm text-zinc-900">
                       {formatCurrency(Number(selectedActivity.price))}
                     </span>
                   </div>
                 )}
+              </div>
+              </div>
 
-              {Boolean(selectedActivity.description) && (
-                <div className="rounded-2xl border border-[#eaecf0] p-4 bg-[#fafafa]">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#98a2b3]">
-                    Información y recomendaciones
-                  </span>
-                  <p className="mt-1.5 text-xs text-[#344054] leading-relaxed">
-                    {String(selectedActivity.description)}
-                  </p>
-                </div>
-              )}
+              {/* Primary Gradient Action Button */}
+              <div className="pt-2">
+                {(() => {
+                  const detectedUrl = extractFirstUrl(
+                    (selectedActivity.url as string) ||
+                    (selectedActivity.bookingUrl as string) ||
+                    (selectedActivity.description as string) ||
+                    (selectedActivity.notes as string)
+                  );
+
+                  if (selectedActivity.type === "booking" || selectedActivity.type === "pago") {
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedActivity(null);
+                          setActiveTab("pagos");
+                        }}
+                        className="w-full h-14 rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] hover:from-[#0052D9] hover:to-[#00A6EA] text-white font-black text-base shadow-xl shadow-blue-500/30 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98]"
+                      >
+                        <CreditCard className="h-5 w-5" />
+                        <span>Pagar depósito ahora</span>
+                      </button>
+                    );
+                  }
+
+                  if (detectedUrl) {
+                    return (
+                      <a
+                        href={detectedUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full h-14 rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] hover:from-[#0052D9] hover:to-[#00A6EA] text-white font-black text-base shadow-xl shadow-blue-500/30 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98]"
+                      >
+                        <span>Abrir enlace de reserva</span>
+                        <ExternalLink className="h-5 w-5" />
+                      </a>
+                    );
+                  }
+
+                  if (selectedActivity.address) {
+                    return (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(String(selectedActivity.address))}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full h-14 rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] hover:from-[#0052D9] hover:to-[#00A6EA] text-white font-black text-base shadow-xl shadow-blue-500/30 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98]"
+                      >
+                        <span>Ver en Google Maps</span>
+                        <ArrowRight className="h-5 w-5" />
+                      </a>
+                    );
+                  }
+
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedActivity(null)}
+                      className="w-full h-14 rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] hover:from-[#0052D9] hover:to-[#00A6EA] text-white font-black text-base shadow-xl shadow-blue-500/30 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.98]"
+                    >
+                      <span>Entendido</span>
+                    </button>
+                  );
+                })()}
+              </div>
             </div>
-
-            <button
-              onClick={() => setSelectedActivity(null)}
-              className="mt-6 w-full rounded-full bg-[#009688] py-3 text-xs font-bold text-white shadow-md hover:bg-[#00796b] transition-all"
-            >
-              Cerrar detalles
-            </button>
           </div>
         </div>
       )}

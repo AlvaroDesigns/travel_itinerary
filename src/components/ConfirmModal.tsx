@@ -61,7 +61,7 @@ export function ConfirmModal({
       case 'warning':
         return 'bg-amber-600 hover:bg-amber-700 text-white shadow-xs focus:ring-amber-500/20';
       case 'info':
-        return 'bg-[#009688] hover:bg-[#00796b] text-white shadow-xs focus:ring-[#009688]/20';
+        return 'bg-[#0066FF] hover:bg-[#0052CC] text-white shadow-xs focus:ring-[#0066FF]/20';
       default:
         return 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs';
     }

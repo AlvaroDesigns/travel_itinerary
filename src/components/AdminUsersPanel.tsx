@@ -387,7 +387,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
   };
 
   const controlClass =
-    'h-10 rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-700 outline-none transition focus:border-[#009688] focus:ring-4 focus:ring-[#009688]/15';
+    'h-10 rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-700 outline-none transition focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/15';
 
   const getRoleBadge = (role: UserRole) => {
     if (role === 'superuser' || role === 'superadmin') {
@@ -400,8 +400,8 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
     }
     if (role === 'admin') {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 border border-teal-200/80 px-2.5 py-0.5 text-xs font-extrabold text-[#00796b] whitespace-nowrap shrink-0">
-          <ShieldCheck className="h-3 w-3 text-[#009688] shrink-0" />
+        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 text-xs font-extrabold text-[#0066FF] whitespace-nowrap shrink-0">
+          <ShieldCheck className="h-3 w-3 text-[#0066FF] shrink-0" />
           Admin Agencia
         </span>
       );
@@ -532,7 +532,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar por nombre, email o agencia..."
-              className="h-9.5 w-full rounded-xl border border-zinc-200 bg-zinc-50 pl-9 pr-3 text-xs font-medium outline-none transition focus:border-[#009688] focus:bg-white focus:ring-4 focus:ring-[#009688]/15"
+              className="h-9.5 w-full rounded-xl border border-zinc-200 bg-zinc-50 pl-9 pr-3 text-xs font-medium outline-none transition focus:border-[#0066FF] focus:bg-white focus:ring-4 focus:ring-[#0066FF]/15"
             />
           </div>
 
@@ -543,7 +543,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
               <select
                 value={selectedTenantFilter}
                 onChange={(e) => setSelectedTenantFilter(e.target.value)}
-                className="h-9.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-700 outline-none transition focus:border-[#009688] focus:bg-white"
+                className="h-9.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-700 outline-none transition focus:border-[#0066FF] focus:bg-white"
               >
                 <option value="all">Todas las agencias / tenants</option>
                 {distinctAgencies.map((agency) => (
@@ -559,7 +559,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
           <select
             value={selectedRoleFilter}
             onChange={(e) => setSelectedRoleFilter(e.target.value)}
-            className="h-9.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-700 outline-none transition focus:border-[#009688] focus:bg-white"
+            className="h-9.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-700 outline-none transition focus:border-[#0066FF] focus:bg-white"
           >
             <option value="all">Todos los roles</option>
             {isSuperUser && <option value="superuser">SUPERUSER</option>}
@@ -599,7 +599,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                     className={`border-b p-5 sm:px-6 ${
                       isParticular
                         ? 'border-zinc-100 bg-zinc-50/70'
-                        : 'border-teal-100/70 bg-gradient-to-br from-teal-50/50 to-white'
+                        : 'border-blue-100/70 bg-gradient-to-br from-blue-50/50 to-white'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-4">
@@ -607,7 +607,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                         <div className="flex items-center gap-2">
                           <Building2
                             className={`h-4.5 w-4.5 ${
-                              isParticular ? 'text-zinc-500' : 'text-[#009688]'
+                              isParticular ? 'text-zinc-500' : 'text-[#0066FF]'
                             }`}
                           />
                           <h3 className="font-extrabold text-base text-zinc-900">
@@ -642,7 +642,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                             className="flex items-center justify-between gap-3 rounded-2xl border border-zinc-200/70 bg-[#f8fafc]/70 p-3.5 transition-all hover:bg-white hover:border-zinc-300 hover:shadow-xs"
                           >
                             <div className="flex items-center gap-3 min-w-0">
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-xs font-extrabold text-[#00796b]">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xs font-extrabold text-[#0066FF]">
                                 {user.email.slice(0, 2).toUpperCase()}
                               </div>
                               <div className="min-w-0">
@@ -669,7 +669,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                                 type="button"
                                 onClick={() => openEditDialog(user)}
                                 title="Editar usuario o mover de agencia"
-                                className="flex h-8 w-8 items-center justify-center rounded-xl text-zinc-400 hover:bg-teal-50 hover:text-[#00796b] transition-colors cursor-pointer"
+                                className="flex h-8 w-8 items-center justify-center rounded-xl text-zinc-400 hover:bg-blue-50 hover:text-[#0066FF] transition-colors cursor-pointer"
                               >
                                 <Edit2 className="h-3.5 w-3.5" />
                               </button>
@@ -715,7 +715,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                           agency.planType
                         )
                       }
-                      className="inline-flex items-center gap-2 text-xs font-bold text-[#00796b] hover:text-[#004d40] transition cursor-pointer"
+                      className="inline-flex items-center gap-2 text-xs font-bold text-[#0066FF] hover:text-[#0052CC] transition cursor-pointer"
                     >
                       <Plus className="h-4 w-4" />
                       <span>Añadir usuario a {agency.agencyName}</span>
@@ -729,14 +729,14 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
         <section className="overflow-hidden rounded-3xl border border-zinc-200/80 bg-white shadow-2xs">
           {/* Bulk Action Bar */}
           {selectedIds.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 border-b border-teal-100 bg-teal-50 px-5 py-3 sm:px-6">
-              <span className="mr-1 text-xs font-bold text-teal-900">
+            <div className="flex flex-wrap items-center gap-2 border-b border-blue-100 bg-blue-50 px-5 py-3 sm:px-6">
+              <span className="mr-1 text-xs font-bold text-blue-900">
                 {selectedIds.length} seleccionados
               </span>
               <select
                 value={bulkAction}
                 onChange={(e) => setBulkAction(e.target.value as typeof bulkAction)}
-                className="h-8 rounded-lg border border-teal-200 bg-white px-2 text-xs font-semibold text-zinc-700"
+                className="h-8 rounded-lg border border-blue-200 bg-white px-2 text-xs font-semibold text-zinc-700"
               >
                 <option value="activate">Activar cuentas</option>
                 <option value="deactivate">Desactivar cuentas</option>
@@ -748,7 +748,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                 <select
                   value={bulkRole}
                   onChange={(e) => setBulkRole(e.target.value as UserRole)}
-                  className="h-8 rounded-lg border border-teal-200 bg-white px-2 text-xs font-semibold text-zinc-700"
+                  className="h-8 rounded-lg border border-blue-200 bg-white px-2 text-xs font-semibold text-zinc-700"
                 >
                   <option value="user">Usuario</option>
                   <option value="admin">Administrador</option>
@@ -767,7 +767,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                       setBulkTenant({ id: sel.tenantId, name: sel.agencyName, plan: sel.planType });
                     }
                   }}
-                  className="h-8 rounded-lg border border-teal-200 bg-white px-2 text-xs font-semibold text-zinc-700"
+                  className="h-8 rounded-lg border border-blue-200 bg-white px-2 text-xs font-semibold text-zinc-700"
                 >
                   {distinctAgencies.map((a) => (
                     <option key={a.tenantId} value={a.tenantId}>
@@ -781,7 +781,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                 type="button"
                 disabled={isSaving}
                 onClick={() => void applyBulkAction()}
-                className="h-8 rounded-lg bg-[#009688] px-3 text-xs font-bold text-white transition hover:bg-[#00796b] disabled:opacity-50 cursor-pointer"
+                className="h-8 rounded-lg bg-[#0066FF] px-3 text-xs font-bold text-white transition hover:bg-[#0052CC] disabled:opacity-50 cursor-pointer"
               >
                 Aplicar
               </button>
@@ -798,7 +798,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                       checked={allFilteredSelected}
                       onChange={toggleAllFiltered}
                       aria-label="Seleccionar todos los visibles"
-                      className="h-4 w-4 rounded border-zinc-300 text-[#009688] focus:ring-[#009688]"
+                      className="h-4 w-4 rounded border-zinc-300 text-[#0066FF] focus:ring-[#0066FF]"
                     />
                   </th>
                   <th className="px-4 py-4 whitespace-nowrap">Usuario</th>
@@ -822,7 +822,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                   filteredUsers.map((user) => (
                     <tr
                       key={user.id}
-                      className="transition-colors hover:bg-teal-50/20"
+                      className="transition-colors hover:bg-blue-50/20"
                     >
                       <td className="px-5 py-4 sm:px-6">
                         <input
@@ -831,12 +831,12 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                           onChange={() => toggleSelected(user.id)}
                           disabled={pendingUserId === user.id}
                           aria-label={`Seleccionar ${user.email}`}
-                          className="h-4 w-4 rounded border-zinc-300 text-[#009688] focus:ring-[#009688] disabled:cursor-not-allowed disabled:opacity-50"
+                          className="h-4 w-4 rounded border-zinc-300 text-[#0066FF] focus:ring-[#0066FF] disabled:cursor-not-allowed disabled:opacity-50"
                         />
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 text-xs font-extrabold text-[#00796b] shrink-0">
+                          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-xs font-extrabold text-[#0066FF] shrink-0">
                             {user.email.slice(0, 2).toUpperCase()}
                           </span>
                           <div className="min-w-0">
@@ -845,7 +845,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                             </p>
                             <p className="text-[11px] text-zinc-500 truncate">{user.email}</p>
                             {user.id === currentUser.userId && (
-                              <span className="mt-0.5 inline-block text-[10px] font-bold text-[#00796b]">
+                              <span className="mt-0.5 inline-block text-[10px] font-bold text-[#0066FF]">
                                 Tu cuenta
                               </span>
                             )}
@@ -895,7 +895,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                               setForm(emptyForm);
                               setDialog({ type: 'password', user });
                             }}
-                            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[#00796b] hover:bg-teal-50 transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-[#0066FF] hover:bg-blue-50 transition-colors cursor-pointer"
                           >
                             <KeyRound className="h-3.5 w-3.5" />
                             <span>Clave</span>
@@ -1075,7 +1075,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                 )}
               </div>
 
-              <p className="rounded-xl bg-teal-50 px-3.5 py-2.5 text-xs font-medium text-[#004d40] leading-relaxed">
+              <p className="rounded-xl bg-blue-50 px-3.5 py-2.5 text-xs font-medium text-[#003399] leading-relaxed">
                 Enviaremos un correo de bienvenida con un enlace seguro para que el usuario active su cuenta y defina su contraseña.
               </p>
             </div>
@@ -1300,7 +1300,7 @@ export function AdminUsersPanel({ currentUser }: { currentUser: AuthenticatedUse
                     type="button"
                     onClick={() => setIsPasswordVisible((v) => !v)}
                     aria-label={isPasswordVisible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                    className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-teal-50 hover:text-[#00796b]"
+                    className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-blue-50 hover:text-[#0066FF]"
                   >
                     {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>

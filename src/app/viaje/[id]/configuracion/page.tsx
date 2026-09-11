@@ -40,13 +40,13 @@ export default function TripConfigPage({ params }: { params: Promise<{ id: strin
 
             {/* Breadcrumbs */}
             <nav className="flex items-center gap-2 text-xs text-[#667085]">
-              <Link href="/viajes" className="hover:text-[#009688] font-medium transition-colors">
+              <Link href="/viajes" className="hover:text-[#0066FF] font-medium transition-colors">
                 Mis viajes
               </Link>
               <ChevronRight className="h-3.5 w-3.5 text-[#98a2b3]" />
               <Link
                 href={`/viaje/${tripId}`}
-                className="hover:text-[#009688] font-medium transition-colors truncate max-w-[200px]"
+                className="hover:text-[#0066FF] font-medium transition-colors truncate max-w-[200px]"
               >
                 {trip?.name || 'Itinerario'}
               </Link>
@@ -68,7 +68,7 @@ export default function TripConfigPage({ params }: { params: Promise<{ id: strin
 
         {/* Header Title Banner */}
         <div className="flex items-center gap-3.5">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688] shadow-xs">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF] shadow-xs">
             <Settings className="h-6 w-6" />
           </div>
           <div>

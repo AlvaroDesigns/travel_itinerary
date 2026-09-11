@@ -290,13 +290,13 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
       onClick={(e) => {
         if (e.target === e.currentTarget) handleClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4 backdrop-blur-xs animate-fade-in"
     >
       {/* ------------------------------------------------------------- */}
       {/* STEP 1: CHOOSE START METHOD (MODERN 2-COLUMN LAYOUT)          */}
       {/* ------------------------------------------------------------- */}
       {step === 'choose' && (
-        <div className="relative w-full max-w-4xl overflow-hidden rounded-[32px] border-0 bg-[#140b2a] shadow-2xl animate-scale-in text-left">
+        <div className="relative w-full max-w-4xl max-h-[92dvh] overflow-y-auto rounded-t-[32px] sm:rounded-[32px] border-0 bg-[#140b2a] shadow-2xl animate-scale-in text-left">
           <div className="grid grid-cols-1 md:grid-cols-12 min-h-[520px]">
             {/* LEFT COLUMN: Travel Hero Image & Brand Overlay */}
             <div className="relative hidden md:flex md:col-span-5 flex-col justify-between p-8 text-white overflow-hidden bg-[#140b2a]">
@@ -316,7 +316,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
               {/* Top: Brand Logo / Badge */}
               <div className="relative z-10">
                 <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 backdrop-blur-md border border-white/20">
-                  <Sparkles className="h-3.5 w-3.5 text-[#00b4a0]" />
+                  <Sparkles className="h-3.5 w-3.5 text-[#00C6FF]" />
                   <span className="text-xs font-extrabold tracking-wide uppercase text-white">Wanderlust Studio</span>
                 </div>
               </div>
@@ -335,15 +335,15 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                 {/* Feature highlights */}
                 <div className="space-y-2 pt-2 border-t border-white/10">
                   <div className="flex items-center gap-2 text-xs text-zinc-200">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#009688]/30 text-[#80cbc4]">✓</span>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#0066FF]/30 text-[#93C5FD]">✓</span>
                     <span>Itinerarios visuales e interactivos</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-zinc-200">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#009688]/30 text-[#80cbc4]">✓</span>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#0066FF]/30 text-[#93C5FD]">✓</span>
                     <span>Importación inteligente de reservas</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-zinc-200">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#009688]/30 text-[#80cbc4]">✓</span>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#0066FF]/30 text-[#93C5FD]">✓</span>
                     <span>Presupuestos y cotizaciones en vivo</span>
                   </div>
                 </div>
@@ -377,18 +377,18 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                   {/* Option 1: Desde Cero (MARKED / HIGHLIGHTED) */}
                   <div
                     onClick={() => setStep('scratch')}
-                    className="group relative flex items-center justify-between rounded-2xl border-2 border-[#009688] bg-gradient-to-r from-teal-50/60 to-white p-4 transition-all duration-200 hover:shadow-lg hover:border-[#00796b] cursor-pointer"
+                    className="group relative flex items-center justify-between rounded-2xl border-2 border-[#0066FF] bg-gradient-to-r from-blue-50/60 to-white p-4 transition-all duration-200 hover:shadow-lg hover:border-[#0052CC] cursor-pointer"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#009688] text-white shadow-md shadow-[#009688]/20 group-hover:scale-105 transition-transform">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#0066FF] text-white shadow-md shadow-[#0066FF]/20 group-hover:scale-105 transition-transform">
                         <Edit3 className="h-6 w-6" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-extrabold text-zinc-900 group-hover:text-[#00796b] transition-colors">
+                          <h3 className="text-sm font-extrabold text-zinc-900 group-hover:text-[#0052CC] transition-colors">
                             Desde cero
                           </h3>
-                          <span className="rounded-full bg-[#e0f2f1] px-2 py-0.5 text-[9px] font-extrabold text-[#00796b]">
+                          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-extrabold text-[#0066FF]">
                             Personalizado
                           </span>
                         </div>
@@ -399,7 +399,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                     </div>
                     <button
                       type="button"
-                      className="shrink-0 rounded-xl bg-[#009688] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs group-hover:bg-[#00796b] transition-colors"
+                      className="shrink-0 rounded-xl bg-[#0066FF] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs group-hover:bg-[#0052CC] transition-colors"
                     >
                       Empezar
                     </button>
@@ -408,15 +408,15 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                   {/* Option 2: Desde una Plantilla */}
                   <div
                     onClick={() => setStep('templates')}
-                    className="group relative flex items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 transition-all duration-200 hover:border-[#009688]/60 hover:shadow-md hover:bg-zinc-50/50 cursor-pointer"
+                    className="group relative flex items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 transition-all duration-200 hover:border-[#0066FF]/60 hover:shadow-md hover:bg-zinc-50/50 cursor-pointer"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688] group-hover:scale-105 transition-transform">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF] group-hover:scale-105 transition-transform">
                         <BookOpen className="h-6 w-6" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-extrabold text-zinc-900 group-hover:text-[#009688] transition-colors">
+                          <h3 className="text-sm font-extrabold text-zinc-900 group-hover:text-[#0066FF] transition-colors">
                             Desde una plantilla
                           </h3>
                           <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[9px] font-bold text-zinc-600">
@@ -430,7 +430,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                     </div>
                     <button
                       type="button"
-                      className="shrink-0 rounded-xl border border-zinc-300 bg-white px-3.5 py-1.5 text-xs font-bold text-zinc-700 group-hover:border-[#009688] group-hover:text-[#009688] transition-colors"
+                      className="shrink-0 rounded-xl border border-zinc-300 bg-white px-3.5 py-1.5 text-xs font-bold text-zinc-700 group-hover:border-[#0066FF] group-hover:text-[#0066FF] transition-colors"
                     >
                       Explorar
                     </button>
@@ -439,19 +439,19 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                   {/* Option 3: Desde un Documento (AI) */}
                   <div
                     onClick={() => setStep('document')}
-                    className="group relative flex items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 transition-all duration-200 hover:border-[#009688]/60 hover:shadow-md hover:bg-zinc-50/50 cursor-pointer"
+                    className="group relative flex items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 transition-all duration-200 hover:border-[#0066FF]/60 hover:shadow-md hover:bg-zinc-50/50 cursor-pointer"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688] group-hover:scale-105 transition-transform">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF] group-hover:scale-105 transition-transform">
                         <FileText className="h-6 w-6" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-extrabold text-zinc-900 group-hover:text-[#009688] transition-colors">
+                          <h3 className="text-sm font-extrabold text-zinc-900 group-hover:text-[#0066FF] transition-colors">
                             Desde un documento
                           </h3>
                           <span className="rounded-full bg-[#140b2a] px-2 py-0.5 text-[9px] font-black text-white flex items-center gap-1">
-                            <Sparkles className="h-2.5 w-2.5 text-[#80cbc4]" />
+                            <Sparkles className="h-2.5 w-2.5 text-[#00C6FF]" />
                             IA
                           </span>
                         </div>
@@ -462,7 +462,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                     </div>
                     <button
                       type="button"
-                      className="shrink-0 rounded-xl border border-zinc-300 bg-white px-3.5 py-1.5 text-xs font-bold text-zinc-700 group-hover:border-[#009688] group-hover:text-[#009688] transition-colors"
+                      className="shrink-0 rounded-xl border border-zinc-300 bg-white px-3.5 py-1.5 text-xs font-bold text-zinc-700 group-hover:border-[#0066FF] group-hover:text-[#0066FF] transition-colors"
                     >
                       Subir
                     </button>
@@ -490,7 +490,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
       {/* STEP 2: TEMPLATES GALLERY (Image 2)                           */}
       {/* ------------------------------------------------------------- */}
       {step === 'templates' && (
-        <div className="w-full max-w-5xl max-h-[90vh] flex flex-col rounded-3xl border border-[#eaecf0] bg-white shadow-2xl animate-scale-in text-left overflow-hidden">
+        <div className="w-full max-w-5xl max-h-[92dvh] sm:max-h-[90vh] flex flex-col rounded-t-[32px] sm:rounded-3xl border border-[#eaecf0] bg-white shadow-2xl animate-scale-in text-left overflow-hidden">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eaecf0] p-6 pb-4">
             <div className="flex items-center gap-3">
@@ -515,7 +515,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                   placeholder="Buscar plantilla..."
                   value={templateSearch}
                   onChange={(e) => setTemplateSearch(e.target.value)}
-                  className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 pl-9 pr-3 py-1.5 text-xs text-zinc-900 outline-none transition focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/20"
+                  className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 pl-9 pr-3 py-1.5 text-xs text-zinc-900 outline-none transition focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20"
                 />
               </div>
               <button
@@ -541,7 +541,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                 <div
                   key={tpl.id}
                   onClick={() => handleSelectTemplate(tpl)}
-                  className="group relative cursor-pointer rounded-2xl border border-[#eaecf0] bg-white overflow-hidden shadow-xs hover:shadow-xl hover:border-[#009688]/60 transition-all"
+                  className="group relative cursor-pointer rounded-2xl border border-[#eaecf0] bg-white overflow-hidden shadow-xs hover:shadow-xl hover:border-[#0066FF]/60 transition-all"
                 >
                   {/* Image container */}
                   <div className="relative h-44 w-full overflow-hidden bg-zinc-100">
@@ -568,11 +568,11 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                   {/* Title & Info */}
                   <div className="p-4">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#009688]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#0066FF]">
                         {tpl.category}
                       </span>
                     </div>
-                    <h4 className="text-sm font-extrabold text-[#101828] group-hover:text-[#009688] transition-colors truncate">
+                    <h4 className="text-sm font-extrabold text-[#101828] group-hover:text-[#0066FF] transition-colors truncate">
                       {tpl.title}
                     </h4>
                     <p className="mt-1 text-xs text-[#667085] line-clamp-2 leading-relaxed">
@@ -596,7 +596,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
       {/* STEP 3: CREATE FROM SCRATCH FORM (2-COLUMN MODERN MODAL)      */}
       {/* ------------------------------------------------------------- */}
       {step === 'scratch' && (
-        <div className="relative w-full max-w-4xl overflow-hidden rounded-[32px] border-0 bg-[#140b2a] shadow-2xl animate-scale-in text-left">
+        <div className="relative w-full max-w-4xl max-h-[92dvh] sm:max-h-[90vh] overflow-y-auto rounded-t-[32px] sm:rounded-[32px] border-0 bg-[#140b2a] shadow-2xl animate-scale-in text-left">
           <div className="grid grid-cols-1 md:grid-cols-12 min-h-[560px]">
             {/* LEFT COLUMN: LIVE TRIP CARD PREVIEW */}
             <div className="relative hidden md:flex md:col-span-5 flex-col justify-between p-8 text-white overflow-hidden bg-[#140b2a]">
@@ -616,10 +616,10 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
               {/* Top: Live Badge */}
               <div className="relative z-10 flex items-center justify-between">
                 <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 backdrop-blur-md border border-white/20">
-                  <Sparkles className="h-3.5 w-3.5 text-[#00b4a0]" />
+                  <Sparkles className="h-3.5 w-3.5 text-[#00C6FF]" />
                   <span className="text-xs font-extrabold tracking-wide uppercase text-white">Vista Previa</span>
                 </div>
-                <span className="rounded-full bg-[#009688] px-2.5 py-0.5 text-[10px] font-extrabold text-white">
+                <span className="rounded-full bg-[#0066FF] px-2.5 py-0.5 text-[10px] font-extrabold text-white">
                   Borrador
                 </span>
               </div>
@@ -627,7 +627,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
               {/* Bottom: Live Trip Summary */}
               <div className="relative z-10 space-y-4">
                 <div className="space-y-1.5">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#80cbc4]">Nuevo Itinerario</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#93C5FD]">Nuevo Itinerario</span>
                   <h3 className="text-2xl font-black leading-tight text-white tracking-tight break-words">
                     {tripName.trim() || 'Escapada Inolvidable'}
                   </h3>
@@ -639,13 +639,13 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                 {/* Live Stats Pills */}
                 <div className="flex flex-wrap gap-2 pt-3 border-t border-white/15 text-xs">
                   <div className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1.5 backdrop-blur-md">
-                    <Calendar className="h-3.5 w-3.5 text-[#00b4a0]" />
+                    <Calendar className="h-3.5 w-3.5 text-[#00C6FF]" />
                     <span className="text-[11px] font-bold text-zinc-100">
                       {startDate && endDate ? `${startDate} — ${endDate}` : 'Fechas por definir'}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-1.5 backdrop-blur-md">
-                    <DollarSign className="h-3.5 w-3.5 text-[#00b4a0]" />
+                    <DollarSign className="h-3.5 w-3.5 text-[#00C6FF]" />
                     <span className="text-[11px] font-bold text-zinc-100">
                       ~{budget || 1500} €
                     </span>
@@ -685,7 +685,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                   {/* Trip Name */}
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-zinc-600 mb-1.5">
-                      Nombre del destino o viaje <span className="text-[#009688]">*</span>
+                      Nombre del destino o viaje <span className="text-[#0066FF]">*</span>
                     </label>
                     <div className="relative">
                       <Plane className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-zinc-400" />
@@ -695,7 +695,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                         placeholder="ej. Escapada a Bali y Komodo"
                         value={tripName}
                         onChange={(e) => setTripName(e.target.value)}
-                        className="w-full rounded-2xl border border-zinc-200 bg-zinc-50/70 pl-10 pr-3 py-2.5 text-xs text-zinc-900 focus:border-[#009688] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20 transition-all"
+                        className="w-full rounded-2xl border border-zinc-200 bg-zinc-50/70 pl-10 pr-3 py-2.5 text-xs text-zinc-900 focus:border-[#0066FF] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20 transition-all"
                       />
                     </div>
                   </div>
@@ -727,7 +727,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                         step="50"
                         value={budget}
                         onChange={(e) => setBudget(Number(e.target.value))}
-                        className="w-full rounded-2xl border border-zinc-200 bg-zinc-50/70 pl-10 pr-3 py-2.5 text-xs text-zinc-900 focus:border-[#009688] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20 transition-all"
+                        className="w-full rounded-2xl border border-zinc-200 bg-zinc-50/70 pl-10 pr-3 py-2.5 text-xs text-zinc-900 focus:border-[#0066FF] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20 transition-all"
                       />
                     </div>
                   </div>
@@ -742,7 +742,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Describe brevemente el viaje o estilo de la ruta..."
-                      className="w-full rounded-2xl border border-zinc-200 bg-zinc-50/70 p-3 text-xs text-zinc-900 focus:border-[#009688] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20 transition-all"
+                      className="w-full rounded-2xl border border-zinc-200 bg-zinc-50/70 p-3 text-xs text-zinc-900 focus:border-[#0066FF] focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20 transition-all"
                     />
                   </div>
 
@@ -761,14 +761,14 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                             onClick={() => setImageUrl(img.url)}
                             className={`group relative h-14 overflow-hidden rounded-2xl border-2 transition-all cursor-pointer ${
                               isSelected
-                                ? 'border-[#009688] ring-2 ring-[#009688]/30 scale-102 shadow-sm'
+                                ? 'border-[#0066FF] ring-2 ring-[#0066FF]/30 scale-102 shadow-sm'
                                 : 'border-zinc-200 opacity-70 hover:opacity-100 hover:border-zinc-400'
                             }`}
                           >
                             <Image src={img.url} alt={img.name} fill unoptimized className="object-cover group-hover:scale-105 transition-transform" />
                             {isSelected && (
-                              <div className="absolute inset-0 bg-[#009688]/20 flex items-center justify-center">
-                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#009688] text-white shadow-xs">
+                              <div className="absolute inset-0 bg-[#0066FF]/20 flex items-center justify-center">
+                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#0066FF] text-white shadow-xs">
                                   <Check className="h-3 w-3 stroke-[3]" />
                                 </span>
                               </div>
@@ -791,7 +791,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                     <button
                       type="submit"
                       disabled={isSubmitting || !tripName.trim()}
-                      className="flex items-center gap-2 rounded-full bg-[#009688] px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-[#009688]/20 hover:bg-[#00796b] disabled:opacity-50 transition-all cursor-pointer"
+                      className="flex items-center gap-2 rounded-full bg-[#0066FF] px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-[#0066FF]/20 hover:bg-[#0052CC] disabled:opacity-50 transition-all cursor-pointer"
                     >
                       {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                       <span>Crear itinerario</span>
@@ -808,7 +808,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
       {/* STEP 4: DOCUMENT UPLOAD (Wanderlust AI)                        */}
       {/* ------------------------------------------------------------- */}
       {step === 'document' && (
-        <div className="w-full max-w-lg rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-2xl animate-scale-in text-left">
+        <div className="w-full max-w-lg max-h-[92dvh] sm:max-h-[90vh] overflow-y-auto rounded-t-[32px] sm:rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-2xl animate-scale-in text-left">
           <div className="flex items-center justify-between border-b border-[#eaecf0] pb-4">
             <div className="flex items-center gap-2">
               <button
@@ -832,7 +832,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
           <div className="mt-5 space-y-4">
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-[#009688]/40 bg-[#f0fdfa] p-8 text-center hover:bg-[#e0f2f1]/50 transition-all cursor-pointer"
+              className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-[#0066FF]/40 bg-blue-50/50 p-8 text-center hover:bg-blue-50/80 transition-all cursor-pointer"
             >
               <input
                 ref={fileInputRef}
@@ -841,7 +841,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                 onChange={handleFileChange}
                 className="hidden"
               />
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#009688] text-white shadow-md mb-3">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0066FF] text-white shadow-md mb-3">
                 <Upload className="h-7 w-7" />
               </div>
               <p className="text-sm font-extrabold text-[#101828]">
@@ -853,9 +853,9 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
             </div>
 
             {isProcessingDoc && (
-              <div className="rounded-2xl border border-teal-200 bg-teal-50 p-4 text-center space-y-2">
-                <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#009688]" />
-                <p className="text-xs font-bold text-[#00796b]">{docProgress}</p>
+              <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-center space-y-2">
+                <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#0066FF]" />
+                <p className="text-xs font-bold text-[#0052CC]">{docProgress}</p>
               </div>
             )}
           </div>

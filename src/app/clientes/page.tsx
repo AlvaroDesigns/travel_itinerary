@@ -35,7 +35,7 @@ const AVATAR_COLORS = [
   'bg-indigo-500 text-white',
   'bg-violet-500 text-white',
   'bg-amber-500 text-white',
-  'bg-teal-500 text-white',
+  'bg-[#0066FF] text-white',
   'bg-cyan-500 text-white',
   'bg-rose-500 text-white',
   'bg-blue-500 text-white',
@@ -341,7 +341,7 @@ export default function ClientesPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar cliente por nombre, email o teléfono..."
-                className="w-full rounded-2xl border border-[#d0d5dd] bg-white py-2 pl-9 pr-3 text-xs text-[#101828] placeholder-[#98a2b3] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                className="w-full rounded-2xl border border-[#d0d5dd] bg-white py-2 pl-9 pr-3 text-xs text-[#101828] placeholder-[#98a2b3] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
               />
             </div>
 
@@ -385,7 +385,7 @@ export default function ClientesPage() {
             {/* Primary Create Client CTA */}
             <button
               onClick={openCreateModal}
-              className="flex items-center gap-1.5 rounded-full bg-[#009688] px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#00796b] active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-full bg-[#0066FF] px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#0052CC] active:scale-95 cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               <span>Crear cliente</span>
@@ -407,7 +407,7 @@ export default function ClientesPage() {
                         type="checkbox"
                         checked={selectedClients.length === filteredClients.length && filteredClients.length > 0}
                         onChange={handleSelectAll}
-                        className="rounded border-[#d0d5dd] text-[#009688] focus:ring-[#009688]"
+                        className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
                       />
                     </th>
                     <th className="px-4 py-3.5 font-semibold">Cliente</th>
@@ -431,7 +431,7 @@ export default function ClientesPage() {
                           <p className="text-xs text-[#667085]">Crea tu primer cliente para asignarlo a tus itinerarios de viaje.</p>
                           <button
                             onClick={openCreateModal}
-                            className="mt-2 flex items-center gap-1.5 rounded-xl bg-[#009688] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b]"
+                            className="mt-2 flex items-center gap-1.5 rounded-xl bg-[#0066FF] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC]"
                           >
                             <Plus className="h-4 w-4" />
                             <span>Crear cliente ahora</span>
@@ -450,7 +450,7 @@ export default function ClientesPage() {
                         <tr
                           key={client.id}
                           className={`group transition-colors ${
-                            isSelected ? 'bg-[#e0f2f1]/30' : 'hover:bg-[#f9fafb]'
+                            isSelected ? 'bg-blue-50/40' : 'hover:bg-[#f9fafb]'
                           }`}
                         >
                           {/* Checkbox */}
@@ -462,7 +462,7 @@ export default function ClientesPage() {
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => {}}
-                              className="rounded border-[#d0d5dd] text-[#009688] focus:ring-[#009688]"
+                              className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
                             />
                           </td>
 
@@ -480,7 +480,7 @@ export default function ClientesPage() {
                                 <button
                                   type="button"
                                   onClick={() => openEditModal(client)}
-                                  className="font-bold text-[#101828] hover:text-[#009688] text-left transition-colors"
+                                  className="font-bold text-[#101828] hover:text-[#0066FF] text-left transition-colors"
                                 >
                                   {client.name}
                                 </button>
@@ -497,7 +497,7 @@ export default function ClientesPage() {
                               <div className="flex items-center gap-1.5">
                                 <a
                                   href={`mailto:${client.email}`}
-                                  className="hover:text-[#009688] hover:underline"
+                                  className="hover:text-[#0066FF] hover:underline"
                                 >
                                   {client.email}
                                 </a>
@@ -524,7 +524,7 @@ export default function ClientesPage() {
                             {client.phone ? (
                               <a
                                 href={`tel:${client.phone}`}
-                                className="hover:text-[#009688] hover:underline"
+                                className="hover:text-[#0066FF] hover:underline"
                               >
                                 {client.phone}
                               </a>
@@ -556,7 +556,7 @@ export default function ClientesPage() {
                                 <button
                                   type="button"
                                   onClick={() => openAssignModal(client)}
-                                  className="inline-flex items-center gap-1 rounded-full bg-[#e0f2f1] px-2.5 py-0.5 text-[11px] font-bold text-[#00796b] hover:bg-[#b2dfdb] transition-colors"
+                                  className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-[#0066FF] hover:bg-blue-100 transition-colors"
                                   title="Gestionar viajes asignados"
                                 >
                                   <Plane className="h-3 w-3" />
@@ -567,7 +567,7 @@ export default function ClientesPage() {
                               <button
                                 type="button"
                                 onClick={() => openAssignModal(client)}
-                                className="text-xs text-[#667085] hover:text-[#009688] hover:underline cursor-pointer"
+                                className="text-xs text-[#667085] hover:text-[#0066FF] hover:underline cursor-pointer"
                               >
                                 + Asignar viaje
                               </button>
@@ -693,7 +693,7 @@ export default function ClientesPage() {
               return (
                 <div
                   key={client.id}
-                  className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-[#eaecf0] bg-white p-5 shadow-xs transition-all hover:border-[#009688] hover:shadow-lg"
+                  className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-[#eaecf0] bg-white p-5 shadow-xs transition-all hover:border-[#0066FF] hover:shadow-lg"
                 >
                   <div>
                     {/* Header: Avatar + Status */}
@@ -707,7 +707,7 @@ export default function ClientesPage() {
                           {getInitials(client.name)}
                         </span>
                         <div>
-                          <h3 className="text-base font-extrabold text-[#101828] group-hover:text-[#009688] transition-colors">
+                          <h3 className="text-base font-extrabold text-[#101828] group-hover:text-[#0066FF] transition-colors">
                             {client.name}
                           </h3>
                           <span className="font-mono text-[10px] text-[#98a2b3]">
@@ -768,7 +768,7 @@ export default function ClientesPage() {
                             <Link
                               key={t.id}
                               href={`/viaje/${t.id}`}
-                              className="inline-flex items-center gap-1 rounded-lg bg-[#e0f2f1] px-2 py-1 text-[11px] font-semibold text-[#00796b] hover:bg-[#b2dfdb] transition-colors"
+                              className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-[11px] font-semibold text-[#0066FF] hover:bg-blue-100 transition-colors"
                             >
                               <Plane className="h-3 w-3" />
                               <span className="truncate max-w-[120px]">{t.name}</span>
@@ -795,7 +795,7 @@ export default function ClientesPage() {
                       <button
                         type="button"
                         onClick={() => openEditModal(client)}
-                        className="rounded-full bg-[#009688] px-3.5 py-1.5 text-[11px] font-bold text-white hover:bg-[#00796b] transition-colors"
+                        className="rounded-full bg-[#0066FF] px-3.5 py-1.5 text-[11px] font-bold text-white hover:bg-[#0052CC] transition-colors"
                       >
                         Editar
                       </button>
@@ -822,7 +822,7 @@ export default function ClientesPage() {
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688]">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF]">
                 <Users className="h-5 w-5" />
               </div>
               <div>
@@ -846,7 +846,7 @@ export default function ClientesPage() {
                   placeholder="ej. María González o Familia Rodríguez"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                  className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                 />
               </div>
 
@@ -858,7 +858,7 @@ export default function ClientesPage() {
                     placeholder="maria@ejemplo.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                   />
                 </div>
 
@@ -869,7 +869,7 @@ export default function ClientesPage() {
                     placeholder="+34 600 000 000"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                   />
                 </div>
               </div>
@@ -882,7 +882,7 @@ export default function ClientesPage() {
                     placeholder="DNI, NIE o Pasaporte"
                     value={documentId}
                     onChange={(e) => setDocumentId(e.target.value)}
-                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                   />
                 </div>
 
@@ -893,7 +893,7 @@ export default function ClientesPage() {
                     placeholder="ej. Española, Mexicana, etc."
                     value={nationality}
                     onChange={(e) => setNationality(e.target.value)}
-                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                   />
                 </div>
               </div>
@@ -912,7 +912,7 @@ export default function ClientesPage() {
                       onClick={() => setStatus(st.id as typeof status)}
                       className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${
                         status === st.id
-                          ? 'bg-[#009688] text-white shadow-xs'
+                          ? 'bg-[#0066FF] text-white shadow-xs'
                           : 'border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f9fafb]'
                       }`}
                     >
@@ -948,7 +948,7 @@ export default function ClientesPage() {
                                   : [...prev, trip.id]
                               );
                             }}
-                            className="rounded border-[#d0d5dd] text-[#009688] focus:ring-[#009688]"
+                            className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
                           />
                           <span className="font-semibold text-[#101828] truncate flex-1">{trip.name}</span>
                           <span className="text-[10px] text-[#98a2b3]">{formatFullDate(trip.startDate)}</span>
@@ -966,7 +966,7 @@ export default function ClientesPage() {
                   placeholder="Preferencias de asientos, alergias, requerimientos especiales..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                  className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                 />
               </div>
 
@@ -981,7 +981,7 @@ export default function ClientesPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex items-center gap-1.5 rounded-full bg-[#009688] px-6 py-2 font-bold text-white shadow-xs hover:bg-[#00796b] disabled:opacity-50 cursor-pointer"
+                  className="flex items-center gap-1.5 rounded-full bg-[#0066FF] px-6 py-2 font-bold text-white shadow-xs hover:bg-[#0052CC] disabled:opacity-50 cursor-pointer"
                 >
                   <Check className="h-4 w-4" />
                   <span>{editingClient ? 'Guardar cambios' : 'Crear cliente'}</span>
@@ -1006,7 +1006,7 @@ export default function ClientesPage() {
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#e0f2f1] text-[#009688]">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF]">
                 <Plane className="h-5 w-5" />
               </div>
               <div>
@@ -1034,7 +1034,7 @@ export default function ClientesPage() {
                       <label
                         key={trip.id}
                         className={`flex items-center gap-3 rounded-xl p-2.5 transition-colors cursor-pointer text-xs ${
-                          isChecked ? 'bg-[#e0f2f1]/50 border border-[#009688]/30' : 'hover:bg-white'
+                          isChecked ? 'bg-blue-50/50 border border-[#0066FF]/30' : 'hover:bg-white'
                         }`}
                       >
                         <input
@@ -1047,7 +1047,7 @@ export default function ClientesPage() {
                                 : [...prev, trip.id]
                             );
                           }}
-                          className="rounded border-[#d0d5dd] text-[#009688] focus:ring-[#009688]"
+                          className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
                         />
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-[#101828] truncate">{trip.name}</p>
@@ -1079,7 +1079,7 @@ export default function ClientesPage() {
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleSaveQuickAssign}
-                className="flex items-center gap-1.5 rounded-full bg-[#009688] px-6 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] disabled:opacity-50 cursor-pointer"
+                className="flex items-center gap-1.5 rounded-full bg-[#0066FF] px-6 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] disabled:opacity-50 cursor-pointer"
               >
                 <Check className="h-4 w-4" />
                 <span>Guardar asignación</span>

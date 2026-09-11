@@ -5,18 +5,18 @@
 @theme {
   --font-sans: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
 
-  /* Primary Teal Scale (#009688) */
-  --color-primary-50: #e0f2f1;
-  --color-primary-100: #b2dfdb;
-  --color-primary-200: #80cbc4;
-  --color-primary-300: #4db6ac;
-  --color-primary-400: #26a69a;
-  --color-primary-500: #009688;
-  --color-primary-600: #00897b;
-  --color-primary-700: #00796b;
-  --color-primary-800: #00695c;
-  --color-primary-900: #004d40;
-  --color-primary: #009688;
+  /* Primary Electric Blue Scale */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #0066ff;
+  --color-primary-600: #0052d9;
+  --color-primary-700: #003eb3;
+  --color-primary-800: #002d8a;
+  --color-primary-900: #001f66;
+  --color-primary: #0066ff;
 
   /* Modern zinc & ink palette */
   --color-zinc-950: #09090b;
@@ -46,7 +46,9 @@
 
 :root {
   --font-geist-sans: 'Outfit', 'Inter', sans-serif;
-  --primary: #009688;
+  --primary: #0066ff;
+  --primary-gradient: linear-gradient(135deg, #0066FF 0%, #00C6FF 100%);
+  --primary-gradient-hover: linear-gradient(135deg, #0052D9 0%, #00A6EA 100%);
 }
 
 body {
@@ -94,17 +96,18 @@ body {
   box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.08), 0 4px 8px -4px rgba(0, 0, 0, 0.03);
 }
 
-/* Explicit interactive states for Wanderlust buttons with #009688 */
+/* Explicit interactive states for Wanderlust buttons with Blue Gradient & Pill Radius */
 .wanderlust-primary-button {
-  background-color: #009688 !important;
+  background: linear-gradient(135deg, #0066FF 0%, #00C6FF 100%) !important;
   color: #ffffff !important;
+  border-radius: 9999px !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 14px -2px rgba(0, 150, 136, 0.35);
+  box-shadow: 0 4px 16px -2px rgba(0, 102, 255, 0.35);
 }
 
 .wanderlust-primary-button:hover {
-  background-color: #00796b !important;
-  box-shadow: 0 6px 20px -2px rgba(0, 150, 136, 0.45);
+  background: linear-gradient(135deg, #0052D9 0%, #00A6EA 100%) !important;
+  box-shadow: 0 6px 22px -2px rgba(0, 102, 255, 0.45);
   transform: translateY(-1px);
 }
 
@@ -112,11 +115,25 @@ body {
   transform: scale(0.98);
 }
 
+.wanderlust-pill-button {
+  border-radius: 9999px !important;
+}
+
+.wanderlust-gradient-bg {
+  background: linear-gradient(135deg, #0066FF 0%, #00C6FF 100%) !important;
+}
+
+.wanderlust-gradient-text {
+  background: linear-gradient(135deg, #0066FF 0%, #00C6FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 /* Drag and drop highlight styles */
 .drag-over-active {
-  outline: 2px dashed #009688 !important;
+  outline: 2px dashed #0066FF !important;
   outline-offset: 4px;
-  background-color: rgba(224, 242, 241, 0.6) !important;
+  background-color: rgba(0, 102, 255, 0.08) !important;
 }
 
 .dragging-item {

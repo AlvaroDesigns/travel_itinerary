@@ -178,9 +178,9 @@ export default function ExportadorPdfPage() {
         </div>
 
         {/* Tip Alert */}
-        <div className="flex items-start gap-3 rounded-2xl border border-teal-200/80 bg-gradient-to-r from-teal-50/70 via-emerald-50/50 to-white p-4 shadow-2xs">
-          <Sparkles className="h-5 w-5 shrink-0 text-[#009688] mt-0.5" />
-          <div className="text-xs text-teal-950">
+        <div className="flex items-start gap-3 rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-white p-4 shadow-2xs">
+          <Sparkles className="h-5 w-5 shrink-0 text-[#0066FF] mt-0.5" />
+          <div className="text-xs text-blue-950">
             <p className="font-bold">Vista previa y exportación directa</p>
             <p className="mt-0.5 text-zinc-600 leading-relaxed">
               Pulsa el icono del <strong>Ojo</strong> para previsualizar el documento completo o pulsa <strong>Exportar PDF</strong> para abrir directamente la ventana de impresión/guardado en PDF.
@@ -197,7 +197,7 @@ export default function ExportadorPdfPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar por destino, cliente o notas..."
-              className="h-9.5 w-full rounded-xl border border-zinc-200 bg-zinc-50 pl-9 pr-3 text-xs font-medium outline-none transition focus:border-[#009688] focus:bg-white focus:ring-4 focus:ring-[#009688]/15"
+              className="h-9.5 w-full rounded-xl border border-zinc-200 bg-zinc-50 pl-9 pr-3 text-xs font-medium outline-none transition focus:border-[#0066FF] focus:bg-white focus:ring-4 focus:ring-[#0066FF]/15"
             />
           </div>
 
@@ -276,7 +276,7 @@ export default function ExportadorPdfPage() {
                     return (
                       <tr
                         key={trip.id}
-                        className="transition-colors hover:bg-teal-50/25 group"
+                        className="transition-colors hover:bg-blue-50/30 group"
                       >
                         {/* Trip Name & Thumbnail */}
                         <td className="px-5 py-4 sm:px-6">
@@ -291,7 +291,7 @@ export default function ExportadorPdfPage() {
                                   className="object-cover"
                                 />
                               ) : (
-                                <div className="flex h-full w-full items-center justify-center bg-teal-50 text-[#00796b]">
+                                <div className="flex h-full w-full items-center justify-center bg-blue-50 text-[#0052CC]">
                                   <Plane className="h-5 w-5" />
                                 </div>
                               )}
@@ -301,7 +301,7 @@ export default function ExportadorPdfPage() {
                                 {trip.name}
                               </p>
                               <div className="mt-0.5 flex items-center gap-1.5">
-                                <span className="inline-flex items-center gap-1 rounded-md bg-teal-50 px-1.5 py-0.5 text-[10px] font-bold text-[#00796b]">
+                                <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-[#0052CC]">
                                   <FileText className="h-2.5 w-2.5" />
                                   <span>PDF</span>
                                 </span>
@@ -326,7 +326,7 @@ export default function ExportadorPdfPage() {
                         <td className="px-4 py-4 whitespace-nowrap">
                           {hasClient ? (
                             <div className="flex items-center gap-2">
-                              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 text-[11px] font-extrabold text-[#00796b]">
+                              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-[11px] font-extrabold text-[#0052CC]">
                                 {(trip.clientName || 'C').slice(0, 2).toUpperCase()}
                               </div>
                               <div>
@@ -360,7 +360,7 @@ export default function ExportadorPdfPage() {
                             <button
                               type="button"
                               onClick={() => handleCopyLink(trip)}
-                              className="flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-500 hover:bg-teal-50 hover:text-[#00796b] hover:border-teal-200 transition-colors cursor-pointer shadow-2xs"
+                              className="flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-500 hover:bg-blue-50 hover:text-[#0052CC] hover:border-blue-200 transition-colors cursor-pointer shadow-2xs"
                               title={copiedTripId === trip.id ? '¡Enlace copiado!' : 'Copiar enlace público'}
                               aria-label="Copiar enlace público"
                             >
@@ -375,7 +375,7 @@ export default function ExportadorPdfPage() {
                             <button
                               type="button"
                               onClick={() => handleOpenPreview(trip, false)}
-                              className="flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-500 hover:bg-teal-50 hover:text-[#00796b] hover:border-teal-200 transition-colors cursor-pointer shadow-2xs"
+                              className="flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-500 hover:bg-blue-50 hover:text-[#0052CC] hover:border-blue-200 transition-colors cursor-pointer shadow-2xs"
                               title="Previsualizar PDF del itinerario"
                               aria-label="Previsualizar PDF"
                             >
@@ -411,7 +411,7 @@ export default function ExportadorPdfPage() {
               return (
                 <div
                   key={trip.id}
-                  className="group flex flex-col overflow-hidden rounded-3xl border border-zinc-200/80 bg-white shadow-2xs transition-all hover:border-teal-200 hover:shadow-md"
+                  className="group flex flex-col overflow-hidden rounded-3xl border border-zinc-200/80 bg-white shadow-2xs transition-all hover:border-blue-200 hover:shadow-md"
                 >
                   <div className="relative h-44 w-full overflow-hidden bg-zinc-900">
                     {trip.imageUrl ? (
@@ -423,7 +423,7 @@ export default function ExportadorPdfPage() {
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-teal-800 to-zinc-900">
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-900 to-zinc-900">
                         <Plane className="h-10 w-10 text-white/30" />
                       </div>
                     )}
@@ -431,7 +431,7 @@ export default function ExportadorPdfPage() {
 
                     <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
                       <span className="inline-flex items-center gap-1 rounded-full bg-black/50 backdrop-blur-md px-2.5 py-1 text-[10px] font-bold text-white border border-white/10">
-                        <FileText className="h-3 w-3 text-[#80cbc4]" />
+                        <FileText className="h-3 w-3 text-[#93C5FD]" />
                         <span>PDF Listo</span>
                       </span>
 
@@ -447,7 +447,7 @@ export default function ExportadorPdfPage() {
                         {trip.name}
                       </h3>
                       <div className="mt-1 flex items-center gap-2 text-xs text-white/90">
-                        <Calendar className="h-3.5 w-3.5 text-[#80cbc4]" />
+                        <Calendar className="h-3.5 w-3.5 text-[#93C5FD]" />
                         <span>
                           {formatFullDate(trip.startDate)} - {formatFullDate(trip.endDate)}
                         </span>
@@ -459,7 +459,7 @@ export default function ExportadorPdfPage() {
                     <div className="space-y-3">
                       <div className="flex items-center justify-between gap-2 rounded-xl bg-zinc-50 p-2.5 border border-zinc-100">
                         <div className="flex items-center gap-2 min-w-0">
-                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-[#00796b]">
+                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#0052CC]">
                             <User className="h-3.5 w-3.5" />
                           </div>
                           <div className="min-w-0">
@@ -497,7 +497,7 @@ export default function ExportadorPdfPage() {
                       <button
                         type="button"
                         onClick={() => handleCopyLink(trip)}
-                        className="flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-500 hover:bg-teal-50 hover:text-[#00796b] hover:border-teal-200 transition-colors cursor-pointer shadow-2xs"
+                        className="flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-500 hover:bg-blue-50 hover:text-[#0052CC] hover:border-blue-200 transition-colors cursor-pointer shadow-2xs"
                         title="Copiar enlace"
                       >
                         {copiedTripId === trip.id ? (
@@ -510,7 +510,7 @@ export default function ExportadorPdfPage() {
                       <button
                         type="button"
                         onClick={() => handleOpenPreview(trip, false)}
-                        className="flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-500 hover:bg-teal-50 hover:text-[#00796b] hover:border-teal-200 transition-colors cursor-pointer shadow-2xs"
+                        className="flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-500 hover:bg-blue-50 hover:text-[#0052CC] hover:border-blue-200 transition-colors cursor-pointer shadow-2xs"
                         title="Previsualizar PDF"
                       >
                         <Eye className="h-4 w-4" />
@@ -549,7 +549,7 @@ export default function ExportadorPdfPage() {
             {/* Modal Header Toolbar (Hidden during browser print) */}
             <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-900 px-5 py-3.5 text-white print:hidden">
               <div className="flex items-center gap-2.5 min-w-0">
-                <FileText className="h-5 w-5 text-[#80cbc4] shrink-0" />
+                <FileText className="h-5 w-5 text-[#93C5FD] shrink-0" />
                 <div className="min-w-0">
                   <h3 className="font-extrabold text-xs sm:text-sm truncate">
                     Itinerario PDF: {previewTrip.name}
@@ -589,7 +589,7 @@ export default function ExportadorPdfPage() {
                 {/* Agency Branding Top Header */}
                 <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-100 pb-6">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-[#00796b]">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-[#0052CC]">
                       <Plane className="h-6 w-6" />
                     </div>
                     <div>
@@ -630,7 +630,7 @@ export default function ExportadorPdfPage() {
                     </h1>
                     <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-zinc-200">
                       <div className="flex items-center gap-1.5">
-                        <Calendar className="h-4 w-4 text-[#80cbc4]" />
+                        <Calendar className="h-4 w-4 text-[#93C5FD]" />
                         <span>
                           {formatFullDate(previewTrip.startDate)} - {formatFullDate(previewTrip.endDate)}
                         </span>
@@ -642,7 +642,7 @@ export default function ExportadorPdfPage() {
                       )}
                       {previewTrip.clientName && (
                         <div className="flex items-center gap-1.5">
-                          <User className="h-4 w-4 text-[#80cbc4]" />
+                          <User className="h-4 w-4 text-[#93C5FD]" />
                           <span>Viajero: <strong>{previewTrip.clientName}</strong></span>
                         </div>
                       )}
@@ -691,7 +691,7 @@ export default function ExportadorPdfPage() {
                     Object.entries(groupedActivities).map(([date, acts], dayIndex) => (
                       <div key={date} className="space-y-3">
                         <div className="flex items-center gap-2">
-                          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#009688] text-[11px] font-extrabold text-white">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#0066FF] text-[11px] font-extrabold text-white">
                             {dayIndex + 1}
                           </span>
                           <h4 className="text-xs font-extrabold text-zinc-900">
@@ -699,7 +699,7 @@ export default function ExportadorPdfPage() {
                           </h4>
                         </div>
 
-                        <div className="ml-3 space-y-2 border-l-2 border-teal-100 pl-4">
+                        <div className="ml-3 space-y-2 border-l-2 border-blue-100 pl-4">
                           {acts.map((act) => (
                             <div
                               key={act.id}
@@ -707,7 +707,7 @@ export default function ExportadorPdfPage() {
                             >
                               <div className="flex items-center justify-between gap-2 font-bold text-zinc-900">
                                 <div className="flex items-center gap-2">
-                                  {act.type === 'flight' && <Plane className="h-3.5 w-3.5 text-[#009688]" />}
+                                  {act.type === 'flight' && <Plane className="h-3.5 w-3.5 text-[#0066FF]" />}
                                   {act.type === 'hotel' && <Bed className="h-3.5 w-3.5 text-indigo-600" />}
                                   {act.type === 'food' && <Utensils className="h-3.5 w-3.5 text-amber-600" />}
                                   {act.type === 'transfer' && <Car className="h-3.5 w-3.5 text-sky-600" />}

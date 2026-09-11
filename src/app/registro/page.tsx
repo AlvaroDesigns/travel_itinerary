@@ -72,7 +72,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white text-zinc-900 font-sans flex flex-col selection:bg-[#009688]/20 selection:text-[#00796b]">
+    <div className="min-h-screen w-full bg-white text-zinc-900 font-sans flex flex-col selection:bg-[#0066FF]/20 selection:text-[#0052CC]">
       {/* ========================================================================= */}
       {/* 100% FULL-SCREEN 2-COLUMN SPLIT LAYOUT                                    */}
       {/* ========================================================================= */}
@@ -96,7 +96,7 @@ export default function RegisterPage() {
             {/* Top Badge */}
             <div className="relative z-10 self-start">
               <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/40 flex items-center gap-2 text-xs font-bold text-zinc-900">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#009688] animate-pulse" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#0066FF] animate-pulse" />
                 <span>Prueba gratuita de 14 días</span>
               </div>
             </div>
@@ -104,8 +104,8 @@ export default function RegisterPage() {
             {/* Bottom Card */}
             <div className="relative z-10 p-6 rounded-3xl bg-white/95 backdrop-blur-md border border-white/60 shadow-2xl space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 font-bold text-xs text-[#00796b]">
-                  <Globe className="w-4 h-4 text-[#009688]" />
+                <div className="flex items-center gap-2 font-bold text-xs text-[#0066FF]">
+                  <Globe className="w-4 h-4 text-[#0066FF]" />
                   <span className="uppercase tracking-wider">Bora Bora & Polinesia</span>
                 </div>
                 <div className="flex text-amber-400 gap-0.5">
@@ -121,7 +121,7 @@ export default function RegisterPage() {
 
               <div className="flex items-center justify-between pt-2 border-t border-zinc-200/70 text-[11px] font-semibold text-zinc-500">
                 <div className="flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#009688]" />
+                  <Sparkles className="w-3.5 h-3.5 text-[#0066FF]" />
                   <span>Sin tarjeta de crédito obligatoria</span>
                 </div>
                 <span className="font-bold text-zinc-800">8 Días · 2 Viajeros</span>
@@ -146,7 +146,7 @@ export default function RegisterPage() {
 
             {success ? (
               <div className="py-16 text-center space-y-4 animate-in fade-in zoom-in-95 duration-300">
-                <div className="w-20 h-20 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+                <div className="w-20 h-20 rounded-3xl bg-blue-100 text-[#0066FF] flex items-center justify-center mx-auto shadow-inner">
                   <CheckCircle2 className="w-10 h-10" />
                 </div>
                 <div>
@@ -156,7 +156,7 @@ export default function RegisterPage() {
                   </p>
                 </div>
                 <div className="pt-4">
-                  <Loader2 className="w-7 h-7 animate-spin text-[#009688] mx-auto" />
+                  <Loader2 className="w-7 h-7 animate-spin text-[#0066FF] mx-auto" />
                 </div>
               </div>
             ) : (
@@ -178,15 +178,15 @@ export default function RegisterPage() {
                     onClick={() => setUserType('agency')}
                     className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
                       userType === 'agency'
-                        ? 'border-[#009688] bg-teal-50/70 ring-2 ring-[#009688]/20 shadow-xs'
+                        ? 'border-[#0066FF] bg-blue-50/70 ring-2 ring-[#0066FF]/20 shadow-xs'
                         : 'border-zinc-200 bg-zinc-50/60 hover:bg-zinc-100/80'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <Building2
-                        className={`w-5 h-5 ${userType === 'agency' ? 'text-[#009688]' : 'text-zinc-500'}`}
+                        className={`w-5 h-5 ${userType === 'agency' ? 'text-[#0066FF]' : 'text-zinc-500'}`}
                       />
-                      {userType === 'agency' && <span className="w-2.5 h-2.5 rounded-full bg-[#009688]" />}
+                      {userType === 'agency' && <span className="w-2.5 h-2.5 rounded-full bg-[#0066FF]" />}
                     </div>
                     <div className="text-xs font-bold text-zinc-900">Soy Agencia / DMC</div>
                     <div className="text-[11px] text-zinc-500 mt-0.5">Propuestas B2B, CRM y Stripe</div>
@@ -197,15 +197,15 @@ export default function RegisterPage() {
                     onClick={() => setUserType('particular')}
                     className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
                       userType === 'particular'
-                        ? 'border-[#009688] bg-teal-50/70 ring-2 ring-[#009688]/20 shadow-xs'
+                        ? 'border-[#0066FF] bg-blue-50/70 ring-2 ring-[#0066FF]/20 shadow-xs'
                         : 'border-zinc-200 bg-zinc-50/60 hover:bg-zinc-100/80'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <User
-                        className={`w-5 h-5 ${userType === 'particular' ? 'text-[#009688]' : 'text-zinc-500'}`}
+                        className={`w-5 h-5 ${userType === 'particular' ? 'text-[#0066FF]' : 'text-zinc-500'}`}
                       />
-                      {userType === 'particular' && <span className="w-2.5 h-2.5 rounded-full bg-[#009688]" />}
+                      {userType === 'particular' && <span className="w-2.5 h-2.5 rounded-full bg-[#0066FF]" />}
                     </div>
                     <div className="text-xs font-bold text-zinc-900">Soy Particular</div>
                     <div className="text-[11px] text-zinc-500 mt-0.5">Viajes personales y amigos</div>
@@ -233,7 +233,7 @@ export default function RegisterPage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Ej. Laura González"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/15 transition-all bg-white"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
                       />
                     </div>
                   </div>
@@ -251,7 +251,7 @@ export default function RegisterPage() {
                         placeholder={
                           userType === 'agency' ? 'laura@viajeshorizonte.com' : 'laura.gonzalez@gmail.com'
                         }
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/15 transition-all bg-white"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
                       />
                     </div>
                   </div>
@@ -269,7 +269,7 @@ export default function RegisterPage() {
                             value={agencyName}
                             onChange={(e) => setAgencyName(e.target.value)}
                             placeholder="Horizon Travel"
-                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/15 transition-all bg-white"
+                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
                           />
                         </div>
                       </div>
@@ -283,7 +283,7 @@ export default function RegisterPage() {
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                             placeholder="+34 600 000 000"
-                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/15 transition-all bg-white"
+                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
                           />
                         </div>
                       </div>
@@ -302,7 +302,7 @@ export default function RegisterPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Mínimo 6 caracteres"
-                        className="w-full pl-10 pr-11 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/15 transition-all bg-white"
+                        className="w-full pl-10 pr-11 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
                       />
                       <button
                         type="button"
@@ -321,12 +321,12 @@ export default function RegisterPage() {
                         type="checkbox"
                         checked={rememberMe}
                         onChange={(e) => setRememberMe(e.target.checked)}
-                        className="w-4 h-4 rounded text-[#009688] focus:ring-[#009688] accent-[#009688] border-zinc-300"
+                        className="w-4 h-4 rounded text-[#0066FF] focus:ring-[#0066FF] accent-[#0066FF] border-zinc-300"
                       />
                       <span>Recordarme en este equipo</span>
                     </label>
 
-                    <Link href="/login" className="text-zinc-500 hover:text-[#009688] font-medium">
+                    <Link href="/login" className="text-zinc-500 hover:text-[#0066FF] font-medium">
                       ¿Has olvidado la contraseña?
                     </Link>
                   </div>
@@ -335,7 +335,7 @@ export default function RegisterPage() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-3.5 rounded-xl bg-[#009688] hover:bg-[#00796b] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+                    className="w-full py-3.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
                   >
                     {isLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -379,7 +379,7 @@ export default function RegisterPage() {
                   {/* Sign In Footer */}
                   <div className="text-center pt-2 text-xs text-zinc-500">
                     <span>¿Ya tienes una cuenta registrada? </span>
-                    <Link href="/login" className="font-bold text-[#009688] hover:underline">
+                    <Link href="/login" className="font-bold text-[#0066FF] hover:underline">
                       Inicia sesión
                     </Link>
                   </div>

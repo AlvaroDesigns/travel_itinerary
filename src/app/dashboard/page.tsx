@@ -8,6 +8,7 @@ import { useTravel } from '@/context/TravelContext';
 import { DashboardShell } from '@/components/DashboardShell';
 import { WanderlustLoader } from '@/components/WanderlustLoader';
 import { CreateTripModal } from '@/components/CreateTripModal';
+import { TravelerMobileHome } from '@/components/TravelerMobileHome';
 import {
   Sparkles,
   Plane,
@@ -123,7 +124,7 @@ export default function DashboardPage() {
       value: trips.length || overview.totalTrips,
       detail: `${overview.activeTrips} en curso · ${overview.upcomingTrips} próximos`,
       icon: Plane,
-      tone: 'bg-teal-50 text-[#009688]',
+      tone: 'bg-blue-50 text-[#0066FF]',
       href: '/viajes',
     },
     {
@@ -139,7 +140,7 @@ export default function DashboardPage() {
       value: overview.publicLinksEnabled || trips.length,
       detail: 'Itinerarios compartibles en vivo',
       icon: Share2,
-      tone: 'bg-amber-50 text-amber-700',
+      tone: 'bg-indigo-50 text-indigo-700',
       href: '/enlaces-publicos',
     },
     {
@@ -147,38 +148,51 @@ export default function DashboardPage() {
       value: overview.totalActivities || trips.reduce((acc, t) => acc + (t.activities?.length || 0), 0),
       detail: overview.totalActivitySpend > 0 ? `Presupuesto: ${formatCurrency(overview.totalActivitySpend)}` : 'Servicios en rutas',
       icon: Activity,
-      tone: 'bg-emerald-50 text-emerald-700',
+      tone: 'bg-cyan-50 text-cyan-700',
       href: '/viajes',
     },
   ];
 
+  const isAgent =
+    user?.role === 'admin' ||
+    user?.role === 'superadmin' ||
+    user?.role === 'superuser' ||
+    (Boolean(user?.tenantId) && user?.tenantId !== 'particular');
+
   return (
-    <DashboardShell activeMenu="dashboard" onOpenCreateTrip={() => setIsCreateModalOpen(true)}>
-      <div className="w-full space-y-6 max-w-7xl mx-auto">
-        {/* Top Greeting Header */}
-        <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#101828]">
-              Hola, {getUserDisplayName()} 👋
-            </h1>
-            <p className="mt-1 text-xs sm:text-sm text-[#667085]">
-              Resumen en tiempo real de tus itinerarios, clientes y reservas.
-            </p>
-          </div>
+    <>
+      {!isAgent && (
+        <div className="block md:hidden">
+          <TravelerMobileHome onOpenCreateTrip={() => setIsCreateModalOpen(true)} />
+        </div>
+      )}
+      <div className={!isAgent ? 'hidden md:block' : 'block'}>
+        <DashboardShell activeMenu="dashboard" onOpenCreateTrip={() => setIsCreateModalOpen(true)}>
+          <div className="w-full space-y-6 max-w-7xl mx-auto">
+            {/* Top Greeting Header */}
+            <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#101828]">
+                  Hola, {getUserDisplayName()} 👋
+                </h1>
+                <p className="mt-1 text-xs sm:text-sm text-[#667085]">
+                  Resumen en tiempo real de tus itinerarios, clientes y reservas.
+                </p>
+              </div>
 
           <div className="flex items-center gap-2.5">
             <Link
               href="/enlaces-publicos"
               className="inline-flex h-10 items-center gap-2 rounded-full border border-[#eaecf0] bg-white px-4 text-xs font-bold text-[#344054] shadow-xs hover:bg-[#f8fafc] transition"
             >
-              <Share2 className="h-3.5 w-3.5 text-[#009688]" />
+              <Share2 className="h-3.5 w-3.5 text-[#0066FF]" />
               <span>Ver Enlaces Públicos</span>
             </Link>
 
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex h-10 items-center gap-2 rounded-full bg-[#009688] px-5 text-xs font-bold text-white shadow-md hover:bg-[#00796b] transition cursor-pointer"
+              className="inline-flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] px-5 text-xs font-bold text-white shadow-md hover:opacity-90 transition cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               <span>Crear Viaje</span>
@@ -192,7 +206,7 @@ export default function DashboardPage() {
             <Link
               key={label}
               href={href}
-              className="group rounded-3xl border border-[#eaecf0] bg-white p-5 shadow-xs transition-all hover:border-[#009688]/40 hover:shadow-md block"
+              className="group rounded-3xl border border-[#eaecf0] bg-white p-5 shadow-xs transition-all hover:border-[#0066FF]/40 hover:shadow-md block"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -212,24 +226,24 @@ export default function DashboardPage() {
         </section>
 
         {/* Quick Access Action Banner */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#004d40] via-[#00796b] to-[#009688] p-6 text-white shadow-xl sm:p-8">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#003399] via-[#0066FF] to-[#00C6FF] p-6 text-white shadow-xl sm:p-8">
           <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
           <div className="relative z-10 flex flex-col justify-between gap-5 md:flex-row md:items-center">
             <div>
-              <span className="inline-block rounded-full bg-white/20 px-3 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-teal-100 backdrop-blur-md mb-2">
+              <span className="inline-block rounded-full bg-white/20 px-3 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-blue-100 backdrop-blur-md mb-2">
                 Asistente Inteligente
               </span>
               <h2 className="text-xl sm:text-2xl font-black tracking-tight">Crea un itinerario completo con IA</h2>
-              <p className="mt-1.5 max-w-xl text-xs sm:text-sm leading-relaxed text-teal-100">
+              <p className="mt-1.5 max-w-xl text-xs sm:text-sm leading-relaxed text-blue-100">
                 Diseña viajes en segundos con recomendaciones de vuelos, hoteles seleccionados, restaurantes y visitas guiadas.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 text-xs sm:text-sm font-extrabold text-[#00796b] shadow-md transition-all hover:bg-teal-50 hover:scale-105 active:scale-95 cursor-pointer"
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 text-xs sm:text-sm font-extrabold text-[#0066FF] shadow-md transition-all hover:bg-blue-50 hover:scale-105 active:scale-95 cursor-pointer"
             >
-              <Sparkles className="h-4 w-4 text-[#009688]" />
+              <Sparkles className="h-4 w-4 text-[#0066FF]" />
               <span>Generar con Agente IA</span>
               <ArrowRight className="h-4 w-4" />
             </button>
@@ -246,7 +260,7 @@ export default function DashboardPage() {
                 href="/viajes"
                 className="inline-flex items-center gap-1.5 rounded-full border border-[#eaecf0] bg-[#f8fafc] px-3.5 py-1.5 text-xs font-bold text-[#344054] shadow-xs hover:bg-[#eaecf0] hover:text-[#101828] transition-all"
               >
-                <LayoutGrid className="h-3.5 w-3.5 text-[#009688]" />
+                <LayoutGrid className="h-3.5 w-3.5 text-[#0066FF]" />
                 <span>Ver más</span>
                 <ChevronRight className="h-3 w-3 text-[#98a2b3]" />
               </Link>
@@ -259,7 +273,7 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(true)}
-                  className="rounded-full bg-[#009688] px-4 py-2 text-xs font-bold text-white hover:bg-[#00796b] transition"
+                  className="rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] px-4 py-2 text-xs font-bold text-white shadow-md hover:opacity-90 transition"
                 >
                   Crear mi primer viaje
                 </button>
@@ -278,7 +292,7 @@ export default function DashboardPage() {
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={trip.imageUrl} alt={trip.name} className="h-full w-full object-cover" />
                         ) : (
-                          <div className="h-full w-full flex items-center justify-center text-[#009688] bg-[#e0f2f1]">
+                          <div className="h-full w-full flex items-center justify-center text-[#0066FF] bg-blue-50">
                             <Plane className="h-4 w-4" />
                           </div>
                         )}
@@ -286,7 +300,7 @@ export default function DashboardPage() {
                       <div className="min-w-0">
                         <p className="font-bold text-xs sm:text-sm text-[#101828] truncate">{trip.name}</p>
                         <p className="text-[11px] text-[#667085] flex items-center gap-1.5 mt-0.5">
-                          <Calendar className="h-3 w-3 text-[#009688]" />
+                          <Calendar className="h-3 w-3 text-[#0066FF]" />
                           <span>
                             {formatFullDate(trip.startDate)} - {formatFullDate(trip.endDate)}
                           </span>
@@ -333,19 +347,19 @@ export default function DashboardPage() {
               <div className="p-6 space-y-3">
                 <div className="flex items-center justify-between py-2 border-b border-[#f2f4f7] text-xs">
                   <span className="font-bold text-[#344054]">Vuelos</span>
-                  <span className="text-[#009688] font-bold">Activo</span>
+                  <span className="text-[#0066FF] font-bold">Activo</span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-[#f2f4f7] text-xs">
                   <span className="font-bold text-[#344054]">Alojamientos</span>
-                  <span className="text-[#009688] font-bold">Activo</span>
+                  <span className="text-[#0066FF] font-bold">Activo</span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-[#f2f4f7] text-xs">
                   <span className="font-bold text-[#344054]">Traslados</span>
-                  <span className="text-[#009688] font-bold">Activo</span>
+                  <span className="text-[#0066FF] font-bold">Activo</span>
                 </div>
                 <div className="flex items-center justify-between py-2 text-xs">
                   <span className="font-bold text-[#344054]">Módulos de Pago & Depósito</span>
-                  <span className="text-[#009688] font-bold">Activo</span>
+                  <span className="text-[#0066FF] font-bold">Activo</span>
                 </div>
               </div>
             )}
@@ -356,5 +370,7 @@ export default function DashboardPage() {
         <CreateTripModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
       </div>
     </DashboardShell>
+  </div>
+</>
   );
 }

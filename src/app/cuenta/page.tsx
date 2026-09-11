@@ -10,6 +10,7 @@ import { StripeConfigModal, StripeConfigData } from '@/components/StripeConfigMo
 import { RedsysConfigModal, RedsysConfigData } from '@/components/RedsysConfigModal';
 import { RedsysLogo } from '@/components/RedsysLogo';
 import { ConfirmModal } from '@/components/ConfirmModal';
+import { isAgencyUser } from '@/lib/user-utils';
 import {
   User,
   Lock,
@@ -143,7 +144,7 @@ function MiCuentaConfiguracionContent() {
   const [notifSecurityAlerts, setNotifSecurityAlerts] = useState(true);
 
   // Appearance settings
-  const [brandColor, setBrandColor] = useState('#009688');
+  const [brandColor, setBrandColor] = useState('#0066FF');
   const [defaultTheme, setDefaultTheme] = useState('classic');
 
   // Booking policies
@@ -163,11 +164,23 @@ function MiCuentaConfiguracionContent() {
     }
   }, [user]);
 
+  const isAgency = isAgencyUser(user);
+
   useEffect(() => {
     if (tabQuery && ['detalles', 'apariencia', 'pagos', 'reservas', 'legal', 'viajes'].includes(tabQuery)) {
-      setActiveTab(tabQuery);
+      if (!isAgency && ['pagos', 'reservas', 'legal'].includes(tabQuery)) {
+        setActiveTab('detalles');
+      } else {
+        setActiveTab(tabQuery);
+      }
     }
-  }, [tabQuery]);
+  }, [tabQuery, isAgency]);
+
+  useEffect(() => {
+    if (!isAgency && ['pagos', 'reservas', 'legal'].includes(activeTab)) {
+      setActiveTab('detalles');
+    }
+  }, [isAgency, activeTab]);
 
   useEffect(() => {
     async function loadProfile() {
@@ -192,7 +205,13 @@ function MiCuentaConfiguracionContent() {
             if (p.currencyPosition) setCurrencyPosition(p.currencyPosition);
             if (p.currency) setCurrency(p.currency);
             if (p.avatar) setAvatar(p.avatar);
-            if (p.brandColor) setBrandColor(p.brandColor);
+            if (p.brandColor) {
+              if (['#009688', '#00796b', '#00a88a', '#00838f', '#00c9a7'].includes(p.brandColor.toLowerCase())) {
+                setBrandColor('#0066FF');
+              } else {
+                setBrandColor(p.brandColor);
+              }
+            }
             if (p.defaultTheme) setDefaultTheme(p.defaultTheme);
             if (p.depositPercent !== undefined) setDepositPercent(p.depositPercent);
             if (p.dueDaysBeforeTrip !== undefined) setDueDaysBeforeTrip(p.dueDaysBeforeTrip);
@@ -485,15 +504,17 @@ function MiCuentaConfiguracionContent() {
     return <WanderlustLoader />;
   }
 
-  // Active tabs matching requirements (MOGU AI and Suscripción removed as requested)
-  const tabs: { id: TabType; label: string; hasAlert?: boolean }[] = [
+  // Active tabs matching user permissions
+  const allTabs: { id: TabType; label: string; hasAlert?: boolean; agencyOnly?: boolean }[] = [
     { id: 'detalles', label: 'Detalles de la cuenta' },
     { id: 'apariencia', label: 'Apariencia' },
-    { id: 'pagos', label: 'Pagos', hasAlert: paymentProviders.stripe.status !== 'connected' && paymentProviders.redsys.status !== 'connected' },
-    { id: 'reservas', label: 'Reservas' },
-    { id: 'legal', label: 'Legal' },
+    { id: 'pagos', label: 'Pagos', hasAlert: paymentProviders.stripe.status !== 'connected' && paymentProviders.redsys.status !== 'connected', agencyOnly: true },
+    { id: 'reservas', label: 'Reservas', agencyOnly: true },
+    { id: 'legal', label: 'Legal', agencyOnly: true },
     { id: 'viajes', label: 'Viajes' },
   ];
+
+  const tabs = allTabs.filter((tab) => !tab.agencyOnly || isAgency);
 
   return (
     <DashboardShell activeMenu="cuenta">
@@ -535,7 +556,7 @@ function MiCuentaConfiguracionContent() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 py-3 text-xs sm:text-sm font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer select-none ${
                     isActive
-                      ? 'border-[#009688] text-[#009688]'
+                      ? 'border-[#0066FF] text-[#0066FF]'
                       : 'border-transparent text-zinc-500 hover:text-zinc-900 hover:border-zinc-300'
                   }`}
                 >
@@ -622,7 +643,7 @@ function MiCuentaConfiguracionContent() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Tu nombre"
-                        className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                        className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                       />
                     </div>
                   </div>
@@ -647,7 +668,7 @@ function MiCuentaConfiguracionContent() {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="+34 600 000 000"
-                        className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                        className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                       />
                     </div>
                   </div>
@@ -660,7 +681,7 @@ function MiCuentaConfiguracionContent() {
                         value={company}
                         onChange={(e) => setCompany(e.target.value)}
                         placeholder="ej. Wanderlust Travel Agency"
-                        className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                        className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                       />
                     </div>
                   </div>
@@ -671,7 +692,7 @@ function MiCuentaConfiguracionContent() {
                     type="button"
                     disabled={isSaving}
                     onClick={() => handleSaveProfile()}
-                    className="rounded-full bg-[#009688] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] disabled:opacity-50 transition cursor-pointer"
+                    className="rounded-full bg-[#0066FF] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] disabled:opacity-50 transition cursor-pointer"
                   >
                     Guardar información
                   </button>
@@ -697,7 +718,7 @@ function MiCuentaConfiguracionContent() {
                       required
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                      className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                     />
                   </div>
 
@@ -709,7 +730,7 @@ function MiCuentaConfiguracionContent() {
                         required
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                        className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                       />
                     </div>
                     <div>
@@ -719,7 +740,7 @@ function MiCuentaConfiguracionContent() {
                         required
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                        className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                       />
                     </div>
                   </div>
@@ -744,7 +765,7 @@ function MiCuentaConfiguracionContent() {
           {activeTab === 'apariencia' && (
             <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 sm:p-8 shadow-xs space-y-6">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 text-[#009688]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF]">
                   <Palette className="h-5 w-5" />
                 </div>
                 <div>
@@ -776,7 +797,7 @@ function MiCuentaConfiguracionContent() {
                   <select
                     value={defaultTheme}
                     onChange={(e) => setDefaultTheme(e.target.value)}
-                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                   >
                     <option value="classic">Classic (Equilibrado y Moderno)</option>
                     <option value="elegant">Elegant (Editorial Serif)</option>
@@ -790,7 +811,7 @@ function MiCuentaConfiguracionContent() {
                     type="button"
                     disabled={isSaving}
                     onClick={() => handleSaveProfile()}
-                    className="rounded-full bg-[#009688] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] disabled:opacity-50 transition cursor-pointer"
+                    className="rounded-full bg-[#0066FF] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] disabled:opacity-50 transition cursor-pointer"
                   >
                     Guardar apariencia
                   </button>
@@ -802,14 +823,14 @@ function MiCuentaConfiguracionContent() {
           {/* ========================================================= */}
           {/* TAB 3: PAGOS (Stripe & Redsys Comprehensive Management)    */}
           {/* ========================================================= */}
-          {activeTab === 'pagos' && (
+          {activeTab === 'pagos' && isAgency && (
             <div className="space-y-6">
               {/* Section Header */}
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-extrabold text-[#101828]">
                   Proveedor de pagos
                 </h2>
-                <span className="rounded-md bg-[#00bcd4]/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#00838f]">
+                <span className="rounded-full bg-[#e0f2f1] px-2 py-0.5 text-[10px] font-bold text-[#00796b]">
                   NUEVO
                 </span>
               </div>
@@ -894,7 +915,7 @@ function MiCuentaConfiguracionContent() {
                           type="button"
                           disabled={isConnectingStripe}
                           onClick={handleConnectStripeReal}
-                          className="flex items-center gap-1 text-xs font-bold text-[#009688] hover:underline cursor-pointer disabled:opacity-50"
+                          className="flex items-center gap-1 text-xs font-bold text-[#0066FF] hover:underline cursor-pointer disabled:opacity-50"
                         >
                           {isConnectingStripe && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                           <span>Reabrir portal Stripe Connect</span>
@@ -916,7 +937,7 @@ function MiCuentaConfiguracionContent() {
                           type="button"
                           disabled={isConnectingStripe}
                           onClick={handleConnectStripeReal}
-                          className="flex items-center gap-1.5 rounded-xl bg-[#009688] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] disabled:opacity-50 transition cursor-pointer"
+                          className="flex items-center gap-1.5 rounded-xl bg-[#0066FF] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] disabled:opacity-50 transition cursor-pointer"
                         >
                           {isConnectingStripe && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                           <span>Conectar con Stripe</span>
@@ -943,7 +964,7 @@ function MiCuentaConfiguracionContent() {
                       <div className="flex items-center gap-2">
                         <RedsysLogo size="md" />
                       </div>
-                      <span className="rounded-md bg-teal-50 px-2 py-0.5 text-[10px] font-bold text-[#009688] border border-teal-200/60">
+                      <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-[#0066FF] border border-blue-200/60">
                         Bancos Españoles & Bizum
                       </span>
                       <HelpCircle className="h-4 w-4 text-zinc-400" />
@@ -988,7 +1009,7 @@ function MiCuentaConfiguracionContent() {
                     <button
                       type="button"
                       onClick={() => setIsRedsysModalOpen(true)}
-                      className="flex items-center gap-1.5 rounded-xl bg-[#009688] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] transition cursor-pointer"
+                      className="flex items-center gap-1.5 rounded-xl bg-[#0066FF] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] transition cursor-pointer"
                     >
                       <Settings className="h-3.5 w-3.5" />
                       <span>{paymentProviders.redsys.status === 'connected' ? 'Gestionar TPV Redsys' : 'Conecta tu TPV Redsys'}</span>
@@ -1019,7 +1040,7 @@ function MiCuentaConfiguracionContent() {
                         </div>
                         <span className="text-base font-extrabold text-[#101828]">inespay</span>
                       </div>
-                      <span className="rounded-md bg-teal-50 px-2 py-0.5 text-[10px] font-bold text-[#00838f] border border-teal-200/60">
+                      <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-[#0066FF] border border-blue-200/60">
                         Transferencias Online
                       </span>
                       <HelpCircle className="h-4 w-4 text-zinc-400" />
@@ -1038,7 +1059,7 @@ function MiCuentaConfiguracionContent() {
                     <button
                       type="button"
                       onClick={() => showNotification('success', 'Próximamente disponible la integración de Inespay.')}
-                      className="flex items-center gap-1.5 text-xs font-bold text-[#009688] hover:underline cursor-pointer"
+                      className="flex items-center gap-1.5 text-xs font-bold text-[#0066FF] hover:underline cursor-pointer"
                     >
                       <span>Más información</span>
                       <ArrowUpRight className="h-3.5 w-3.5" />
@@ -1052,7 +1073,7 @@ function MiCuentaConfiguracionContent() {
           {/* ========================================================= */}
           {/* TAB 4: RESERVAS & POLÍTICAS                               */}
           {/* ========================================================= */}
-          {activeTab === 'reservas' && (
+          {activeTab === 'reservas' && isAgency && (
             <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 sm:p-8 shadow-xs space-y-6">
               <h3 className="text-base font-bold text-[#101828]">Condiciones y Depósitos de Reserva</h3>
               <p className="text-xs text-[#667085]">Define el porcentaje inicial de reserva y los plazos de pago para los clientes.</p>
@@ -1068,7 +1089,7 @@ function MiCuentaConfiguracionContent() {
                     max={100}
                     value={depositPercent}
                     onChange={(e) => setDepositPercent(Number(e.target.value))}
-                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                   />
                   <p className="mt-1 text-[11px] text-zinc-400">Porcentaje que debe abonar el cliente al confirmar el viaje.</p>
                 </div>
@@ -1083,7 +1104,7 @@ function MiCuentaConfiguracionContent() {
                     max={90}
                     value={dueDaysBeforeTrip}
                     onChange={(e) => setDueDaysBeforeTrip(Number(e.target.value))}
-                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                   />
                   <p className="mt-1 text-[11px] text-zinc-400">Fecha límite para abonar el saldo pendiente antes de la salida.</p>
                 </div>
@@ -1093,7 +1114,7 @@ function MiCuentaConfiguracionContent() {
                     type="button"
                     disabled={isSaving}
                     onClick={() => handleSaveProfile()}
-                    className="rounded-full bg-[#009688] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] disabled:opacity-50 transition cursor-pointer"
+                    className="rounded-full bg-[#0066FF] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] disabled:opacity-50 transition cursor-pointer"
                   >
                     Guardar condiciones
                   </button>
@@ -1105,7 +1126,7 @@ function MiCuentaConfiguracionContent() {
           {/* ========================================================= */}
           {/* TAB 5: LEGAL & PRIVACIDAD                                 */}
           {/* ========================================================= */}
-          {activeTab === 'legal' && (
+          {activeTab === 'legal' && isAgency && (
             <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 sm:p-8 shadow-xs space-y-6">
               <h3 className="text-base font-bold text-[#101828]">Información Legal de la Agencia</h3>
               <p className="text-xs text-[#667085]">Aparecerá en el pie de página de las propuestas, contratos y dossiers entregados a viajeros.</p>
@@ -1120,7 +1141,7 @@ function MiCuentaConfiguracionContent() {
                     value={agencyCif}
                     onChange={(e) => setAgencyCif(e.target.value)}
                     placeholder="ej. B-12345678"
-                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                    className="w-full rounded-xl border border-[#d0d5dd] p-2.5 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                   />
                 </div>
 
@@ -1133,7 +1154,7 @@ function MiCuentaConfiguracionContent() {
                     value={termsText}
                     onChange={(e) => setTermsText(e.target.value)}
                     placeholder="Incluye aquí la política de cancelaciones, coberturas de seguro, derechos de desistimiento y garantías legales."
-                    className="w-full rounded-xl border border-[#d0d5dd] p-3 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden"
+                    className="w-full rounded-xl border border-[#d0d5dd] p-3 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden"
                   />
                 </div>
 
@@ -1142,7 +1163,7 @@ function MiCuentaConfiguracionContent() {
                     type="button"
                     disabled={isSaving}
                     onClick={() => handleSaveProfile()}
-                    className="rounded-full bg-[#009688] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] disabled:opacity-50 transition cursor-pointer"
+                    className="rounded-full bg-[#0066FF] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] disabled:opacity-50 transition cursor-pointer"
                   >
                     Guardar datos legales
                   </button>
@@ -1173,7 +1194,7 @@ function MiCuentaConfiguracionContent() {
                     <select
                       value={language}
                       onChange={(e) => setLanguage(e.target.value)}
-                      className="w-full rounded-xl border border-[#d0d5dd] bg-white px-3.5 py-3 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                      className="w-full rounded-xl border border-[#d0d5dd] bg-white px-3.5 py-3 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                     >
                       <option value="Español">Español</option>
                       <option value="English">English</option>
@@ -1191,7 +1212,7 @@ function MiCuentaConfiguracionContent() {
                     <select
                       value={timezone}
                       onChange={(e) => setTimezone(e.target.value)}
-                      className="w-full rounded-xl border border-[#d0d5dd] bg-white px-3.5 py-3 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                      className="w-full rounded-xl border border-[#d0d5dd] bg-white px-3.5 py-3 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                     >
                       <option value="Europe/Madrid">Europe/Madrid (GMT+1 / GMT+2)</option>
                       <option value="Europe/London">Europe/London (GMT+0)</option>
@@ -1226,7 +1247,7 @@ function MiCuentaConfiguracionContent() {
                           value="domingo"
                           checked={weekStart === 'domingo'}
                           onChange={() => setWeekStart('domingo')}
-                          className="text-[#009688] focus:ring-[#009688]"
+                          className="text-[#0066FF] focus:ring-[#0066FF]"
                         />
                         <span>Domingo</span>
                       </label>
@@ -1237,7 +1258,7 @@ function MiCuentaConfiguracionContent() {
                           value="lunes"
                           checked={weekStart === 'lunes'}
                           onChange={() => setWeekStart('lunes')}
-                          className="text-[#009688] focus:ring-[#009688]"
+                          className="text-[#0066FF] focus:ring-[#0066FF]"
                         />
                         <span>Lunes</span>
                       </label>
@@ -1255,7 +1276,7 @@ function MiCuentaConfiguracionContent() {
                           value="dd/mm/yyyy"
                           checked={dateFormat === 'dd/mm/yyyy'}
                           onChange={() => setDateFormat('dd/mm/yyyy')}
-                          className="text-[#009688] focus:ring-[#009688]"
+                          className="text-[#0066FF] focus:ring-[#0066FF]"
                         />
                         <span>dd/mm/yyyy (24/10/2026)</span>
                       </label>
@@ -1266,7 +1287,7 @@ function MiCuentaConfiguracionContent() {
                           value="mm/dd/yyyy"
                           checked={dateFormat === 'mm/dd/yyyy'}
                           onChange={() => setDateFormat('mm/dd/yyyy')}
-                          className="text-[#009688] focus:ring-[#009688]"
+                          className="text-[#0066FF] focus:ring-[#0066FF]"
                         />
                         <span>mm/dd/yyyy (10/24/2026)</span>
                       </label>
@@ -1277,7 +1298,7 @@ function MiCuentaConfiguracionContent() {
                           value="yyyy/mm/dd"
                           checked={dateFormat === 'yyyy/mm/dd'}
                           onChange={() => setDateFormat('yyyy/mm/dd')}
-                          className="text-[#009688] focus:ring-[#009688]"
+                          className="text-[#0066FF] focus:ring-[#0066FF]"
                         />
                         <span>yyyy/mm/dd (2026/10/24)</span>
                       </label>
@@ -1295,7 +1316,7 @@ function MiCuentaConfiguracionContent() {
                           value="24h"
                           checked={timeFormat === '24h'}
                           onChange={() => setTimeFormat('24h')}
-                          className="text-[#009688] focus:ring-[#009688]"
+                          className="text-[#0066FF] focus:ring-[#0066FF]"
                         />
                         <span>24 horas (18:30)</span>
                       </label>
@@ -1306,7 +1327,7 @@ function MiCuentaConfiguracionContent() {
                           value="12h"
                           checked={timeFormat === '12h'}
                           onChange={() => setTimeFormat('12h')}
-                          className="text-[#009688] focus:ring-[#009688]"
+                          className="text-[#0066FF] focus:ring-[#0066FF]"
                         />
                         <span>12 horas (6:30 PM)</span>
                       </label>
@@ -1336,7 +1357,7 @@ function MiCuentaConfiguracionContent() {
                           value="coma"
                           checked={decimals === 'coma'}
                           onChange={() => setDecimals('coma')}
-                          className="text-[#009688] focus:ring-[#009688]"
+                          className="text-[#0066FF] focus:ring-[#0066FF]"
                         />
                         <span>Coma (1.250,50)</span>
                       </label>
@@ -1347,7 +1368,7 @@ function MiCuentaConfiguracionContent() {
                           value="punto"
                           checked={decimals === 'punto'}
                           onChange={() => setDecimals('punto')}
-                          className="text-[#009688] focus:ring-[#009688]"
+                          className="text-[#0066FF] focus:ring-[#0066FF]"
                         />
                         <span>Punto (1,250.50)</span>
                       </label>
@@ -1365,7 +1386,7 @@ function MiCuentaConfiguracionContent() {
                           value="inicio"
                           checked={currencyPosition === 'inicio'}
                           onChange={() => setCurrencyPosition('inicio')}
-                          className="text-[#009688] focus:ring-[#009688]"
+                          className="text-[#0066FF] focus:ring-[#0066FF]"
                         />
                         <span>Inicio (ej. € 100)</span>
                       </label>
@@ -1376,7 +1397,7 @@ function MiCuentaConfiguracionContent() {
                           value="fin"
                           checked={currencyPosition === 'fin'}
                           onChange={() => setCurrencyPosition('fin')}
-                          className="text-[#009688] focus:ring-[#009688]"
+                          className="text-[#0066FF] focus:ring-[#0066FF]"
                         />
                         <span>Fin (ej. 100 €)</span>
                       </label>
@@ -1391,7 +1412,7 @@ function MiCuentaConfiguracionContent() {
                     <select
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value)}
-                      className="w-full rounded-xl border border-[#d0d5dd] bg-white px-3.5 py-3 text-xs text-[#101828] focus:border-[#009688] focus:outline-hidden focus:ring-2 focus:ring-[#009688]/20"
+                      className="w-full rounded-xl border border-[#d0d5dd] bg-white px-3.5 py-3 text-xs text-[#101828] focus:border-[#0066FF] focus:outline-hidden focus:ring-2 focus:ring-[#0066FF]/20"
                     >
                       <option value="EUR">EUR (€) - Euro</option>
                       <option value="USD">USD ($) - Dólar estadounidense</option>
@@ -1439,7 +1460,7 @@ function MiCuentaConfiguracionContent() {
                       type="checkbox"
                       checked={notifNewTrips}
                       onChange={(e) => setNotifNewTrips(e.target.checked)}
-                      className="rounded border-[#d0d5dd] text-[#009688] focus:ring-[#009688]"
+                      className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
                     />
                   </label>
 
@@ -1452,7 +1473,7 @@ function MiCuentaConfiguracionContent() {
                       type="checkbox"
                       checked={notifVouchers}
                       onChange={(e) => setNotifVouchers(e.target.checked)}
-                      className="rounded border-[#d0d5dd] text-[#009688] focus:ring-[#009688]"
+                      className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
                     />
                   </label>
 
@@ -1465,7 +1486,7 @@ function MiCuentaConfiguracionContent() {
                       type="checkbox"
                       checked={notifClientReminders}
                       onChange={(e) => setNotifClientReminders(e.target.checked)}
-                      className="rounded border-[#d0d5dd] text-[#009688] focus:ring-[#009688]"
+                      className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
                     />
                   </label>
 
@@ -1478,7 +1499,7 @@ function MiCuentaConfiguracionContent() {
                       type="checkbox"
                       checked={notifWeeklySummary}
                       onChange={(e) => setNotifWeeklySummary(e.target.checked)}
-                      className="rounded border-[#d0d5dd] text-[#009688] focus:ring-[#009688]"
+                      className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
                     />
                   </label>
 
@@ -1491,7 +1512,7 @@ function MiCuentaConfiguracionContent() {
                       type="checkbox"
                       checked={notifSecurityAlerts}
                       onChange={(e) => setNotifSecurityAlerts(e.target.checked)}
-                      className="rounded border-[#d0d5dd] text-[#009688] focus:ring-[#009688]"
+                      className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
                     />
                   </label>
                 </div>
@@ -1503,7 +1524,7 @@ function MiCuentaConfiguracionContent() {
                   type="button"
                   disabled={isSaving}
                   onClick={() => handleSaveProfile()}
-                  className="rounded-full bg-[#009688] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#00796b] disabled:opacity-50 transition cursor-pointer"
+                  className="rounded-full bg-[#0066FF] px-6 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] disabled:opacity-50 transition cursor-pointer"
                 >
                   Guardar preferencias
                 </button>

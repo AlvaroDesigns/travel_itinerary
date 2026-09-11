@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTravel, Opportunity, OpportunityStage } from '@/context/TravelContext';
 import { DashboardShell } from '@/components/DashboardShell';
 import { OpportunityModal } from '@/components/OpportunityModal';
 import { ConfirmModal } from '@/components/ConfirmModal';
+import { isAgencyUser } from '@/lib/user-utils';
+import { WanderlustLoader } from '@/components/WanderlustLoader';
 import {
   Search,
   Plus,
@@ -91,7 +94,16 @@ function formatRelativeTime(dateString?: string) {
 }
 
 export default function OportunidadesPage() {
-  const { opportunities, updateOpportunity, deleteOpportunity, isLoading } = useTravel();
+  const { opportunities, updateOpportunity, deleteOpportunity, user, isLoading } = useTravel();
+  const router = useRouter();
+
+  const isAgency = isAgencyUser(user);
+
+  useEffect(() => {
+    if (!isLoading && !isAgency) {
+      router.replace('/viajes');
+    }
+  }, [isLoading, isAgency, router]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAgent, setSelectedAgent] = useState('all');
@@ -182,48 +194,10 @@ export default function OportunidadesPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !isAgency) {
     return (
-      <DashboardShell activeMenu="oportunidades">
-        <div className="w-full space-y-6 text-left animate-pulse">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#101828] tracking-tight">
-                Travel CRM
-              </h1>
-            </div>
-          </div>
-
-          {/* SaaS KPI Cards Skeleton */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-28 rounded-2xl border border-zinc-200/80 bg-white p-5 flex items-center justify-between">
-                <div className="space-y-2">
-                  <div className="h-3.5 w-20 rounded bg-zinc-200" />
-                  <div className="h-6 w-16 rounded bg-zinc-200" />
-                </div>
-                <div className="h-10 w-10 rounded-xl bg-zinc-100" />
-              </div>
-            ))}
-          </div>
-
-          {/* Kanban / Table Columns Skeleton */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-96 rounded-2xl border border-zinc-200/80 bg-zinc-50/50 p-3.5 space-y-3">
-                <div className="h-5 w-24 rounded bg-zinc-200" />
-                <div className="h-24 rounded-xl bg-white border border-zinc-200/80 p-3 space-y-2">
-                  <div className="h-4 w-32 rounded bg-zinc-100" />
-                  <div className="h-3 w-20 rounded bg-zinc-100" />
-                </div>
-                <div className="h-24 rounded-xl bg-white border border-zinc-200/80 p-3 space-y-2">
-                  <div className="h-4 w-28 rounded bg-zinc-100" />
-                  <div className="h-3 w-16 rounded bg-zinc-100" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      <DashboardShell activeMenu="viajes">
+        <WanderlustLoader />
       </DashboardShell>
     );
   }
@@ -243,7 +217,7 @@ export default function OportunidadesPage() {
             <button
               type="button"
               onClick={() => handleOpenCreate('nuevo')}
-              className="flex items-center gap-2 rounded-full bg-[#009688] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#00796b] transition-all cursor-pointer"
+              className="flex items-center gap-2 rounded-full bg-[#0066FF] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#0052CC] transition-all cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               <span>Nueva oportunidad</span>
@@ -256,7 +230,7 @@ export default function OportunidadesPage() {
           <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-2xs hover:shadow-xs transition-all">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">Pipeline Total</span>
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 text-[#00796b]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#0066FF]">
                 <TrendingUp className="h-4 w-4" />
               </div>
             </div>
@@ -324,7 +298,7 @@ export default function OportunidadesPage() {
                 placeholder="Buscar por título, destino o cliente..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 pl-9 pr-3 py-1.5 text-xs text-zinc-900 outline-none transition focus:border-[#009688] focus:bg-white focus:ring-2 focus:ring-[#009688]/15"
+                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 pl-9 pr-3 py-1.5 text-xs text-zinc-900 outline-none transition focus:border-[#0066FF] focus:bg-white focus:ring-2 focus:ring-[#0066FF]/15"
               />
             </div>
 
@@ -332,7 +306,7 @@ export default function OportunidadesPage() {
               <select
                 value={selectedAgent}
                 onChange={(e) => setSelectedAgent(e.target.value)}
-                className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-700 outline-none transition focus:border-[#009688] focus:bg-white"
+                className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-700 outline-none transition focus:border-[#0066FF] focus:bg-white"
               >
                 <option value="all">Todos los agentes</option>
                 {uniqueAgents.map((ag) => (
@@ -402,7 +376,7 @@ export default function OportunidadesPage() {
                       <div className="flex items-start justify-between gap-2">
                         <h4
                           onClick={() => handleOpenEdit(opp)}
-                          className="text-xs font-bold text-zinc-900 hover:text-[#009688] transition-colors line-clamp-2 cursor-pointer leading-snug"
+                          className="text-xs font-bold text-zinc-900 hover:text-[#0066FF] transition-colors line-clamp-2 cursor-pointer leading-snug"
                         >
                           {opp.title}
                         </h4>
@@ -449,7 +423,7 @@ export default function OportunidadesPage() {
                                       }}
                                       className="flex w-full items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold text-zinc-700 hover:bg-zinc-50 cursor-pointer"
                                     >
-                                      <ArrowRight className="h-3 w-3 text-[#009688]" />
+                                      <ArrowRight className="h-3 w-3 text-[#0066FF]" />
                                       <span>{st.label}</span>
                                     </button>
                                   );
@@ -473,8 +447,8 @@ export default function OportunidadesPage() {
 
                       {/* Destination Tag */}
                       {opp.destination && (
-                        <div className="flex items-center gap-1 text-[11px] font-medium text-teal-900 bg-teal-50 border border-teal-200/60 px-2 py-0.5 rounded-md w-fit max-w-full">
-                          <MapPin className="h-3 w-3 text-[#009688] shrink-0" />
+                        <div className="flex items-center gap-1 text-[11px] font-medium text-blue-900 bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded-md w-fit max-w-full">
+                          <MapPin className="h-3 w-3 text-[#0066FF] shrink-0" />
                           <span className="truncate">{opp.destination}</span>
                         </div>
                       )}

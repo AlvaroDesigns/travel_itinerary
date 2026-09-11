@@ -134,7 +134,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-[#009688]/20 selection:text-[#00796b]">
+    <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-[#0066FF]/20 selection:text-[#0052CC]">
       {/* ========================================================================= */}
       {/* TOP NAVIGATION BAR                                                        */}
       {/* ========================================================================= */}
@@ -155,19 +155,19 @@ export default function HomePage() {
             </Link>
 
             <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-600">
-              <a href="#itinerarios" className="hover:text-[#009688] transition-colors">
+              <a href="#itinerarios" className="hover:text-[#0066FF] transition-colors">
                 Itinerarios & Mapa
               </a>
-              <a href="#funciones" className="hover:text-[#009688] transition-colors">
+              <a href="#funciones" className="hover:text-[#0066FF] transition-colors">
                 CRM & Cobros
               </a>
-              <a href="#plantillas" className="hover:text-[#009688] transition-colors">
+              <a href="#plantillas" className="hover:text-[#0066FF] transition-colors">
                 Plantillas de Viaje
               </a>
-              <a href="#opiniones" className="hover:text-[#009688] transition-colors">
+              <a href="#opiniones" className="hover:text-[#0066FF] transition-colors">
                 Opiniones
               </a>
-              <a href="#faq" className="hover:text-[#009688] transition-colors">
+              <a href="#faq" className="hover:text-[#0066FF] transition-colors">
                 FAQ
               </a>
             </nav>
@@ -183,7 +183,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/registro"
-              className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#009688] hover:bg-[#00796b] shadow-sm hover:shadow-md transition-all flex items-center gap-2"
+              className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-[#0066FF] to-[#00C6FF] hover:opacity-95 shadow-md shadow-blue-500/20 transition-all flex items-center gap-2"
             >
               <span>Regístrate gratis</span>
               <ArrowRight className="w-4 h-4" />
@@ -203,19 +203,19 @@ export default function HomePage() {
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
           <div className="md:hidden border-b border-zinc-200 bg-white px-6 py-5 space-y-3 font-medium text-sm text-zinc-700">
-            <a href="#itinerarios" onClick={() => setMobileMenuOpen(false)} className="block py-1 hover:text-[#009688]">
+            <a href="#itinerarios" onClick={() => setMobileMenuOpen(false)} className="block py-1 hover:text-[#0066FF]">
               Itinerarios & Mapa
             </a>
-            <a href="#funciones" onClick={() => setMobileMenuOpen(false)} className="block py-1 hover:text-[#009688]">
+            <a href="#funciones" onClick={() => setMobileMenuOpen(false)} className="block py-1 hover:text-[#0066FF]">
               CRM & Cobros
             </a>
-            <a href="#plantillas" onClick={() => setMobileMenuOpen(false)} className="block py-1 hover:text-[#009688]">
+            <a href="#plantillas" onClick={() => setMobileMenuOpen(false)} className="block py-1 hover:text-[#0066FF]">
               Plantillas de Viaje
             </a>
-            <a href="#opiniones" onClick={() => setMobileMenuOpen(false)} className="block py-1 hover:text-[#009688]">
+            <a href="#opiniones" onClick={() => setMobileMenuOpen(false)} className="block py-1 hover:text-[#0066FF]">
               Opiniones de Agencias
             </a>
-            <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block py-1 hover:text-[#009688]">
+            <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block py-1 hover:text-[#0066FF]">
               FAQ
             </a>
             <div className="pt-3 border-t border-zinc-200 flex flex-col gap-2">
@@ -225,7 +225,7 @@ export default function HomePage() {
               <Link
                 href="/registro"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2.5 rounded-xl bg-[#009688] text-white font-bold"
+                className="w-full text-center py-2.5 rounded-xl bg-gradient-to-r from-[#0066FF] to-[#00C6FF] text-white font-bold shadow-md shadow-blue-500/20"
               >
                 Regístrate gratis
               </Link>
@@ -237,12 +237,30 @@ export default function HomePage() {
       {/* ========================================================================= */}
       {/* HERO SECTION                                                              */}
       {/* ========================================================================= */}
-      <section className="pt-12 pb-20 lg:pt-16 lg:pb-28 bg-gradient-to-b from-teal-50/40 via-white to-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* Main Title */}
+      <section className="relative pt-12 pb-20 lg:pt-16 lg:pb-28 bg-gradient-to-b from-blue-50/50 via-white to-white overflow-hidden">
+        {/* Ambient Gradient Glows */}
+        <div
+          className="pointer-events-none absolute -top-24 right-1/4 h-96 w-96 rounded-full bg-gradient-to-bl from-[#00C6FF]/30 via-[#0066FF]/20 to-transparent blur-3xl"
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute top-1/3 -left-20 h-80 w-80 rounded-full bg-gradient-to-tr from-[#38bdf8]/20 via-[#818cf8]/15 to-transparent blur-3xl"
+          aria-hidden="true"
+        />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          {/* Decorative Tag Badge */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/70 bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-transparent px-4 py-1.5 text-xs font-bold text-[#0066FF] shadow-xs mb-6 backdrop-blur-md">
+            <Sparkles className="h-3.5 w-3.5 text-[#0066FF]" />
+            <span>Software Todo-en-Uno para Agencias y Creadores de Viajes</span>
+          </div>
+
+          {/* Main Title with Gradient Accent */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-zinc-900 max-w-4xl mx-auto leading-[1.12]">
             Una sola plataforma para todas tus necesidades de{' '}
-            <span className="text-[#009688]">planificación de viajes</span>
+            <span className="bg-gradient-to-r from-[#0066FF] via-[#0099FF] to-[#00C6FF] bg-clip-text text-transparent">
+              planificación de viajes
+            </span>
           </h1>
 
           <p className="mt-5 text-base sm:text-xl text-zinc-600 max-w-2xl mx-auto font-normal leading-relaxed">
@@ -251,35 +269,28 @@ export default function HomePage() {
           </p>
 
           {/* Action CTAs */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+          <div className="mt-8 flex items-center justify-center">
             <Link
               href="/registro"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-white bg-[#009688] hover:bg-[#00796b] shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-base font-bold text-white bg-gradient-to-r from-[#0066FF] via-[#0077FF] to-[#00C6FF] hover:opacity-95 shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2"
             >
               <span>Comienza a planificar</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <button
-              onClick={() => setRegisterModalOpen(true)}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-xl text-base font-semibold text-zinc-700 bg-white hover:bg-zinc-50 border border-zinc-300 shadow-xs hover:border-zinc-400 transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Play className="w-4 h-4 text-zinc-600 fill-zinc-600" />
-              <span>Ver demo guiada</span>
-            </button>
           </div>
 
           {/* Highlights Badges */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs sm:text-sm text-zinc-500 font-medium">
             <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-[#009688]" />
+              <CheckCircle2 className="w-4 h-4 text-[#0066FF]" />
               <span>Itinerario y mapa en una sola vista</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-[#009688]" />
+              <CheckCircle2 className="w-4 h-4 text-[#0066FF]" />
               <span>Cobros directos con Stripe</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-[#009688]" />
+              <CheckCircle2 className="w-4 h-4 text-[#0066FF]" />
               <span>Acceso móvil para el cliente sin descargas</span>
             </div>
           </div>
@@ -347,7 +358,7 @@ export default function HomePage() {
                     <div className="flex items-center justify-between pb-4 border-b border-zinc-200">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-[#00796b]">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#0066FF]">
                             14 Días · 2 Personas
                           </span>
                           <span className="text-xs text-zinc-500">12 - 26 Octubre</span>
@@ -357,7 +368,7 @@ export default function HomePage() {
                         </h3>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-black text-[#00796b]">4.890 €</div>
+                        <div className="text-2xl font-black text-[#0066FF]">4.890 €</div>
                         <div className="text-xs text-zinc-500">Total presupuestado</div>
                       </div>
                     </div>
@@ -367,7 +378,7 @@ export default function HomePage() {
                       <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200/80 hover:border-zinc-300 transition-all space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 font-bold text-xs text-zinc-900">
-                            <span className="w-5 h-5 rounded-full bg-[#009688] text-white flex items-center justify-center text-[10px]">
+                            <span className="w-5 h-5 rounded-full bg-[#0066FF] text-white flex items-center justify-center text-[10px]">
                               1
                             </span>
                             <span>DÍA 1 · HANOI</span>
@@ -376,7 +387,7 @@ export default function HomePage() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-zinc-700">
                           <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-zinc-200/80">
-                            <Plane className="w-4 h-4 text-[#009688]" />
+                            <Plane className="w-4 h-4 text-[#0066FF]" />
                             <span className="truncate">Vuelo Qatar QR142 (08:30)</span>
                           </div>
                           <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-zinc-200/80">
@@ -387,22 +398,22 @@ export default function HomePage() {
                       </div>
 
                       {/* Day 2 */}
-                      <div className="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-3">
+                      <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-200 space-y-3">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 font-bold text-xs text-[#00796b]">
-                            <span className="w-5 h-5 rounded-full bg-[#009688] text-white flex items-center justify-center text-[10px]">
+                          <div className="flex items-center gap-2 font-bold text-xs text-[#0066FF]">
+                            <span className="w-5 h-5 rounded-full bg-[#0066FF] text-white flex items-center justify-center text-[10px]">
                               2
                             </span>
                             <span>DÍA 2 · BAHÍA DE HA LONG</span>
                           </div>
-                          <span className="text-xs font-semibold text-[#00796b]">Crucero Privado</span>
+                          <span className="text-xs font-semibold text-[#0066FF]">Crucero Privado</span>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-zinc-700">
-                          <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-teal-200">
-                            <Compass className="w-4 h-4 text-[#009688]" />
+                          <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-blue-200">
+                            <Compass className="w-4 h-4 text-[#0066FF]" />
                             <span className="truncate">Crucero Paradise Peak Suite</span>
                           </div>
-                          <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-teal-200">
+                          <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-blue-200">
                             <Coffee className="w-4 h-4 text-purple-600" />
                             <span className="truncate">Cena degustación y cata</span>
                           </div>
@@ -413,7 +424,7 @@ export default function HomePage() {
                       <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200/80 hover:border-zinc-300 transition-all space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 font-bold text-xs text-zinc-900">
-                            <span className="w-5 h-5 rounded-full bg-[#009688] text-white flex items-center justify-center text-[10px]">
+                            <span className="w-5 h-5 rounded-full bg-[#0066FF] text-white flex items-center justify-center text-[10px]">
                               3
                             </span>
                             <span>DÍA 3 · HOI AN</span>
@@ -442,7 +453,7 @@ export default function HomePage() {
                     <div className="relative z-10 space-y-4">
                       <div className="flex items-center justify-between bg-white/95 backdrop-blur-md p-3 rounded-2xl shadow-xs border border-zinc-200">
                         <div className="flex items-center gap-2 text-xs font-bold text-zinc-800">
-                          <Navigation className="w-4 h-4 text-[#009688]" />
+                          <Navigation className="w-4 h-4 text-[#0066FF]" />
                           <span>Ruta calculada · 3 destinos</span>
                         </div>
                         <span className="text-xs text-zinc-500">1.240 km</span>
@@ -458,7 +469,7 @@ export default function HomePage() {
                         >
                           <path
                             d="M 90 55 C 190 55, 270 65, 300 85 C 330 115, 250 165, 145 175"
-                            stroke="#009688"
+                            stroke="#0066FF"
                             strokeWidth="3.5"
                             strokeLinecap="round"
                             strokeDasharray="6 6"
@@ -467,15 +478,15 @@ export default function HomePage() {
 
                         {/* Pin 1: Hanoi (z-10 on top with solid white background) */}
                         <div className="absolute top-8 left-8 z-10 flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-md border border-zinc-200 text-xs font-bold text-zinc-900 select-none">
-                          <span className="w-5 h-5 rounded-full bg-[#009688] text-white flex items-center justify-center text-[11px] font-bold">
+                          <span className="w-5 h-5 rounded-full bg-[#0066FF] text-white flex items-center justify-center text-[11px] font-bold">
                             1
                           </span>
                           <span>Hanoi</span>
                         </div>
 
-                        {/* Pin 2: Ha Long (z-10 on top with solid teal background) */}
-                        <div className="absolute top-16 right-6 z-10 flex items-center gap-2 bg-[#009688] text-white px-3.5 py-1.5 rounded-full shadow-md text-xs font-bold select-none">
-                          <span className="w-5 h-5 rounded-full bg-white text-[#009688] flex items-center justify-center text-[11px] font-bold">
+                        {/* Pin 2: Ha Long (z-10 on top with solid blue background) */}
+                        <div className="absolute top-16 right-6 z-10 flex items-center gap-2 bg-[#0066FF] text-white px-3.5 py-1.5 rounded-full shadow-md text-xs font-bold select-none">
+                          <span className="w-5 h-5 rounded-full bg-white text-[#0066FF] flex items-center justify-center text-[11px] font-bold">
                             2
                           </span>
                           <span>Ha Long</span>
@@ -483,7 +494,7 @@ export default function HomePage() {
 
                         {/* Pin 3: Hoi An (z-10 on top with solid white background) */}
                         <div className="absolute bottom-10 left-16 z-10 flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-md border border-zinc-200 text-xs font-bold text-zinc-900 select-none">
-                          <span className="w-5 h-5 rounded-full bg-[#009688] text-white flex items-center justify-center text-[11px] font-bold">
+                          <span className="w-5 h-5 rounded-full bg-[#0066FF] text-white flex items-center justify-center text-[11px] font-bold">
                             3
                           </span>
                           <span>Hoi An</span>
@@ -516,16 +527,16 @@ export default function HomePage() {
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-teal-50/60 border border-teal-200 space-y-3">
-                      <div className="flex justify-between text-xs font-bold text-[#00796b] border-b border-teal-200 pb-2">
+                    <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200 space-y-3">
+                      <div className="flex justify-between text-xs font-bold text-[#0066FF] border-b border-blue-200 pb-2">
                         <span>PROPUESTAS (4)</span>
                         <span>21.850 €</span>
                       </div>
-                      <div className="p-3 rounded-xl bg-white border border-teal-200 text-xs space-y-1">
+                      <div className="p-3 rounded-xl bg-white border border-blue-200 text-xs space-y-1">
                         <div className="font-bold text-zinc-900">Luna de Miel Bali 10d</div>
                         <div className="text-zinc-500 flex justify-between">
                           <span>Visto x2 en móvil</span>
-                          <span className="text-[#00796b] font-semibold">5.450 €</span>
+                          <span className="text-[#0066FF] font-semibold">5.450 €</span>
                         </div>
                       </div>
                     </div>
@@ -583,13 +594,13 @@ export default function HomePage() {
                       <span>Total Presupuesto:</span>
                       <span className="font-bold text-zinc-900">4.890,00 €</span>
                     </div>
-                    <div className="flex justify-between pt-2 border-t border-zinc-200 text-sm font-bold text-[#00796b]">
+                    <div className="flex justify-between pt-2 border-t border-zinc-200 text-sm font-bold text-[#0066FF]">
                       <span>Depósito a pagar hoy (30%):</span>
                       <span className="text-base text-emerald-600">1.467,00 €</span>
                     </div>
                   </div>
 
-                  <button className="w-full py-3.5 rounded-xl bg-[#009688] hover:bg-[#00796b] text-white font-bold text-sm shadow-md transition-all">
+                  <button className="w-full py-3.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-md transition-all">
                     Pagar 1.467,00 € de forma segura
                   </button>
 
@@ -605,8 +616,8 @@ export default function HomePage() {
                 <div className="p-8 flex justify-center">
                   <div className="w-full max-w-sm rounded-[32px] p-4 bg-zinc-900 text-white shadow-2xl space-y-4">
                     <div className="w-20 h-3 rounded-full bg-zinc-700 mx-auto" />
-                    <div className="p-4 rounded-2xl bg-[#009688] text-white space-y-1">
-                      <div className="text-[10px] font-bold uppercase tracking-wider text-teal-100">TU VIAJE EN VIVO</div>
+                    <div className="p-4 rounded-2xl bg-[#0066FF] text-white space-y-1">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-blue-100">TU VIAJE EN VIVO</div>
                       <div className="text-base font-bold">Vietnam & Camboya Exclusivo</div>
                     </div>
                     <div className="p-3 rounded-xl bg-zinc-800 text-xs flex justify-between items-center">
@@ -647,7 +658,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="p-6 rounded-3xl bg-white border border-zinc-200 shadow-xs hover:shadow-md transition-all space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-teal-50 text-[#009688] flex items-center justify-center">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0066FF] to-[#00C6FF] text-white shadow-md shadow-blue-500/20 flex items-center justify-center">
                 <Calendar className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-zinc-900">Itinerario Día por Día</h3>
@@ -658,7 +669,7 @@ export default function HomePage() {
             </div>
 
             <div className="p-6 rounded-3xl bg-white border border-zinc-200 shadow-xs hover:shadow-md transition-all space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0284c7] to-[#38bdf8] text-white shadow-md shadow-sky-500/20 flex items-center justify-center">
                 <MapPin className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-zinc-900">Rutas & Mapa Integrado</h3>
@@ -669,7 +680,7 @@ export default function HomePage() {
             </div>
 
             <div className="p-6 rounded-3xl bg-white border border-zinc-200 shadow-xs hover:shadow-md transition-all space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#635bff] to-[#a855f7] text-white shadow-md shadow-purple-500/20 flex items-center justify-center">
                 <CreditCard className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-zinc-900">Cobros Directos con Stripe</h3>
@@ -679,7 +690,7 @@ export default function HomePage() {
             </div>
 
             <div className="p-6 rounded-3xl bg-white border border-zinc-200 shadow-xs hover:shadow-md transition-all space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#f59e0b] to-[#fbbf24] text-white shadow-md shadow-amber-500/20 flex items-center justify-center">
                 <Share2 className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-zinc-900">Enlace Web para el Cliente</h3>
@@ -698,8 +709,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#009688]">Plantillas Populares</span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-zinc-900 mt-1">
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-[#0066FF] bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-200/60">
+                Plantillas Populares
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-zinc-900 mt-2">
                 Inicia con propuestas listas para personalizar
               </h2>
               <p className="text-sm text-zinc-600 mt-2">
@@ -708,7 +721,7 @@ export default function HomePage() {
             </div>
             <button
               onClick={() => setRegisterModalOpen(true)}
-              className="inline-flex items-center gap-2 text-sm font-bold text-[#009688] hover:text-[#00796b] cursor-pointer"
+              className="inline-flex items-center gap-2 text-sm font-bold text-[#0066FF] hover:text-[#0052CC] cursor-pointer"
             >
               <span>Ver todas las plantillas</span>
               <ArrowRight className="w-4 h-4" />
@@ -740,7 +753,7 @@ export default function HomePage() {
                 <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
                   <div>
                     <div className="text-[11px] font-semibold text-zinc-500 uppercase">{dest.category}</div>
-                    <h4 className="text-base font-bold text-zinc-900 mt-0.5 group-hover:text-[#009688] transition-colors">
+                    <h4 className="text-base font-bold text-zinc-900 mt-0.5 group-hover:text-[#0066FF] transition-colors">
                       {dest.title}
                     </h4>
                     <div className="text-xs text-zinc-500 mt-1">{dest.days}</div>
@@ -748,7 +761,7 @@ export default function HomePage() {
 
                   <div className="pt-3 border-t border-zinc-100 flex items-center justify-between text-xs text-zinc-600 font-medium">
                     <span>{dest.stops.length} paradas</span>
-                    <span className="text-[#009688] font-bold group-hover:translate-x-0.5 transition-transform">
+                    <span className="text-[#0066FF] font-bold group-hover:translate-x-0.5 transition-transform">
                       Usar plantilla →
                     </span>
                   </div>
@@ -777,7 +790,7 @@ export default function HomePage() {
             {/* Review 1 */}
             <div className="p-6 rounded-3xl bg-white border border-zinc-200 shadow-xs space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-teal-100 text-[#00796b] font-bold flex items-center justify-center text-sm">
+                <div className="w-10 h-10 rounded-full bg-blue-100 text-[#0066FF] font-bold flex items-center justify-center text-sm">
                   AR
                 </div>
                 <div>
@@ -867,7 +880,7 @@ export default function HomePage() {
                   >
                     <span>{item.q}</span>
                     <ChevronDown
-                      className={`w-5 h-5 text-[#009688] transition-transform duration-200 shrink-0 ${
+                      className={`w-5 h-5 text-[#0066FF] transition-transform duration-200 shrink-0 ${
                         isOpen ? 'rotate-180' : ''
                       }`}
                     />
@@ -887,25 +900,29 @@ export default function HomePage() {
       {/* ========================================================================= */}
       {/* FINAL CALL TO ACTION BANNER                                               */}
       {/* ========================================================================= */}
-      <section className="py-20 lg:py-28 bg-[#009688] text-white text-center">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <section className="relative py-20 lg:py-28 bg-gradient-to-r from-[#140b2a] via-[#0052CC] to-[#0066FF] text-white text-center overflow-hidden">
+        {/* Ambient background glows */}
+        <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-gradient-to-bl from-[#00C6FF]/40 to-transparent blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-gradient-to-tr from-[#0066FF]/40 to-transparent blur-3xl" />
+
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <h2 className="text-3xl sm:text-5xl font-black tracking-tight">
             Comienza a planificar viajes extraordinarios hoy
           </h2>
-          <p className="text-base sm:text-lg text-teal-100 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-blue-100 max-w-2xl mx-auto">
             Únete a más de 650 agencias de viaje y DMCs que ya ahorran horas y cierran más ventas con Wanderlust.
           </p>
 
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/registro"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-zinc-900 bg-white hover:bg-zinc-100 shadow-lg transition-all text-center"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-extrabold text-zinc-900 bg-white hover:bg-zinc-100 shadow-xl hover:scale-105 active:scale-95 transition-all text-center"
             >
               Comenzar prueba gratuita
             </Link>
             <button
               onClick={() => setRegisterModalOpen(true)}
-              className="w-full sm:w-auto px-7 py-3.5 rounded-xl font-semibold text-white bg-teal-800/60 hover:bg-teal-800 border border-teal-400/40 transition-all cursor-pointer"
+              className="w-full sm:w-auto px-7 py-3.5 rounded-xl font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 transition-all cursor-pointer backdrop-blur-md"
             >
               Solicitar demo con un especialista
             </button>
@@ -939,10 +956,10 @@ export default function HomePage() {
             <div>
               <div className="text-xs font-bold uppercase tracking-wider text-zinc-900 mb-3">Producto</div>
               <ul className="space-y-2 text-xs text-zinc-600">
-                <li><a href="#itinerarios" className="hover:text-[#009688]">Itinerario y Mapa</a></li>
-                <li><a href="#funciones" className="hover:text-[#009688]">CRM de Oportunidades</a></li>
-                <li><a href="#funciones" className="hover:text-[#009688]">Cobros con Stripe</a></li>
-                <li><a href="#plantillas" className="hover:text-[#009688]">Plantillas de Viaje</a></li>
+                <li><a href="#itinerarios" className="hover:text-[#0066FF]">Itinerario y Mapa</a></li>
+                <li><a href="#funciones" className="hover:text-[#0066FF]">CRM de Oportunidades</a></li>
+                <li><a href="#funciones" className="hover:text-[#0066FF]">Cobros con Stripe</a></li>
+                <li><a href="#plantillas" className="hover:text-[#0066FF]">Plantillas de Viaje</a></li>
               </ul>
             </div>
 
@@ -959,9 +976,9 @@ export default function HomePage() {
             <div>
               <div className="text-xs font-bold uppercase tracking-wider text-zinc-900 mb-3">Contacto & Acceso</div>
               <ul className="space-y-2 text-xs text-zinc-600">
-                <li><Link href="/login" className="text-[#009688] font-bold hover:underline">Acceder a mi cuenta →</Link></li>
-                <li><button onClick={() => setRegisterModalOpen(true)} className="hover:text-[#009688] text-left cursor-pointer">Solicitar demo</button></li>
-                <li><a href="mailto:hola@wanderlust-app.com" className="hover:text-[#009688]">hola@wanderlust-app.com</a></li>
+                <li><Link href="/login" className="text-[#0066FF] font-bold hover:underline">Acceder a mi cuenta →</Link></li>
+                <li><button onClick={() => setRegisterModalOpen(true)} className="hover:text-[#0066FF] text-left cursor-pointer">Solicitar demo</button></li>
+                <li><a href="mailto:hola@wanderlust-app.com" className="hover:text-[#0066FF]">hola@wanderlust-app.com</a></li>
               </ul>
             </div>
           </div>
@@ -983,7 +1000,7 @@ export default function HomePage() {
 
             {registerSubmitted ? (
               <div className="py-8 text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-teal-50 text-[#009688] flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 rounded-full bg-blue-50 text-[#0066FF] flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
                 <h3 className="text-2xl font-bold text-zinc-900">¡Registro Completado!</h3>
@@ -995,7 +1012,7 @@ export default function HomePage() {
                 <div className="pt-2">
                   <Link
                     href="/login"
-                    className="inline-block px-6 py-2.5 rounded-xl bg-[#009688] text-white font-bold text-sm"
+                    className="inline-block px-6 py-2.5 rounded-xl bg-[#0066FF] text-white font-bold text-sm"
                   >
                     Ir al panel de acceso
                   </Link>
@@ -1004,7 +1021,7 @@ export default function HomePage() {
             ) : (
               <div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-teal-50 text-[#009688] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0066FF] flex items-center justify-center">
                     <Sparkles className="w-5 h-5" />
                   </div>
                   <div>
@@ -1020,16 +1037,16 @@ export default function HomePage() {
                     onClick={() => setUserType('agency')}
                     className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
                       userType === 'agency'
-                        ? 'border-[#009688] bg-teal-50/60 ring-2 ring-[#009688]/20'
+                        ? 'border-[#0066FF] bg-blue-50/60 ring-2 ring-[#0066FF]/20'
                         : 'border-zinc-200 bg-zinc-50/50 hover:bg-zinc-100'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <Building2
-                        className={`w-5 h-5 ${userType === 'agency' ? 'text-[#009688]' : 'text-zinc-500'}`}
+                        className={`w-5 h-5 ${userType === 'agency' ? 'text-[#0066FF]' : 'text-zinc-500'}`}
                       />
                       {userType === 'agency' && (
-                        <span className="w-2 h-2 rounded-full bg-[#009688]" />
+                        <span className="w-2 h-2 rounded-full bg-[#0066FF]" />
                       )}
                     </div>
                     <div className="text-xs font-bold text-zinc-900">Soy Agencia / DMC</div>
@@ -1041,16 +1058,16 @@ export default function HomePage() {
                     onClick={() => setUserType('particular')}
                     className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
                       userType === 'particular'
-                        ? 'border-[#009688] bg-teal-50/60 ring-2 ring-[#009688]/20'
+                        ? 'border-[#0066FF] bg-blue-50/60 ring-2 ring-[#0066FF]/20'
                         : 'border-zinc-200 bg-zinc-50/50 hover:bg-zinc-100'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <User
-                        className={`w-5 h-5 ${userType === 'particular' ? 'text-[#009688]' : 'text-zinc-500'}`}
+                        className={`w-5 h-5 ${userType === 'particular' ? 'text-[#0066FF]' : 'text-zinc-500'}`}
                       />
                       {userType === 'particular' && (
-                        <span className="w-2 h-2 rounded-full bg-[#009688]" />
+                        <span className="w-2 h-2 rounded-full bg-[#0066FF]" />
                       )}
                     </div>
                     <div className="text-xs font-bold text-zinc-900">Soy Particular</div>
@@ -1067,7 +1084,7 @@ export default function HomePage() {
                       value={registerForm.name}
                       onChange={(e) => setRegisterForm({ ...registerForm, name: e.target.value })}
                       placeholder="Ej. Laura González"
-                      className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 text-zinc-900 text-sm focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/10"
+                      className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 text-zinc-900 text-sm focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/10"
                     />
                   </div>
 
@@ -1079,7 +1096,7 @@ export default function HomePage() {
                       value={registerForm.email}
                       onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
                       placeholder={userType === 'agency' ? 'laura@viajeshorizonte.com' : 'laura.gonzalez@gmail.com'}
-                      className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 text-zinc-900 text-sm focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/10"
+                      className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 text-zinc-900 text-sm focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/10"
                     />
                   </div>
 
@@ -1093,7 +1110,7 @@ export default function HomePage() {
                           value={registerForm.agencyName}
                           onChange={(e) => setRegisterForm({ ...registerForm, agencyName: e.target.value })}
                           placeholder="Horizon Travel"
-                          className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 text-zinc-900 text-sm focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/10"
+                          className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 text-zinc-900 text-sm focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/10"
                         />
                       </div>
                       <div>
@@ -1103,7 +1120,7 @@ export default function HomePage() {
                           value={registerForm.phone}
                           onChange={(e) => setRegisterForm({ ...registerForm, phone: e.target.value })}
                           placeholder="+34 600 000 000"
-                          className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 text-zinc-900 text-sm focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/10"
+                          className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 text-zinc-900 text-sm focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/10"
                         />
                       </div>
                     </div>
@@ -1115,7 +1132,7 @@ export default function HomePage() {
                       <select
                         value={registerForm.agencyType}
                         onChange={(e) => setRegisterForm({ ...registerForm, agencyType: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 text-zinc-900 text-sm focus:outline-none focus:border-[#009688] focus:ring-2 focus:ring-[#009688]/10"
+                        className="w-full px-4 py-2.5 rounded-xl border border-zinc-300 text-zinc-900 text-sm focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/10"
                       >
                         <option value="Agencia Emisora (Viajes a Medida)">Agencia Emisora (Viajes a Medida)</option>
                         <option value="DMC Receptivo / Touroperador">DMC Receptivo / Touroperador</option>
@@ -1128,7 +1145,7 @@ export default function HomePage() {
 
                   <button
                     type="submit"
-                    className="w-full py-3.5 rounded-xl bg-[#009688] hover:bg-[#00796b] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 mt-2 cursor-pointer"
+                    className="w-full py-3.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 mt-2 cursor-pointer"
                   >
                     <Send className="w-4 h-4" />
                     <span>{userType === 'agency' ? 'Registrar mi Agencia gratis' : 'Crear mi cuenta gratis'}</span>
