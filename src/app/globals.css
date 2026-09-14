@@ -3,7 +3,7 @@
 @import "@heroui/styles";
 
 @theme {
-  --font-sans: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-outfit), 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Primary Electric Blue Scale */
   --color-primary-50: #eff6ff;
@@ -45,18 +45,151 @@
 }
 
 :root {
-  --font-geist-sans: 'Outfit', 'Inter', sans-serif;
+  --font-outfit: 'Outfit', sans-serif;
+  --font-geist-sans: var(--font-outfit), 'Outfit', sans-serif;
   --primary: #0066ff;
   --primary-gradient: linear-gradient(135deg, #0066FF 0%, #00C6FF 100%);
   --primary-gradient-hover: linear-gradient(135deg, #0052D9 0%, #00A6EA 100%);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Emil Kowalski tactile press feedback */
+.interactive-press {
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.interactive-press:active {
+  transform: scale(0.975);
+}
+
+:root {
+  --bg-app: #000000;
+  --bg-surface: #09090d;
+  --bg-surface-elevated: #121218;
+  --text-head: #ffffff;
+  --text-body: #a1a1aa;
+  --text-muted: #71717a;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-card: rgba(255, 255, 255, 0.15);
+  --glass-bg: rgba(12, 12, 16, 0.75);
+  --bracket-color: rgba(255, 255, 255, 0.5);
+  --crosshair-color: rgba(255, 255, 255, 0.3);
+}
+
+html.light,
+[data-theme="light"] {
+  --bg-app: #f8f9fc;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f3f4f8;
+  --text-head: #09090b;
+  --text-body: #52525b;
+  --text-muted: #71717a;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-card: rgba(0, 0, 0, 0.12);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --bracket-color: rgba(0, 0, 0, 0.45);
+  --crosshair-color: rgba(0, 0, 0, 0.35);
+}
+
+html.dark,
+[data-theme="dark"] {
+  --bg-app: #000000;
+  --bg-surface: #09090d;
+  --bg-surface-elevated: #121218;
+  --text-head: #ffffff;
+  --text-body: #a1a1aa;
+  --text-muted: #71717a;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-card: rgba(255, 255, 255, 0.15);
+  --glass-bg: rgba(12, 12, 16, 0.75);
+  --bracket-color: rgba(255, 255, 255, 0.5);
+  --crosshair-color: rgba(255, 255, 255, 0.3);
+}
+
+/* TitanGate Luxury Dark & Light Architecture Utilities */
+.dark-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+}
+
+.dark-glass-elevated {
+  background: var(--bg-surface-elevated);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.hairline-border {
+  border: 1px solid var(--border-subtle);
+}
+
+.hairline-border-b {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.hairline-border-t {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.hairline-border-l {
+  border-left: 1px solid var(--border-subtle);
+}
+
+.hairline-border-r {
+  border-right: 1px solid var(--border-subtle);
+}
+
+.technical-crosshair {
+  position: relative;
+}
+.technical-crosshair::before {
+  content: "+";
+  position: absolute;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--crosshair-color);
+  pointer-events: none;
+}
+
+.corner-brackets {
+  position: relative;
+}
+.corner-brackets::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 10px;
+  height: 10px;
+  border-top: 1.5px solid var(--bracket-color);
+  border-left: 1.5px solid var(--bracket-color);
+  pointer-events: none;
+  transition: border-color 300ms ease;
+}
+.corner-brackets::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  border-bottom: 1.5px solid var(--bracket-color);
+  border-right: 1.5px solid var(--bracket-color);
+  pointer-events: none;
+  transition: border-color 300ms ease;
 }
 
 body {
-  background-color: #fafafa;
-  color: #09090b;
+  background-color: var(--bg-app);
+  color: var(--text-head);
   font-family: var(--font-geist-sans), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 300ms ease, color 300ms ease;
 }
 
 /* Hide scrollbars where needed */
@@ -158,4 +291,40 @@ body {
 .animate-pulse-subtle {
   animation: pulse-subtle 3s ease-in-out infinite;
 }
+
+/* ========================================================================== */
+/* LIGHT MODE TITANGATE ARCHITECTURE SYSTEM                                   */
+/* ========================================================================== */
+
+html.light {
+  color-scheme: light;
+}
+
+html.light body {
+  background-color: #f8f9fc;
+  color: #09090b;
+}
+
+/* Ensure badges, dark buttons, and dark pills ALWAYS preserve crisp white text */
+.keep-white,
+html.light .keep-white,
+html.light [data-keep-white],
+html.light .bg-zinc-950,
+html.light .bg-black,
+html.light .bg-blue-600,
+html.light .bg-blue-500,
+html.light .wanderlust-primary-button {
+  color: #ffffff !important;
+}
+
+/* Card Depth & Floating Shadows in Light Mode */
+html.light .corner-brackets {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+}
+
+html.light .dark-glass-elevated {
+  background-color: #ffffff;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
 
