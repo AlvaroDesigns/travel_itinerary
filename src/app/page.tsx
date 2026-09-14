@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
@@ -212,6 +212,17 @@ function AnimatedFlightMap({ isLight = false }: { isLight?: boolean }) {
 export default function HomePage() {
   const { theme } = useTheme();
   const isLight = theme === "light";
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const [activeStep, setActiveStep] = useState<number>(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
@@ -431,10 +442,12 @@ export default function HomePage() {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: EASE_OUT }}
-        className={`sticky top-0 z-50 hairline-border-b backdrop-blur-xl transition-all ${
-          isLight
-            ? "bg-[#f8f9fc]/85 border-black/10"
-            : "bg-[#000000]/80 border-white/10"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? isLight
+              ? "bg-[#f8f9fc]/85 backdrop-blur-xl border-b border-black/10 shadow-xs"
+              : "bg-[#000000]/85 backdrop-blur-xl border-b border-white/10 shadow-xs"
+            : "bg-transparent border-b border-transparent"
         }`}
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 md:h-24 flex items-center justify-between">
@@ -488,7 +501,7 @@ export default function HomePage() {
       {/* ========================================================================= */}
       {/* 2. HERO VIEWPORT (TitanGate Cinematic Centerpiece with Atmosphere)        */}
       {/* ========================================================================= */}
-      <section className="relative min-h-[calc(100vh-5rem)] flex flex-col justify-between items-center text-center px-4 sm:px-6 pt-16 pb-12 overflow-hidden">
+      <section className="relative min-h-screen flex flex-col justify-between items-center text-center px-4 sm:px-6 pt-24 sm:pt-28 md:pt-32 pb-12 overflow-hidden">
         {/* Background Cinematic Video from TitanGate */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
           <video
