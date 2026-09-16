@@ -427,22 +427,25 @@ export default function EnlacesPublicosPage() {
 
                         {/* Acciones */}
                         <td className="px-5 py-4 whitespace-nowrap text-right">
-                          <div className="inline-flex items-center gap-1.5">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {/* Ver enlace público */}
                             <a
                               href={publicUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 rounded-xl bg-white border border-[#eaecf0] px-3 py-1.5 text-xs font-bold text-[#344054] hover:bg-[#f8fafc] hover:border-[#0066FF] transition shadow-2xs"
-                              title="Abrir en pestaña nueva"
+                              className="flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-500 hover:bg-blue-50 hover:text-[#0052CC] hover:border-blue-200 transition-colors cursor-pointer shadow-2xs"
+                              title="Abrir enlace público en pestaña nueva"
+                              aria-label="Ver enlace público"
                             >
-                              <ExternalLink className="h-3.5 w-3.5 text-[#0066FF]" />
-                              <span>Ver</span>
+                              <Eye className="h-4 w-4" />
                             </a>
 
+                            {/* Compartir */}
                             <button
                               type="button"
                               onClick={() => setSelectedShareTrip(trip)}
-                              className="inline-flex items-center gap-1 rounded-xl bg-[#0066FF] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#0052CC] transition shadow-2xs cursor-pointer"
+                              className="wanderlust-primary-button inline-flex items-center gap-1.5 rounded-xl h-8 px-3 text-xs font-bold text-white shadow-xs hover:scale-105 active:scale-95 transition cursor-pointer"
+                              title="Compartir itinerario"
                             >
                               <Share2 className="h-3.5 w-3.5" />
                               <span>Compartir</span>

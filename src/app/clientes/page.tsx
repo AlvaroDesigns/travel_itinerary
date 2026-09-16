@@ -1,44 +1,40 @@
-'use client';
+"use client";
 
-import React, { useState, useMemo } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useTravel, Client, Trip } from '@/context/TravelContext';
-import { DashboardShell } from '@/components/DashboardShell';
-import { TableSkeleton } from '@/components/TableSkeleton';
-import { WanderlustLoader } from '@/components/WanderlustLoader';
+import { DashboardShell } from "@/components/DashboardShell";
+import { TableSkeleton } from "@/components/TableSkeleton";
+import { Client, useTravel } from "@/context/TravelContext";
 import {
-  Search,
-  Plus,
-  Users,
-  Mail,
-  Phone,
-  Globe,
-  FileText,
-  Trash2,
-  Edit,
-  MoreVertical,
   Check,
   Copy,
-  Plane,
   Download,
-  List,
+  Edit,
+  FileText,
+  Globe,
   Grid,
+  List,
+  Mail,
+  MoreVertical,
+  Phone,
+  Plane,
+  Plus,
+  Search,
+  Trash2,
+  Users,
   X,
-  UserCheck,
-  Tag,
-  ExternalLink,
-} from 'lucide-react';
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React, { useMemo, useState } from "react";
 
 const AVATAR_COLORS = [
-  'bg-emerald-500 text-white',
-  'bg-indigo-500 text-white',
-  'bg-violet-500 text-white',
-  'bg-amber-500 text-white',
-  'bg-[#0066FF] text-white',
-  'bg-cyan-500 text-white',
-  'bg-rose-500 text-white',
-  'bg-blue-500 text-white',
+  "bg-emerald-500 text-white",
+  "bg-indigo-500 text-white",
+  "bg-violet-500 text-white",
+  "bg-amber-500 text-white",
+  "bg-[#0066FF] text-white",
+  "bg-cyan-500 text-white",
+  "bg-rose-500 text-white",
+  "bg-blue-500 text-white",
 ];
 
 function getAvatarBg(str?: string) {
@@ -51,7 +47,7 @@ function getAvatarBg(str?: string) {
 }
 
 function getInitials(name?: string) {
-  if (!name) return 'CL';
+  if (!name) return "CL";
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) {
     return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -60,23 +56,26 @@ function getInitials(name?: string) {
 }
 
 function formatFullDate(dateStr?: string) {
-  if (!dateStr) return '-';
-  const parts = dateStr.split('-');
+  if (!dateStr) return "-";
+  const parts = dateStr.split("-");
   return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr;
 }
 
 function getClientCode(id: string) {
-  return id.replace('client-', 'CL-').substring(0, 10).toUpperCase();
+  return id.replace("client-", "CL-").substring(0, 10).toUpperCase();
 }
 
 export default function ClientesPage() {
-  const { clients, trips, addClient, updateClient, deleteClient, isLoading } = useTravel();
+  const { clients, trips, addClient, updateClient, deleteClient, isLoading } =
+    useTravel();
   const router = useRouter();
 
   // Filters & Search & View
-  const [filterPill, setFilterPill] = useState<'todos' | 'activos' | 'con_viajes' | 'prospectos' | 'inactivos'>('todos');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [filterPill, setFilterPill] = useState<
+    "todos" | "activos" | "con_viajes" | "prospectos" | "inactivos"
+  >("todos");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [copiedText, setCopiedText] = useState<string | null>(null);
@@ -84,19 +83,25 @@ export default function ClientesPage() {
   // Modal State for Create/Edit Client
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [documentId, setDocumentId] = useState('');
-  const [nationality, setNationality] = useState('');
-  const [notes, setNotes] = useState('');
-  const [status, setStatus] = useState<'activo' | 'prospecto' | 'inactivo'>('activo');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [documentId, setDocumentId] = useState("");
+  const [nationality, setNationality] = useState("");
+  const [notes, setNotes] = useState("");
+  const [status, setStatus] = useState<"activo" | "prospecto" | "inactivo">(
+    "activo",
+  );
   const [assignedTripIds, setAssignedTripIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Modal State for Quick Assign Trips
-  const [assignModalClient, setAssignModalClient] = useState<Client | null>(null);
-  const [quickAssignedTripIds, setQuickAssignedTripIds] = useState<string[]>([]);
+  const [assignModalClient, setAssignModalClient] = useState<Client | null>(
+    null,
+  );
+  const [quickAssignedTripIds, setQuickAssignedTripIds] = useState<string[]>(
+    [],
+  );
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
 
   // Filtered clients
@@ -111,17 +116,20 @@ export default function ClientesPage() {
 
       if (!matchSearch) return false;
 
-      if (filterPill === 'activos') {
-        return client.status === 'activo';
+      if (filterPill === "activos") {
+        return client.status === "activo";
       }
-      if (filterPill === 'con_viajes') {
-        return (client.assignedTripsCount || 0) > 0 || trips.some((t) => t.clientId === client.id);
+      if (filterPill === "con_viajes") {
+        return (
+          (client.assignedTripsCount || 0) > 0 ||
+          trips.some((t) => t.clientId === client.id)
+        );
       }
-      if (filterPill === 'prospectos') {
-        return client.status === 'prospecto';
+      if (filterPill === "prospectos") {
+        return client.status === "prospecto";
       }
-      if (filterPill === 'inactivos') {
-        return client.status === 'inactivo';
+      if (filterPill === "inactivos") {
+        return client.status === "inactivo";
       }
 
       return true;
@@ -146,19 +154,19 @@ export default function ClientesPage() {
   const handleToggleSelect = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedClients((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
   };
 
   const openCreateModal = () => {
     setEditingClient(null);
-    setName('');
-    setEmail('');
-    setPhone('');
-    setDocumentId('');
-    setNationality('');
-    setNotes('');
-    setStatus('activo');
+    setName("");
+    setEmail("");
+    setPhone("");
+    setDocumentId("");
+    setNationality("");
+    setNotes("");
+    setStatus("activo");
     setAssignedTripIds([]);
     setIsModalOpen(true);
   };
@@ -174,7 +182,9 @@ export default function ClientesPage() {
     setNationality(client.nationality);
     setNotes(client.notes);
     setStatus(client.status);
-    const clientTrips = trips.filter((t) => t.clientId === client.id).map((t) => t.id);
+    const clientTrips = trips
+      .filter((t) => t.clientId === client.id)
+      .map((t) => t.id);
     setAssignedTripIds(clientTrips);
     setIsModalOpen(true);
   };
@@ -183,7 +193,9 @@ export default function ClientesPage() {
     if (e) e.stopPropagation();
     setOpenDropdownId(null);
     setAssignModalClient(client);
-    const currentAssigned = trips.filter((t) => t.clientId === client.id).map((t) => t.id);
+    const currentAssigned = trips
+      .filter((t) => t.clientId === client.id)
+      .map((t) => t.id);
     setQuickAssignedTripIds(currentAssigned);
   };
 
@@ -218,7 +230,7 @@ export default function ClientesPage() {
             notes: notes.trim(),
             status,
           },
-          assignedTripIds
+          assignedTripIds,
         );
       } else {
         await addClient(
@@ -231,7 +243,7 @@ export default function ClientesPage() {
             notes: notes.trim(),
             status,
           },
-          assignedTripIds
+          assignedTripIds,
         );
       }
       setIsModalOpen(false);
@@ -249,7 +261,16 @@ export default function ClientesPage() {
   };
 
   const handleExport = () => {
-    const headers = ['ID', 'Nombre', 'Email', 'Teléfono', 'Documento', 'Nacionalidad', 'Estado', 'Viajes Asignados'];
+    const headers = [
+      "ID",
+      "Nombre",
+      "Email",
+      "Teléfono",
+      "Documento",
+      "Nacionalidad",
+      "Estado",
+      "Viajes Asignados",
+    ];
     const rows = filteredClients.map((c) => {
       const assignedCount = trips.filter((t) => t.clientId === c.id).length;
       return [
@@ -261,14 +282,18 @@ export default function ClientesPage() {
         `"${c.nationality}"`,
         `"${c.status}"`,
         assignedCount,
-      ].join(',');
+      ].join(",");
     });
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+    const csvContent =
+      "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
     const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `clientes_wanderlust_${new Date().toISOString().slice(0, 10)}.csv`);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute(
+      "download",
+      `clientes_wanderlust_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -280,7 +305,7 @@ export default function ClientesPage() {
         <div className="w-full space-y-5">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#101828]">
-              Clientes & Contactos
+              Clientes
             </h1>
           </div>
           <TableSkeleton rows={6} columns={4} showFilters={true} />
@@ -291,14 +316,11 @@ export default function ClientesPage() {
 
   return (
     <DashboardShell activeMenu="clientes">
-      <div
-        onClick={() => setOpenDropdownId(null)}
-        className="w-full space-y-5"
-      >
+      <div onClick={() => setOpenDropdownId(null)} className="w-full space-y-5">
         {/* View Title */}
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[#101828]">
-            Clientes & Contactos
+            Clientes
           </h1>
         </div>
 
@@ -306,11 +328,11 @@ export default function ClientesPage() {
         <div className="w-full overflow-x-auto pb-1 [scrollbar-width:none]">
           <div className="inline-flex items-center gap-1 rounded-full bg-[#f4f4f5] p-1 border border-[#e4e4e7]/70 shadow-2xs">
             {[
-              { id: 'todos', label: 'Todos' },
-              { id: 'activos', label: 'Activos' },
-              { id: 'con_viajes', label: 'Con viajes' },
-              { id: 'prospectos', label: 'Prospectos' },
-              { id: 'inactivos', label: 'Inactivos' },
+              { id: "todos", label: "Todos" },
+              { id: "activos", label: "Activos" },
+              { id: "con_viajes", label: "Con viajes" },
+              { id: "prospectos", label: "Prospectos" },
+              { id: "inactivos", label: "Inactivos" },
             ].map((tab) => {
               const isSelected = filterPill === tab.id;
               return (
@@ -319,8 +341,8 @@ export default function ClientesPage() {
                   onClick={() => setFilterPill(tab.id as typeof filterPill)}
                   className={`rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap select-none ${
                     isSelected
-                      ? 'bg-white text-[#18181b] shadow-sm font-bold'
-                      : 'text-[#71717a] hover:text-[#18181b] hover:bg-black/[0.02]'
+                      ? "bg-white text-[#18181b] shadow-sm font-bold"
+                      : "text-[#71717a] hover:text-[#18181b] hover:bg-black/[0.02]"
                   }`}
                 >
                   {tab.label}
@@ -346,7 +368,8 @@ export default function ClientesPage() {
             </div>
 
             <span className="text-xs font-semibold text-[#667085]">
-              {filteredClients.length} {filteredClients.length === 1 ? 'Cliente' : 'Clientes'}
+              {filteredClients.length}{" "}
+              {filteredClients.length === 1 ? "Cliente" : "Clientes"}
             </span>
           </div>
 
@@ -355,18 +378,22 @@ export default function ClientesPage() {
             {/* View Switchers */}
             <div className="flex items-center rounded-full border border-[#d0d5dd] bg-white p-1">
               <button
-                onClick={() => setViewMode('table')}
+                onClick={() => setViewMode("table")}
                 className={`rounded-full p-1.5 transition-colors cursor-pointer ${
-                  viewMode === 'table' ? 'bg-[#f2f4f7] text-[#101828]' : 'text-[#667085]'
+                  viewMode === "table"
+                    ? "bg-[#f2f4f7] text-[#101828]"
+                    : "text-[#667085]"
                 }`}
                 title="Vista tabla"
               >
                 <List className="h-4 w-4" />
               </button>
               <button
-                onClick={() => setViewMode('grid')}
+                onClick={() => setViewMode("grid")}
                 className={`rounded-full p-1.5 transition-colors cursor-pointer ${
-                  viewMode === 'grid' ? 'bg-[#f2f4f7] text-[#101828]' : 'text-[#667085]'
+                  viewMode === "grid"
+                    ? "bg-[#f2f4f7] text-[#101828]"
+                    : "text-[#667085]"
                 }`}
                 title="Vista cuadrícula"
               >
@@ -385,7 +412,7 @@ export default function ClientesPage() {
             {/* Primary Create Client CTA */}
             <button
               onClick={openCreateModal}
-              className="flex items-center gap-1.5 rounded-full bg-[#0066FF] px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#0052CC] active:scale-95 cursor-pointer"
+              className="wanderlust-primary-button flex items-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-bold text-white shadow-xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               <span>Crear cliente</span>
@@ -396,7 +423,7 @@ export default function ClientesPage() {
         {/* ------------------------------------------------------- */}
         {/* VIEW MODE: TABLE OR GRID                                */}
         {/* ------------------------------------------------------- */}
-        {viewMode === 'table' ? (
+        {viewMode === "table" ? (
           <div className="overflow-visible rounded-2xl border border-[#eaecf0] bg-white shadow-xs">
             <div className="overflow-x-auto lg:overflow-visible">
               <table className="w-full text-left text-xs">
@@ -405,7 +432,10 @@ export default function ClientesPage() {
                     <th className="w-10 px-4 py-3.5">
                       <input
                         type="checkbox"
-                        checked={selectedClients.length === filteredClients.length && filteredClients.length > 0}
+                        checked={
+                          selectedClients.length === filteredClients.length &&
+                          filteredClients.length > 0
+                        }
                         onChange={handleSelectAll}
                         className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
                       />
@@ -413,9 +443,13 @@ export default function ClientesPage() {
                     <th className="px-4 py-3.5 font-semibold">Cliente</th>
                     <th className="px-4 py-3.5 font-semibold">Email</th>
                     <th className="px-4 py-3.5 font-semibold">Teléfono</th>
-                    <th className="px-4 py-3.5 font-semibold">Documento / Pasaporte</th>
+                    <th className="px-4 py-3.5 font-semibold">
+                      Documento / Pasaporte
+                    </th>
                     <th className="px-4 py-3.5 font-semibold">Nacionalidad</th>
-                    <th className="px-4 py-3.5 font-semibold">Viajes Asignados</th>
+                    <th className="px-4 py-3.5 font-semibold">
+                      Viajes Asignados
+                    </th>
                     <th className="px-4 py-3.5 font-semibold">Estado</th>
                     <th className="px-4 py-3.5 font-semibold">Registrado</th>
                     <th className="w-10 px-4 py-3.5 text-right font-semibold"></th>
@@ -424,14 +458,22 @@ export default function ClientesPage() {
                 <tbody className="divide-y divide-[#eaecf0]">
                   {filteredClients.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="p-12 text-center text-xs text-[#667085]">
+                      <td
+                        colSpan={10}
+                        className="p-12 text-center text-xs text-[#667085]"
+                      >
                         <div className="flex flex-col items-center justify-center gap-2">
                           <Users className="h-8 w-8 text-[#98a2b3]" />
-                          <p className="font-semibold text-[#344054]">No se encontraron clientes</p>
-                          <p className="text-xs text-[#667085]">Crea tu primer cliente para asignarlo a tus itinerarios de viaje.</p>
+                          <p className="font-semibold text-[#344054]">
+                            No se encontraron clientes
+                          </p>
+                          <p className="text-xs text-[#667085]">
+                            Crea tu primer cliente para asignarlo a tus
+                            itinerarios de viaje.
+                          </p>
                           <button
                             onClick={openCreateModal}
-                            className="mt-2 flex items-center gap-1.5 rounded-xl bg-[#0066FF] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC]"
+                            className="wanderlust-primary-button mt-2 flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold text-white shadow-xs hover:scale-105 active:scale-95 cursor-pointer transition-all"
                           >
                             <Plus className="h-4 w-4" />
                             <span>Crear cliente ahora</span>
@@ -441,16 +483,20 @@ export default function ClientesPage() {
                     </tr>
                   ) : (
                     filteredClients.map((client, index) => {
-                      const clientTrips = trips.filter((t) => t.clientId === client.id);
+                      const clientTrips = trips.filter(
+                        (t) => t.clientId === client.id,
+                      );
                       const isSelected = selectedClients.includes(client.id);
                       const isDropdownOpen = openDropdownId === client.id;
-                      const isNearBottom = filteredClients.length > 3 && index >= filteredClients.length - 2;
+                      const isNearBottom =
+                        filteredClients.length > 3 &&
+                        index >= filteredClients.length - 2;
 
                       return (
                         <tr
                           key={client.id}
                           className={`group transition-colors ${
-                            isSelected ? 'bg-blue-50/40' : 'hover:bg-[#f9fafb]'
+                            isSelected ? "bg-blue-50/40" : "hover:bg-[#f9fafb]"
                           }`}
                         >
                           {/* Checkbox */}
@@ -471,7 +517,7 @@ export default function ClientesPage() {
                             <div className="flex items-center gap-3">
                               <span
                                 className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold shadow-xs ${getAvatarBg(
-                                  client.name
+                                  client.name,
                                 )}`}
                               >
                                 {getInitials(client.name)}
@@ -546,7 +592,7 @@ export default function ClientesPage() {
 
                           {/* Nacionalidad */}
                           <td className="px-4 py-4 text-[#475467]">
-                            {client.nationality || '-'}
+                            {client.nationality || "-"}
                           </td>
 
                           {/* Viajes asignados */}
@@ -560,7 +606,12 @@ export default function ClientesPage() {
                                   title="Gestionar viajes asignados"
                                 >
                                   <Plane className="h-3 w-3" />
-                                  <span>{clientTrips.length} {clientTrips.length === 1 ? 'Viaje' : 'Viajes'}</span>
+                                  <span>
+                                    {clientTrips.length}{" "}
+                                    {clientTrips.length === 1
+                                      ? "Viaje"
+                                      : "Viajes"}
+                                  </span>
                                 </button>
                               </div>
                             ) : (
@@ -578,11 +629,11 @@ export default function ClientesPage() {
                           <td className="px-4 py-4">
                             <span
                               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold capitalize ${
-                                client.status === 'activo'
-                                  ? 'bg-[#ecfdf3] text-[#027a48]'
-                                  : client.status === 'prospecto'
-                                  ? 'bg-[#eff8ff] text-[#175cd3]'
-                                  : 'bg-[#f2f4f7] text-[#5925dc]'
+                                client.status === "activo"
+                                  ? "bg-[#ecfdf3] text-[#027a48]"
+                                  : client.status === "prospecto"
+                                    ? "bg-[#eff8ff] text-[#175cd3]"
+                                    : "bg-[#f2f4f7] text-[#5925dc]"
                               }`}
                             >
                               {client.status}
@@ -591,23 +642,25 @@ export default function ClientesPage() {
 
                           {/* Creado */}
                           <td className="px-4 py-4 text-[#667085]">
-                            {new Intl.DateTimeFormat('es-ES', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: '2-digit',
+                            {new Intl.DateTimeFormat("es-ES", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "2-digit",
                             }).format(new Date(client.createdAt))}
                           </td>
 
                           {/* 3-dots actions */}
                           <td
-                            className={`relative px-4 py-4 text-right ${isDropdownOpen ? 'z-30' : ''}`}
+                            className={`relative px-4 py-4 text-right ${isDropdownOpen ? "z-30" : ""}`}
                             onClick={(e) => e.stopPropagation()}
                           >
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setOpenDropdownId(isDropdownOpen ? null : client.id);
+                                setOpenDropdownId(
+                                  isDropdownOpen ? null : client.id,
+                                );
                               }}
                               className="rounded-lg p-1.5 text-[#667085] hover:bg-[#f2f4f7] hover:text-[#101828] cursor-pointer"
                             >
@@ -626,7 +679,9 @@ export default function ClientesPage() {
                                 />
                                 <div
                                   className={`absolute right-4 ${
-                                    isNearBottom ? 'bottom-full mb-1.5 origin-bottom-right' : 'top-full mt-1.5 origin-top-right'
+                                    isNearBottom
+                                      ? "bottom-full mb-1.5 origin-bottom-right"
+                                      : "top-full mt-1.5 origin-top-right"
                                   } z-50 w-52 rounded-2xl border border-[#eaecf0] bg-white py-1.5 shadow-2xl text-left animate-scale-in`}
                                   onClick={(e) => e.stopPropagation()}
                                 >
@@ -701,7 +756,7 @@ export default function ClientesPage() {
                       <div className="flex items-center gap-3">
                         <span
                           className={`flex h-11 w-11 items-center justify-center rounded-2xl text-sm font-bold shadow-xs ${getAvatarBg(
-                            client.name
+                            client.name,
                           )}`}
                         >
                           {getInitials(client.name)}
@@ -718,11 +773,11 @@ export default function ClientesPage() {
 
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold capitalize ${
-                          client.status === 'activo'
-                            ? 'bg-[#ecfdf3] text-[#027a48]'
-                            : client.status === 'prospecto'
-                            ? 'bg-[#eff8ff] text-[#175cd3]'
-                            : 'bg-[#f2f4f7] text-[#5925dc]'
+                          client.status === "activo"
+                            ? "bg-[#ecfdf3] text-[#027a48]"
+                            : client.status === "prospecto"
+                              ? "bg-[#eff8ff] text-[#175cd3]"
+                              : "bg-[#f2f4f7] text-[#5925dc]"
                         }`}
                       >
                         {client.status}
@@ -752,7 +807,9 @@ export default function ClientesPage() {
                       {client.documentId && (
                         <div className="flex items-center gap-2">
                           <FileText className="h-3.5 w-3.5 text-[#98a2b3] shrink-0" />
-                          <span className="font-mono text-[11px]">{client.documentId}</span>
+                          <span className="font-mono text-[11px]">
+                            {client.documentId}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -771,12 +828,16 @@ export default function ClientesPage() {
                               className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-[11px] font-semibold text-[#0066FF] hover:bg-blue-100 transition-colors"
                             >
                               <Plane className="h-3 w-3" />
-                              <span className="truncate max-w-[120px]">{t.name}</span>
+                              <span className="truncate max-w-[120px]">
+                                {t.name}
+                              </span>
                             </Link>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-[#98a2b3] italic">Ningún viaje asignado</p>
+                        <p className="text-xs text-[#98a2b3] italic">
+                          Ningún viaje asignado
+                        </p>
                       )}
                     </div>
                   </div>
@@ -827,19 +888,21 @@ export default function ClientesPage() {
               </div>
               <div>
                 <h2 className="text-base font-bold text-[#101828]">
-                  {editingClient ? 'Editar cliente' : 'Crear nuevo cliente'}
+                  {editingClient ? "Editar cliente" : "Crear nuevo cliente"}
                 </h2>
                 <p className="text-xs text-[#667085]">
                   {editingClient
-                    ? 'Actualiza los datos del cliente y sus preferencias.'
-                    : 'Registra los datos de contacto para asignarlo a tus viajes.'}
+                    ? "Actualiza los datos del cliente y sus preferencias."
+                    : "Registra los datos de contacto para asignarlo a tus viajes."}
                 </p>
               </div>
             </div>
 
             <form onSubmit={handleSubmit} className="mt-5 space-y-4 text-xs">
               <div>
-                <label className="mb-1 block font-bold text-[#344054]">Nombre completo *</label>
+                <label className="mb-1 block font-bold text-[#344054]">
+                  Nombre completo *
+                </label>
                 <input
                   type="text"
                   required
@@ -852,7 +915,9 @@ export default function ClientesPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block font-bold text-[#344054]">Correo electrónico</label>
+                  <label className="mb-1 block font-bold text-[#344054]">
+                    Correo electrónico
+                  </label>
                   <input
                     type="email"
                     placeholder="maria@ejemplo.com"
@@ -863,7 +928,9 @@ export default function ClientesPage() {
                 </div>
 
                 <div>
-                  <label className="mb-1 block font-bold text-[#344054]">Teléfono / WhatsApp</label>
+                  <label className="mb-1 block font-bold text-[#344054]">
+                    Teléfono / WhatsApp
+                  </label>
                   <input
                     type="tel"
                     placeholder="+34 600 000 000"
@@ -876,7 +943,9 @@ export default function ClientesPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block font-bold text-[#344054]">Documento / Pasaporte</label>
+                  <label className="mb-1 block font-bold text-[#344054]">
+                    Documento / Pasaporte
+                  </label>
                   <input
                     type="text"
                     placeholder="DNI, NIE o Pasaporte"
@@ -887,7 +956,9 @@ export default function ClientesPage() {
                 </div>
 
                 <div>
-                  <label className="mb-1 block font-bold text-[#344054]">Nacionalidad</label>
+                  <label className="mb-1 block font-bold text-[#344054]">
+                    Nacionalidad
+                  </label>
                   <input
                     type="text"
                     placeholder="ej. Española, Mexicana, etc."
@@ -899,12 +970,14 @@ export default function ClientesPage() {
               </div>
 
               <div>
-                <label className="mb-1 block font-bold text-[#344054]">Estado del cliente</label>
+                <label className="mb-1 block font-bold text-[#344054]">
+                  Estado del cliente
+                </label>
                 <div className="flex gap-2">
                   {[
-                    { id: 'activo', label: 'Activo' },
-                    { id: 'prospecto', label: 'Prospecto' },
-                    { id: 'inactivo', label: 'Inactivo' },
+                    { id: "activo", label: "Activo" },
+                    { id: "prospecto", label: "Prospecto" },
+                    { id: "inactivo", label: "Inactivo" },
                   ].map((st) => (
                     <button
                       key={st.id}
@@ -912,8 +985,8 @@ export default function ClientesPage() {
                       onClick={() => setStatus(st.id as typeof status)}
                       className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${
                         status === st.id
-                          ? 'bg-[#0066FF] text-white shadow-xs'
-                          : 'border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f9fafb]'
+                          ? "bg-[#0066FF] text-white shadow-xs"
+                          : "border border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f9fafb]"
                       }`}
                     >
                       {st.label}
@@ -929,7 +1002,9 @@ export default function ClientesPage() {
                 </label>
                 <div className="max-h-36 overflow-y-auto rounded-xl border border-[#d0d5dd] p-2 space-y-1 bg-[#f9fafb]">
                   {trips.length === 0 ? (
-                    <p className="p-2 text-center text-xs text-[#98a2b3]">No tienes viajes creados aún.</p>
+                    <p className="p-2 text-center text-xs text-[#98a2b3]">
+                      No tienes viajes creados aún.
+                    </p>
                   ) : (
                     trips.map((trip) => {
                       const isChecked = assignedTripIds.includes(trip.id);
@@ -945,13 +1020,17 @@ export default function ClientesPage() {
                               setAssignedTripIds((prev) =>
                                 prev.includes(trip.id)
                                   ? prev.filter((id) => id !== trip.id)
-                                  : [...prev, trip.id]
+                                  : [...prev, trip.id],
                               );
                             }}
                             className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
                           />
-                          <span className="font-semibold text-[#101828] truncate flex-1">{trip.name}</span>
-                          <span className="text-[10px] text-[#98a2b3]">{formatFullDate(trip.startDate)}</span>
+                          <span className="font-semibold text-[#101828] truncate flex-1">
+                            {trip.name}
+                          </span>
+                          <span className="text-[10px] text-[#98a2b3]">
+                            {formatFullDate(trip.startDate)}
+                          </span>
                         </label>
                       );
                     })
@@ -960,7 +1039,9 @@ export default function ClientesPage() {
               </div>
 
               <div>
-                <label className="mb-1 block font-bold text-[#344054]">Notas & Preferencias</label>
+                <label className="mb-1 block font-bold text-[#344054]">
+                  Notas & Preferencias
+                </label>
                 <textarea
                   rows={2}
                   placeholder="Preferencias de asientos, alergias, requerimientos especiales..."
@@ -981,10 +1062,12 @@ export default function ClientesPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex items-center gap-1.5 rounded-full bg-[#0066FF] px-6 py-2 font-bold text-white shadow-xs hover:bg-[#0052CC] disabled:opacity-50 cursor-pointer"
+                  className="wanderlust-primary-button flex items-center gap-1.5 rounded-full px-6 py-2 font-bold text-white shadow-xs hover:scale-105 active:scale-95 disabled:opacity-50 cursor-pointer transition-all"
                 >
                   <Check className="h-4 w-4" />
-                  <span>{editingClient ? 'Guardar cambios' : 'Crear cliente'}</span>
+                  <span>
+                    {editingClient ? "Guardar cambios" : "Crear cliente"}
+                  </span>
                 </button>
               </div>
             </form>
@@ -1010,31 +1093,42 @@ export default function ClientesPage() {
                 <Plane className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-[#101828]">Asignar viajes</h2>
+                <h2 className="text-base font-bold text-[#101828]">
+                  Asignar viajes
+                </h2>
                 <p className="text-xs text-[#667085]">
-                  Cliente: <strong className="text-[#101828]">{assignModalClient.name}</strong>
+                  Cliente:{" "}
+                  <strong className="text-[#101828]">
+                    {assignModalClient.name}
+                  </strong>
                 </p>
               </div>
             </div>
 
             <div className="mt-4">
               <p className="text-xs text-[#667085] mb-2">
-                Selecciona los itinerarios de viaje que pertenecen a este cliente:
+                Selecciona los itinerarios de viaje que pertenecen a este
+                cliente:
               </p>
 
               <div className="max-h-60 overflow-y-auto rounded-2xl border border-[#eaecf0] p-2 space-y-1 bg-[#f9fafb]">
                 {trips.length === 0 ? (
-                  <p className="p-4 text-center text-xs text-[#98a2b3]">No tienes viajes creados.</p>
+                  <p className="p-4 text-center text-xs text-[#98a2b3]">
+                    No tienes viajes creados.
+                  </p>
                 ) : (
                   trips.map((trip) => {
                     const isChecked = quickAssignedTripIds.includes(trip.id);
-                    const isOtherClient = trip.clientId && trip.clientId !== assignModalClient.id;
+                    const isOtherClient =
+                      trip.clientId && trip.clientId !== assignModalClient.id;
 
                     return (
                       <label
                         key={trip.id}
                         className={`flex items-center gap-3 rounded-xl p-2.5 transition-colors cursor-pointer text-xs ${
-                          isChecked ? 'bg-blue-50/50 border border-[#0066FF]/30' : 'hover:bg-white'
+                          isChecked
+                            ? "bg-blue-50/50 border border-[#0066FF]/30"
+                            : "hover:bg-white"
                         }`}
                       >
                         <input
@@ -1044,18 +1138,22 @@ export default function ClientesPage() {
                             setQuickAssignedTripIds((prev) =>
                               prev.includes(trip.id)
                                 ? prev.filter((id) => id !== trip.id)
-                                : [...prev, trip.id]
+                                : [...prev, trip.id],
                             );
                           }}
                           className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-[#101828] truncate">{trip.name}</p>
+                          <p className="font-bold text-[#101828] truncate">
+                            {trip.name}
+                          </p>
                           <p className="text-[11px] text-[#667085]">
-                            {formatFullDate(trip.startDate)} — {formatFullDate(trip.endDate)}
+                            {formatFullDate(trip.startDate)} —{" "}
+                            {formatFullDate(trip.endDate)}
                             {isOtherClient && (
                               <span className="ml-1 text-amber-600 font-medium">
-                                (Actualmente: {trip.clientName || 'Otro cliente'})
+                                (Actualmente:{" "}
+                                {trip.clientName || "Otro cliente"})
                               </span>
                             )}
                           </p>
@@ -1079,7 +1177,7 @@ export default function ClientesPage() {
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleSaveQuickAssign}
-                className="flex items-center gap-1.5 rounded-full bg-[#0066FF] px-6 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#0052CC] disabled:opacity-50 cursor-pointer"
+                className="wanderlust-primary-button flex items-center gap-1.5 rounded-full px-6 py-2 text-xs font-bold text-white shadow-xs hover:scale-105 active:scale-95 disabled:opacity-50 cursor-pointer transition-all"
               >
                 <Check className="h-4 w-4" />
                 <span>Guardar asignación</span>
@@ -1101,7 +1199,9 @@ export default function ClientesPage() {
               ¿Eliminar cliente?
             </h3>
             <p className="text-xs text-[#667085] mt-1.5 mb-6 leading-relaxed">
-              ¿Estás seguro de que deseas eliminar al cliente <strong>"{clientToDelete.name}"</strong>? Los viajes vinculados conservarán su información.
+              ¿Estás seguro de que deseas eliminar al cliente{" "}
+              <strong>"{clientToDelete.name}"</strong>? Los viajes vinculados
+              conservarán su información.
             </p>
 
             <div className="flex items-center justify-center gap-3">

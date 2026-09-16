@@ -496,7 +496,7 @@ export function OpportunityModal({
               type="submit"
               form="opportunity-form"
               disabled={isSubmitting || !title.trim()}
-              className="flex items-center gap-2 rounded-full bg-[#0066FF] px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-[#0066FF]/20 hover:bg-[#0052CC] disabled:opacity-50 cursor-pointer transition-all"
+              className="wanderlust-primary-button flex items-center gap-2 rounded-full px-6 py-2.5 text-xs font-bold text-white shadow-md disabled:opacity-50 cursor-pointer hover:scale-105 active:scale-95 transition-all"
             >
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               <span>{opportunityToEdit ? 'Guardar cambios' : 'Crear oportunidad'}</span>

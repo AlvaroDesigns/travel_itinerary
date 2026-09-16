@@ -295,7 +295,8 @@ export default function Login() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="ejemplo@correo.com"
                       disabled={isLoading}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
+                      style={{ backgroundColor: '#ffffff' }}
+                      className="w-full pl-10 pr-4 py-3 rounded-2xl border border-zinc-200 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 transition-all bg-white !bg-white shadow-xs"
                     />
                   </div>
                 </div>
@@ -312,7 +313,8 @@ export default function Login() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       disabled={isLoading}
-                      className="w-full pl-10 pr-11 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
+                      style={{ backgroundColor: '#ffffff' }}
+                      className="w-full pl-10 pr-11 py-3 rounded-2xl border border-zinc-200 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 transition-all bg-white !bg-white shadow-xs"
                     />
                     <button
                       type="button"
@@ -353,7 +355,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+                  className="w-full py-3.5 rounded-full bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
                 >
                   {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -373,7 +375,7 @@ export default function Login() {
                     const url = redirect !== '/viajes' ? `/api/auth/google?redirect=${encodeURIComponent(redirect)}` : '/api/auth/google';
                     window.location.href = url;
                   }}
-                  className="w-full py-3.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200 text-xs font-bold text-zinc-700 shadow-xs hover:border-zinc-300 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+                  className="w-full py-3.5 rounded-full bg-white hover:bg-zinc-50 border border-zinc-200 text-xs font-bold text-zinc-700 shadow-xs hover:border-zinc-300 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path
@@ -420,7 +422,8 @@ export default function Login() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="ejemplo@correo.com"
                       disabled={isLoading}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
+                      style={{ backgroundColor: '#ffffff' }}
+                      className="w-full pl-10 pr-4 py-3 rounded-2xl border border-zinc-200 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 transition-all bg-white !bg-white shadow-xs"
                     />
                   </div>
                 </div>
@@ -428,7 +431,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full py-3.5 rounded-full bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Enviar código de recuperación</span>}
                 </button>
@@ -464,7 +467,8 @@ export default function Login() {
                           <InputOTP.Slot
                             key={index}
                             index={index}
-                            className="h-12 w-11 rounded-xl border border-zinc-300 bg-zinc-50 text-lg font-bold text-zinc-900 focus:border-[#0066FF]"
+                            style={{ backgroundColor: '#ffffff' }}
+                            className="h-12 w-11 rounded-xl border border-zinc-200 bg-white !bg-white text-lg font-bold text-zinc-900 focus:border-[#0066FF]"
                           />
                         ))}
                       </InputOTP.Group>
@@ -483,7 +487,8 @@ export default function Login() {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Mínimo 6 caracteres"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
+                      style={{ backgroundColor: '#ffffff' }}
+                      className="w-full pl-10 pr-4 py-3 rounded-2xl border border-zinc-200 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 transition-all bg-white !bg-white shadow-xs"
                     />
                   </div>
                 </div>
@@ -499,7 +504,8 @@ export default function Login() {
                       value={confirmation}
                       onChange={(e) => setConfirmation(e.target.value)}
                       placeholder="Repite la contraseña"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
+                      style={{ backgroundColor: '#ffffff' }}
+                      className="w-full pl-10 pr-4 py-3 rounded-2xl border border-zinc-200 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 transition-all bg-white !bg-white shadow-xs"
                     />
                   </div>
                 </div>
@@ -507,7 +513,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isLoading || otp.length !== 6}
-                  className="w-full py-3.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+                  className="w-full py-3.5 rounded-full bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
                 >
                   {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>{isInvitation ? 'Activar mi cuenta' : 'Guardar nueva contraseña'}</span>}
                 </button>

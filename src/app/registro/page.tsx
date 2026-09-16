@@ -233,7 +233,8 @@ export default function RegisterPage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Ej. Laura González"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
+                        style={{ backgroundColor: '#ffffff' }}
+                        className="w-full pl-10 pr-4 py-3 rounded-2xl border border-zinc-200 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 transition-all bg-white !bg-white shadow-xs"
                       />
                     </div>
                   </div>
@@ -251,7 +252,8 @@ export default function RegisterPage() {
                         placeholder={
                           userType === 'agency' ? 'laura@viajeshorizonte.com' : 'laura.gonzalez@gmail.com'
                         }
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
+                        style={{ backgroundColor: '#ffffff' }}
+                        className="w-full pl-10 pr-4 py-3 rounded-2xl border border-zinc-200 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 transition-all bg-white !bg-white shadow-xs"
                       />
                     </div>
                   </div>
@@ -269,7 +271,8 @@ export default function RegisterPage() {
                             value={agencyName}
                             onChange={(e) => setAgencyName(e.target.value)}
                             placeholder="Horizon Travel"
-                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
+                            style={{ backgroundColor: '#ffffff' }}
+                            className="w-full pl-10 pr-4 py-3 rounded-2xl border border-zinc-200 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 transition-all bg-white !bg-white shadow-xs"
                           />
                         </div>
                       </div>
@@ -283,7 +286,8 @@ export default function RegisterPage() {
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                             placeholder="+34 600 000 000"
-                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
+                            style={{ backgroundColor: '#ffffff' }}
+                            className="w-full pl-10 pr-4 py-3 rounded-2xl border border-zinc-200 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 transition-all bg-white !bg-white shadow-xs"
                           />
                         </div>
                       </div>
@@ -302,7 +306,8 @@ export default function RegisterPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Mínimo 6 caracteres"
-                        className="w-full pl-10 pr-11 py-3 rounded-xl border border-zinc-300 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 transition-all bg-white"
+                        style={{ backgroundColor: '#ffffff' }}
+                        className="w-full pl-10 pr-11 py-3 rounded-2xl border border-zinc-200 text-zinc-900 text-sm placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 transition-all bg-white !bg-white shadow-xs"
                       />
                       <button
                         type="button"
@@ -335,7 +340,7 @@ export default function RegisterPage() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-3.5 rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+                    className="w-full py-3.5 rounded-full bg-[#0066FF] hover:bg-[#0052CC] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
                   >
                     {isLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -353,7 +358,7 @@ export default function RegisterPage() {
                     onClick={() => {
                       window.location.href = `/api/auth/google?type=${userType}`;
                     }}
-                    className="w-full py-3.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200 text-xs font-bold text-zinc-700 shadow-xs hover:border-zinc-300 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+                    className="w-full py-3.5 rounded-full bg-white hover:bg-zinc-50 border border-zinc-200 text-xs font-bold text-zinc-700 shadow-xs hover:border-zinc-300 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24">
                       <path

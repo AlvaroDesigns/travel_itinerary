@@ -1995,9 +1995,10 @@ export default function HomePage() {
                           })
                         }
                         placeholder="Ej. Carlos Menéndez"
-                        className={`w-full px-4 py-3 rounded-xl border text-sm transition-colors ${
+                        style={{ backgroundColor: isLight ? '#ffffff' : undefined }}
+                        className={`w-full px-4 py-3 rounded-2xl border text-sm transition-colors ${
                           isLight
-                            ? "border-black/15 bg-zinc-50 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-black/40 focus:bg-white"
+                            ? "border-zinc-200 bg-white !bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 shadow-xs"
                             : "border-white/10 bg-white/[0.03] text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/30"
                         }`}
                       />
@@ -2023,9 +2024,10 @@ export default function HomePage() {
                             })
                           }
                           placeholder="Ej. Aethelgard Travel"
-                          className={`w-full px-4 py-3 rounded-xl border text-sm transition-colors ${
+                          style={{ backgroundColor: isLight ? '#ffffff' : undefined }}
+                          className={`w-full px-4 py-3 rounded-2xl border text-sm transition-colors ${
                             isLight
-                              ? "border-black/15 bg-zinc-50 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-black/40 focus:bg-white"
+                              ? "border-zinc-200 bg-white !bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 shadow-xs"
                               : "border-white/10 bg-white/[0.03] text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/30"
                           }`}
                         />
@@ -2049,9 +2051,10 @@ export default function HomePage() {
                             })
                           }
                           placeholder="carlos@aethelgard.com"
-                          className={`w-full px-4 py-3 rounded-xl border text-sm transition-colors ${
+                          style={{ backgroundColor: isLight ? '#ffffff' : undefined }}
+                          className={`w-full px-4 py-3 rounded-2xl border text-sm transition-colors ${
                             isLight
-                              ? "border-black/15 bg-zinc-50 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-black/40 focus:bg-white"
+                              ? "border-zinc-200 bg-white !bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 shadow-xs"
                               : "border-white/10 bg-white/[0.03] text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/30"
                           }`}
                         />
@@ -2077,9 +2080,10 @@ export default function HomePage() {
                           })
                         }
                         placeholder="+34 600 000 000"
-                        className={`w-full px-4 py-3 rounded-xl border text-sm transition-colors ${
+                        style={{ backgroundColor: isLight ? '#ffffff' : undefined }}
+                        className={`w-full px-4 py-3 rounded-2xl border text-sm transition-colors ${
                           isLight
-                            ? "border-black/15 bg-zinc-50 text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-black/40 focus:bg-white"
+                            ? "border-zinc-200 bg-white !bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 shadow-xs"
                             : "border-white/10 bg-white/[0.03] text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/30"
                         }`}
                       />

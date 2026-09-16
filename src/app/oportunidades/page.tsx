@@ -217,7 +217,7 @@ export default function OportunidadesPage() {
             <button
               type="button"
               onClick={() => handleOpenCreate('nuevo')}
-              className="flex items-center gap-2 rounded-full bg-[#0066FF] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#0052CC] transition-all cursor-pointer"
+              className="wanderlust-primary-button flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold text-white shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               <span>Nueva oportunidad</span>
