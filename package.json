@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@heroui/react": "^3.2.0",
+    "@next/swc-darwin-arm64": "^16.2.9",
+    "axios": "^1.20.0",
     "bcryptjs": "^3.0.3",
     "framer-motion": "^12.40.0",
     "lucide-react": "^1.18.0",

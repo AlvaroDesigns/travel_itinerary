@@ -1,9 +1,11 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useState, useEffect } from 'react';
+import { apiClient } from '@/lib/api-client';
+import { API_ROUTES } from '@/constants';
 
 // Activity Types
-export type ActivityType = 'flight' | 'transfer' | 'hotel' | 'excursion' | 'food' | 'booking';
+export type ActivityType = 'flight' | 'transfer' | 'hotel' | 'excursion' | 'food' | 'booking' | 'conditions';
 
 export interface BaseActivity {
   id: string;
@@ -88,13 +90,26 @@ export interface BookingActivity extends BaseActivity {
   autoPaymentEnabled?: boolean;
 }
 
+export interface ConditionsActivity extends BaseActivity {
+  type: 'conditions';
+  title: string;
+  description?: string;
+  includes?: string[];
+  excludes?: string[];
+  departureCities?: string;
+  categories?: string[];
+  connectedDestinations?: string[];
+  isIncludesBlock?: boolean;
+}
+
 export type Activity =
   | FlightActivity
   | TransferActivity
   | HotelActivity
   | ExcursionActivity
   | FoodActivity
-  | BookingActivity;
+  | BookingActivity
+  | ConditionsActivity;
 
 export interface Trip {
   id: string;
@@ -108,6 +123,10 @@ export interface Trip {
   clientId?: string | null;
   clientName?: string | null;
   clientEmail?: string | null;
+  ownerId?: number | null;
+  ownerName?: string | null;
+  ownerEmail?: string | null;
+  ownerAvatar?: string | null;
   activities: Activity[];
 }
 
@@ -156,6 +175,7 @@ export interface AuthUser {
   tenantId?: string;
   agencyName?: string;
   planType?: string;
+  agencyLogo?: string;
 }
 
 interface TravelContextType {
@@ -201,6 +221,8 @@ interface TravelContextType {
   updateOpportunity: (id: string, changes: Partial<Opportunity>) => Promise<Opportunity | null>;
   deleteOpportunity: (id: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
+  updateUser: (partialUser: Partial<AuthUser>) => void;
 }
 
 const TravelContext = createContext<TravelContextType | undefined>(undefined);
@@ -216,11 +238,8 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const fetchClients = useCallback(async () => {
     try {
-      const res = await fetch('/api/clients');
-      if (res.ok) {
-        const data = await res.json();
-        setClients(data);
-      }
+      const { data } = await apiClient.get<Client[]>(API_ROUTES.CLIENTS.BASE);
+      setClients(data);
     } catch (e) {
       console.error('Failed to load clients:', e);
     }
@@ -228,11 +247,8 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const fetchOpportunities = useCallback(async () => {
     try {
-      const res = await fetch('/api/opportunities');
-      if (res.ok) {
-        const data = await res.json();
-        setOpportunities(data);
-      }
+      const { data } = await apiClient.get<Opportunity[]>(API_ROUTES.OPPORTUNITIES.BASE);
+      setOpportunities(data);
     } catch (e) {
       console.error('Failed to load opportunities:', e);
     }
@@ -240,46 +256,76 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const fetchTrips = useCallback(async () => {
     try {
-      const tripsRes = await fetch('/api/trips');
-      if (tripsRes.ok) {
-        const tripsData = await tripsRes.json();
-        setTrips(tripsData);
-        if (tripsData.length > 0) {
-          const lastActiveId = localStorage.getItem('last_active_trip_id');
-          const matched = tripsData.find((t: Trip) => t.id === lastActiveId);
-          setActiveTrip(matched || tripsData[0]);
-        }
+      const { data: tripsData } = await apiClient.get<Trip[]>(API_ROUTES.TRIPS.BASE);
+      setTrips(tripsData);
+      if (tripsData.length > 0) {
+        const lastActiveId = localStorage.getItem('last_active_trip_id');
+        const matched = tripsData.find((t: Trip) => t.id === lastActiveId);
+        setActiveTrip(matched || tripsData[0]);
       }
+      return tripsData;
     } catch (e) {
       console.error('Failed to load trips:', e);
     }
+    return [];
   }, []);
 
   // Check auth and fetch initial trips & clients & opportunities
   useEffect(() => {
+    let isMounted = true;
+
     async function checkAuthAndLoadData() {
       try {
-        const authRes = await fetch('/api/auth/me');
-        const authData = await authRes.json();
+        const { data: authData } = await apiClient.get<{
+          isAuthenticated: boolean;
+          user: AuthUser | null;
+        }>(API_ROUTES.AUTH.ME);
 
         if (authData.isAuthenticated && authData.user) {
-          setUser(authData.user);
-          setIsAuthenticated(true);
-          setIsLoading(false);
-
-          void Promise.all([fetchTrips(), fetchClients(), fetchOpportunities()]);
+          if (isMounted) {
+            setUser(authData.user);
+            setIsAuthenticated(true);
+            if (typeof window !== 'undefined' && authData.user.agencyLogo) {
+              localStorage.setItem('wanderlust_agency_logo', authData.user.agencyLogo);
+            }
+          }
+          try {
+            await Promise.allSettled([fetchTrips(), fetchClients(), fetchOpportunities()]);
+          } catch (e) {
+            console.error('Failed loading travel sub-resources:', e);
+          } finally {
+            if (isMounted) {
+              setIsLoading(false);
+            }
+          }
         } else {
-          setUser(null);
-          setIsAuthenticated(false);
-          setIsLoading(false);
+          if (isMounted) {
+            setUser(null);
+            setIsAuthenticated(false);
+            setIsLoading(false);
+          }
         }
       } catch (err) {
         console.error('Failed to load user and trips data:', err);
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
 
+    // Safety timeout to ensure isLoading never hangs forever under any circumstance
+    const timer = setTimeout(() => {
+      if (isMounted) {
+        setIsLoading(false);
+      }
+    }, 6000);
+
     checkAuthAndLoadData();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, [fetchTrips, fetchClients, fetchOpportunities]);
 
   const setActiveTripById = useCallback((id: string) => {
@@ -683,6 +729,43 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const { data: authData } = await apiClient.get<{
+        isAuthenticated: boolean;
+        user: AuthUser | null;
+      }>(API_ROUTES.AUTH.ME);
+
+      if (authData.isAuthenticated && authData.user) {
+        setUser(authData.user);
+        if (typeof window !== 'undefined') {
+          if (authData.user.agencyLogo) {
+            localStorage.setItem('wanderlust_agency_logo', authData.user.agencyLogo);
+          } else {
+            localStorage.removeItem('wanderlust_agency_logo');
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Failed to refresh user:', e);
+    }
+  }, []);
+
+  const updateUser = useCallback((partialUser: Partial<AuthUser>) => {
+    setUser((prev) => {
+      if (!prev) return null;
+      const updated = { ...prev, ...partialUser };
+      if (typeof window !== 'undefined' && partialUser.agencyLogo !== undefined) {
+        if (partialUser.agencyLogo) {
+          localStorage.setItem('wanderlust_agency_logo', partialUser.agencyLogo);
+        } else {
+          localStorage.removeItem('wanderlust_agency_logo');
+        }
+      }
+      return updated;
+    });
+  }, []);
+
   return (
     <TravelContext.Provider
       value={{
@@ -710,6 +793,8 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         updateOpportunity,
         deleteOpportunity,
         logout,
+        refreshUser,
+        updateUser,
       }}
     >
       {children}

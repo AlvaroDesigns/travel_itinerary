@@ -2,10 +2,14 @@
 
 import {
   Bed,
+  Ban,
+  Bus,
   CalendarDays,
   Car,
   Check,
+  ChevronDown,
   ChevronRight,
+  ChevronUp,
   Clock3,
   FileText,
   LockKeyhole,
@@ -18,6 +22,7 @@ import {
   User,
   Users,
   UserCog,
+  UserCheck,
   Luggage,
   LogOut,
   UtensilsCrossed,
@@ -37,10 +42,14 @@ import {
   ArrowLeft,
   Building,
   ExternalLink,
+  Download,
+  Paperclip,
+  Info,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTravel } from "@/context/TravelContext";
 import { RedsysLogo } from "@/components/RedsysLogo";
 import { UserAvatarDisplay } from "@/components/AvatarPickerModal";
@@ -193,9 +202,12 @@ type PublicTrip = {
   endDate: string;
   imageUrl: string | null;
   description: string | null;
+  budget?: number;
   showExpenses: boolean;
   paymentProviders?: { redsys?: boolean; stripe?: boolean; inespay?: boolean };
   activities: PublicActivity[];
+  agencyLogo?: string | null;
+  agencyName?: string | null;
 };
 
 type PublicTripResponse =
@@ -630,6 +642,20 @@ function PublicActivityCardItem({
   onNavigateToPayments?: () => void;
 }) {
   const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [act.customIconUrl]);
+
+  if (
+    act.type === "conditions" ||
+    (act as any).isIncludesBlock ||
+    (typeof act.title === "string" &&
+      act.title.toLowerCase().includes("incluye"))
+  ) {
+    return null;
+  }
+
   const customUrl =
     typeof act.customIconUrl === "string" && act.customIconUrl.trim().length > 0
       ? act.customIconUrl.trim()
@@ -641,10 +667,6 @@ function PublicActivityCardItem({
   const isBooking = act.type === "booking" || act.type === "pago";
   const isClickable = hasActivityDetails(act);
   const showFullImage = Boolean(customUrl && !imgError);
-
-  useEffect(() => {
-    setImgError(false);
-  }, [act.customIconUrl]);
 
   return (
     <div
@@ -676,6 +698,12 @@ function PublicActivityCardItem({
             {isExcursion && <MapPin className="h-5 w-5" />}
             {isBooking && <CalendarCheck className="h-5 w-5" />}
             {act.type === "flight" && <Plane className="h-5 w-5" />}
+            {!isHotel &&
+              !isFood &&
+              !isTransfer &&
+              !isExcursion &&
+              !isBooking &&
+              act.type !== "flight" && <MapPin className="h-5 w-5" />}
           </div>
         </div>
       )}
@@ -722,6 +750,19 @@ function PublicActivityCardItem({
               {(act.title as string) || "Condiciones de Reserva y Plazos de Pago"}
             </h3>
           )}
+
+          {!isHotel &&
+            !isExcursion &&
+            !isFood &&
+            !isTransfer &&
+            act.type !== "flight" &&
+            !isBooking && (
+              <h3 className="text-sm sm:text-base font-extrabold text-[#101828] leading-tight">
+                {(act.title as string) ||
+                  (act as any).name ||
+                  "Actividad programada"}
+              </h3>
+            )}
 
           {/* 2. Category & Time Badges */}
           <div className="flex flex-wrap items-center gap-2 mt-1.5 mb-1.5">
@@ -845,14 +886,21 @@ function PublicActivityCardItem({
   );
 }
 
-export default function PublicTripPage({ params }: PageProps) {
+function PublicTripContent({ params }: PageProps) {
   const { token } = use(params);
+  const searchParams = useSearchParams();
+  const hideLogo = searchParams
+    ? searchParams.get("hideLogo") === "true" || searchParams.get("hideLogo") === "1"
+    : false;
+  const hideHeader = searchParams
+    ? searchParams.get("hideHeader") === "true" || searchParams.get("hideHeader") === "1"
+    : false;
   const { user, logout } = useTravel();
   const [data, setData] = useState<PublicTripResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "itinerario" | "resumen" | "pagos" | "notas"
+    "itinerario" | "condiciones" | "pagos" | "notas"
   >("itinerario");
   const [isProcessingRedsys, setIsProcessingRedsys] = useState(false);
   const [redsysError, setRedsysError] = useState<string | null>(null);
@@ -870,6 +918,8 @@ export default function PublicTripPage({ params }: PageProps) {
   const [isPaymentMethodModalOpen, setIsPaymentMethodModalOpen] = useState(false);
   const [isPolicyInfoOpen, setIsPolicyInfoOpen] = useState(false);
   const [isPriceDetailModalOpen, setIsPriceDetailModalOpen] = useState(false);
+  const [travelerCount, setTravelerCount] = useState<number>(1);
+  const [isIncludesAccordionOpen, setIsIncludesAccordionOpen] = useState(true);
   const [activePaymentProviders, setActivePaymentProviders] = useState<{ redsys: boolean; stripe: boolean }>({
     redsys: true,
     stripe: false,
@@ -955,7 +1005,14 @@ export default function PublicTripPage({ params }: PageProps) {
   }, [isUserMenuOpen]);
 
   const getUserDisplayName = () => {
-    if (user?.email) return user.email.split("@")[0];
+    if (user?.name?.trim()) return user.name.trim();
+    if (user?.email) {
+      const username = user.email.split("@")[0];
+      return username
+        .split(/[._-]/)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
+    }
     return "Usuario";
   };
 
@@ -1072,6 +1129,16 @@ export default function PublicTripPage({ params }: PageProps) {
   const activitiesByDate: Record<string, PublicActivity[]> = {};
 
   trip.activities.forEach((activity) => {
+    // Skip conditions and includes block from daily scheduled timeline
+    if (
+      activity.type === "conditions" ||
+      (activity as any).isIncludesBlock ||
+      (typeof activity.title === "string" &&
+        activity.title.toLowerCase().includes("incluye"))
+    ) {
+      return;
+    }
+
     // 1. Add primary activity to its scheduled date
     activitiesByDate[activity.date] = [
       ...(activitiesByDate[activity.date] || []),
@@ -1131,12 +1198,18 @@ export default function PublicTripPage({ params }: PageProps) {
   const hasPaymentModule = bookingActivities.length > 0;
   const primaryBooking = bookingActivities[0] || null;
 
+  const displayedPrice = Number(
+    primaryBooking?.totalAmount ??
+      primaryBooking?.price ??
+      (totalExpenses > 0 ? totalExpenses : (trip.budget || 0))
+  );
+
   const navTabs: {
-    id: "itinerario" | "resumen" | "pagos" | "notas";
+    id: "itinerario" | "condiciones" | "pagos" | "notas";
     label: string;
   }[] = [
     { id: "itinerario", label: "Itinerario" },
-    { id: "resumen", label: "Resumen de servicios" },
+    { id: "condiciones", label: "Qué incluye" },
     ...(hasPaymentModule
       ? [{ id: "pagos" as const, label: "Pagos & Depósito" }]
       : []),
@@ -1187,44 +1260,116 @@ export default function PublicTripPage({ params }: PageProps) {
       {/* ----------------------------------------------------------- */}
       {/* 1. IMMERSIVE HERO BANNER WITH INTEGRATED WHITE LOGO & ACTIONS*/}
       {/* ----------------------------------------------------------- */}
-      <div className="relative w-full bg-[#0c111d] text-white rounded-b-[2rem] sm:rounded-b-[3rem] lg:rounded-b-[3.5rem] shadow-xl">
-        {/* Cover Photo */}
-        <div className="relative h-72 sm:h-84 md:h-[420px] lg:h-[460px] w-full overflow-hidden rounded-b-[2rem] sm:rounded-b-[3rem] lg:rounded-b-[3.5rem]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={
-              trip.imageUrl ||
-              "https://images.unsplash.com/photo-1512815046276-89d511254976?auto=format&fit=crop&w=1600&q=80"
-            }
-            alt={trip.name}
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+      {hideHeader ? (
+        <div className="mx-auto max-w-7xl px-4 sm:px-8 pt-6 pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#eaecf0] pb-6">
+            <div>
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <span className="rounded-full bg-blue-50 text-[#0066FF] border border-blue-200 px-3 py-1 text-xs font-bold uppercase tracking-wider">
+                  {duration} Días · {Math.max(1, duration - 1)} Noches
+                </span>
+                <span className="rounded-full bg-[#f2f4f7] text-[#475467] px-3 py-1 text-xs font-semibold">
+                  {formatDate(trip.startDate)} — {formatDate(trip.endDate)}
+                </span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#101828]">
+                {trip.name}
+              </h1>
+              {trip.description && (
+                <p className="mt-1 text-xs sm:text-sm text-[#667085] line-clamp-2 max-w-2xl">
+                  {trip.description}
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              {!hideLogo && (
+                <div className="select-none">
+                  {data?.available && data.trip.agencyLogo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={data.trip.agencyLogo}
+                      alt={data.trip.agencyName || "Agencia"}
+                      className="h-9 sm:h-10 min-h-[36px] max-h-12 min-w-[90px] max-w-[190px] w-auto object-contain"
+                    />
+                  ) : (
+                    <Image
+                      src="/wanderlust_logo.png"
+                      alt="Wanderlust"
+                      width={140}
+                      height={35}
+                      style={{ width: "auto", height: "auto" }}
+                      className="h-7 sm:h-8 w-auto object-contain"
+                      priority
+                    />
+                  )}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleShare}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d0d5dd] bg-white hover:bg-[#f9fafb] text-[#344054] shadow-xs transition-all cursor-pointer"
+                title="Compartir itinerario"
+                aria-label="Compartir itinerario"
+              >
+                <Share2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </div>
-
-        {/* Top Floating Glass Bar inside Hero */}
-        <div className="absolute top-0 inset-x-0 z-30 mx-auto max-w-7xl px-4 sm:px-8 pt-5 sm:pt-6 flex items-center justify-between">
-          {/* Left: White Logo */}
-          <Link
-            href="/"
-            className="flex items-center select-none"
-            aria-label="Inicio"
-          >
-            <Image
-              src="/wanderlust_horizontal_blanco.png"
-              alt="Wanderlust"
-              width={180}
-              height={45}
-              style={{ width: "auto", height: "auto" }}
-              className="h-8 sm:h-10 w-auto object-contain drop-shadow-md"
-              priority
+      ) : (
+        <div className="relative w-full bg-[#0c111d] text-white rounded-b-[2rem] sm:rounded-b-[3rem] lg:rounded-b-[3.5rem] shadow-xl">
+          {/* Cover Photo */}
+          <div className="relative h-72 sm:h-84 md:h-[420px] lg:h-[460px] w-full overflow-hidden rounded-b-[2rem] sm:rounded-b-[3rem] lg:rounded-b-[3.5rem]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={
+                trip.imageUrl ||
+                "https://images.unsplash.com/photo-1512815046276-89d511254976?auto=format&fit=crop&w=1600&q=80"
+              }
+              alt={trip.name}
+              className="h-full w-full object-cover"
             />
-          </Link>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+          </div>
 
-          {/* Right: Actions (Share icon button + User Avatar Dropdown if logged in) */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
+          {/* Top Floating Glass Bar inside Hero */}
+          <div className="absolute top-0 inset-x-0 z-30 mx-auto max-w-7xl px-4 sm:px-8 pt-5 sm:pt-6 flex items-center justify-between">
+            {/* Left: White Logo */}
+            {!hideLogo ? (
+              <Link
+                href="/"
+                className="flex items-center select-none"
+                aria-label="Inicio"
+              >
+                {data?.available && data.trip.agencyLogo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={data.trip.agencyLogo}
+                    alt={data.trip.agencyName || "Agencia"}
+                    className="h-8 sm:h-10 min-h-[32px] max-h-12 min-w-[80px] max-w-[190px] w-auto object-contain drop-shadow-md"
+                  />
+                ) : (
+                  <Image
+                    src="/wanderlust_horizontal_blanco.png"
+                    alt="Wanderlust"
+                    width={180}
+                    height={45}
+                    style={{ width: "auto", height: "auto" }}
+                    className="h-8 sm:h-10 w-auto object-contain drop-shadow-md"
+                    priority
+                  />
+                )}
+              </Link>
+            ) : (
+              <div />
+            )}
+
+            {/* Right: Actions (Share icon button + User Avatar Dropdown if logged in) */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
               onClick={handleShare}
               className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white backdrop-blur-md border border-white/20 shadow-md transition-all cursor-pointer"
               title="Compartir itinerario"
@@ -1369,35 +1514,81 @@ export default function PublicTripPage({ params }: PageProps) {
 
         {/* Hero Bottom Content */}
         <div className="absolute inset-x-0 bottom-0 mx-auto max-w-7xl px-4 sm:px-8 pb-6 sm:pb-8">
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider text-white shadow-lg shadow-blue-500/25">
-              {duration} Días · {Math.max(1, duration - 1)} Noches
-            </span>
-            <span className="rounded-full bg-white/20 px-3.5 py-1.5 text-xs font-semibold text-white backdrop-blur-md border border-white/15 shadow-sm">
-              {formatDate(trip.startDate)} — {formatDate(trip.endDate)}
-            </span>
-            <span className="rounded-full bg-black/40 px-3.5 py-1.5 text-xs font-semibold text-blue-200 backdrop-blur-md border border-white/15 flex items-center gap-1.5 shadow-sm">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Itinerario Confirmado</span>
-            </span>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            {/* Left Column: Pills, Title, Description */}
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className="rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider text-white shadow-lg shadow-blue-500/25">
+                  {duration} Días · {Math.max(1, duration - 1)} Noches
+                </span>
+                <span className="rounded-full bg-white/20 px-3.5 py-1.5 text-xs font-semibold text-white backdrop-blur-md border border-white/15 shadow-sm">
+                  {formatDate(trip.startDate)} — {formatDate(trip.endDate)}
+                </span>
+                <span className="rounded-full bg-black/40 px-3.5 py-1.5 text-xs font-semibold text-blue-200 backdrop-blur-md border border-white/15 flex items-center gap-1.5 shadow-sm">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Itinerario Confirmado</span>
+                </span>
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight drop-shadow-lg text-white">
+                {trip.name}
+              </h1>
+
+              {trip.description && (
+                <p className="mt-2 max-w-2xl text-xs sm:text-sm text-slate-200 line-clamp-2 font-medium leading-relaxed drop-shadow-md">
+                  {trip.description}
+                </p>
+              )}
+            </div>
+
+            {/* Right Column: Total Price Card in exact position requested on Desktop */}
+            {trip.showExpenses && displayedPrice > 0 && (
+              <div className="hidden md:block shrink-0 self-end">
+                <div className="rounded-2xl sm:rounded-3xl bg-black/45 backdrop-blur-md border border-white/20 px-5 sm:px-6 py-3 sm:py-3.5 shadow-2xl text-right">
+                  <span className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-300">
+                    Precio total
+                  </span>
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white drop-shadow-md mt-0.5">
+                    {formatCurrency(displayedPrice)}
+                  </div>
+                  <span className="block text-[10px] sm:text-[11px] text-slate-300/85 font-medium mt-0.5">
+                    Tasas e impuestos incluidos
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
-
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight drop-shadow-lg text-white">
-            {trip.name}
-          </h1>
-
-          {trip.description && (
-            <p className="mt-2 max-w-2xl text-xs sm:text-sm text-slate-200 line-clamp-2 font-medium leading-relaxed drop-shadow-md">
-              {trip.description}
-            </p>
-          )}
         </div>
       </div>
+      )}
+
+      {/* ----------------------------------------------------------- */}
+      {/* MOBILE TOTAL PRICE CARD (Debajo del Hero, fondo blanco)    */}
+      {/* ----------------------------------------------------------- */}
+      {trip.showExpenses && displayedPrice > 0 && (
+        <div className="block md:hidden mx-auto max-w-7xl px-4 sm:px-8 pt-4">
+          <div className="flex items-center justify-between gap-3 rounded-2xl bg-white border border-[#eaecf0] p-4 sm:p-5 shadow-xs">
+            <div>
+              <span className="block text-[11px] font-bold uppercase tracking-wider text-[#667085]">
+                Precio total
+              </span>
+              <span className="block text-[10px] sm:text-[11px] text-[#475467] font-medium mt-0.5">
+                Tasas e impuestos incluidos
+              </span>
+            </div>
+            <div className="text-right">
+              <span className="text-2xl sm:text-3xl font-black tracking-tight text-[#101828]">
+                {formatCurrency(displayedPrice)}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ----------------------------------------------------------- */}
       {/* 2. NAVIGATION TABS (Segmented Tabs Style - Spacious & Rounded-Full) */}
       {/* ----------------------------------------------------------- */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-8 pt-5 sm:pt-7">
+      <div className="mx-auto max-w-7xl px-4 sm:px-8 pt-4 sm:pt-7">
         <div className="w-full overflow-x-auto pb-1 [scrollbar-width:none]">
           <div className="flex sm:inline-flex items-center gap-2 rounded-full bg-[#f1f3f5] p-2 border border-[#e4e7ec] shadow-xs w-full sm:w-auto">
             {navTabs.map((tab) => {
@@ -1427,16 +1618,13 @@ export default function PublicTripPage({ params }: PageProps) {
       {activeTab === "itinerario" && (
         <div className="mx-auto max-w-7xl px-4 sm:px-8 pt-4 sm:pt-6">
           <div className="rounded-3xl bg-white p-4 sm:p-5 shadow-sm border border-zinc-200/80 text-zinc-900">
-            {/* Header: Hoy / Día X + Full Month Date */}
+            {/* Header: Hoy / Día X */}
             <div className="flex items-center justify-between pb-3.5 px-1">
               <h3 className="text-base sm:text-lg font-black text-zinc-900 tracking-tight">
                 {new Date().toISOString().split("T")[0] === activeDate
                   ? "Hoy"
                   : `Día ${dates.indexOf(activeDate) + 1}`}
               </h3>
-              <span className="text-xs sm:text-sm font-semibold text-zinc-500">
-                {formatDayLabel(activeDate).formattedFullDate}
-              </span>
             </div>
 
             {/* Capsule Day Pills Row */}
@@ -1510,6 +1698,15 @@ export default function PublicTripPage({ params }: PageProps) {
               ) : (
                 <div className="space-y-4">
                   {activeActivities.map((act) => {
+                    if (
+                      act.type === "conditions" ||
+                      (act as any).isIncludesBlock ||
+                      (typeof act.title === "string" &&
+                        act.title.toLowerCase().includes("incluye"))
+                    ) {
+                      return null;
+                    }
+
                     const isFlight = act.type === "flight";
                     const isHotel = act.type === "hotel";
                     const isFood = act.type === "food";
@@ -1549,7 +1746,7 @@ export default function PublicTripPage({ params }: PageProps) {
                                       <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#f2f4f7]">
                                         <div className="flex items-center gap-3">
                                           <div
-                                            className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-full bg-white p-1.5 border border-slate-200 shadow-xs overflow-hidden"
+                                            className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full bg-white border border-slate-200 shadow-xs overflow-hidden"
                                             title={legAirlineMeta.name}
                                           >
                                             {legAirlineMeta.logoUrl ? (
@@ -1557,13 +1754,13 @@ export default function PublicTripPage({ params }: PageProps) {
                                               <img
                                                 src={legAirlineMeta.logoUrl}
                                                 alt={legAirlineMeta.name}
-                                                className="h-full w-full object-contain"
+                                                className="h-full w-full object-cover rounded-full"
                                                 onError={(e) => {
                                                   const target =
                                                     e.currentTarget;
                                                   target.style.display = "none";
                                                   if (target.parentElement) {
-                                                    target.parentElement.className = `flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-full font-black text-xs sm:text-sm tracking-tight shadow-xs border ${legAirlineMeta.bgColor} ${legAirlineMeta.textColor} ${legAirlineMeta.borderColor}`;
+                                                    target.parentElement.className = `flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full font-black text-xs sm:text-sm tracking-tight shadow-xs border ${legAirlineMeta.bgColor} ${legAirlineMeta.textColor} ${legAirlineMeta.borderColor}`;
                                                     target.parentElement.innerText =
                                                       legAirlineMeta.logoText;
                                                   }
@@ -1599,20 +1796,22 @@ export default function PublicTripPage({ params }: PageProps) {
                                             </span>
                                           </span>
 
-                                          {lIdx === 0 &&
-                                            trip.showExpenses &&
-                                            act.price &&
-                                            act.price > 0 && (
-                                              <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-black text-[#101828] border border-[#eaecf0]">
-                                                {formatCurrency(act.price)}
-                                              </span>
-                                            )}
+                                          {Boolean(
+                                            lIdx === 0 &&
+                                              trip.showExpenses &&
+                                              act.price &&
+                                              act.price > 0,
+                                          ) && (
+                                            <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-black text-[#101828] border border-[#eaecf0]">
+                                              {formatCurrency(act.price!)}
+                                            </span>
+                                          )}
                                         </div>
                                       </div>
 
                                       {/* Route Visual */}
-                                      <div className="py-2 flex items-center justify-between gap-3 sm:gap-6">
-                                        <div className="flex-1 min-w-0 text-left">
+                                      <div className="py-2 flex items-center justify-between gap-2 sm:gap-4">
+                                        <div className="shrink-0 min-w-[80px] sm:min-w-[120px] max-w-[140px] sm:max-w-[200px] text-left">
                                           <p className="text-xs font-semibold text-[#667085] truncate">
                                             {leg.origin || "Origen"}
                                           </p>
@@ -1624,7 +1823,7 @@ export default function PublicTripPage({ params }: PageProps) {
                                           </p>
                                         </div>
 
-                                        <div className="flex flex-col items-center justify-center px-2 sm:px-4 flex-1 max-w-[180px] sm:max-w-[240px]">
+                                        <div className="flex-1 min-w-0 px-2 sm:px-6 md:px-8 flex flex-col items-center justify-center">
                                           <div className="relative w-full flex items-center justify-center">
                                             <div className="w-full border-t-2 border-dashed border-[#cbd5e1]" />
                                             <div className="absolute flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 shadow-xs border border-white">
@@ -1636,7 +1835,7 @@ export default function PublicTripPage({ params }: PageProps) {
                                           </span>
                                         </div>
 
-                                        <div className="flex-1 min-w-0 text-right">
+                                        <div className="shrink-0 min-w-[80px] sm:min-w-[120px] max-w-[140px] sm:max-w-[200px] text-right">
                                           <p className="text-xs font-semibold text-[#667085] truncate">
                                             {leg.destination || "Destino"}
                                           </p>
@@ -1711,7 +1910,7 @@ export default function PublicTripPage({ params }: PageProps) {
                             <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#f2f4f7]">
                               <div className="flex items-center gap-3">
                                 <div
-                                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white p-1.5 border border-[#eaecf0] shadow-2xs overflow-hidden"
+                                  className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full bg-white border border-slate-200 shadow-xs overflow-hidden"
                                   title={airlineMeta.name}
                                 >
                                   {Boolean(
@@ -1725,12 +1924,12 @@ export default function PublicTripPage({ params }: PageProps) {
                                         airlineMeta.logoUrl!
                                       }
                                       alt={airlineMeta.name}
-                                      className="h-full w-full object-contain"
+                                      className="h-full w-full object-cover rounded-full"
                                       onError={(e) => {
                                         const target = e.currentTarget;
                                         target.style.display = "none";
                                         if (target.parentElement) {
-                                          target.parentElement.className = `flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl font-black text-xs sm:text-sm tracking-tight shadow-xs border ${airlineMeta.bgColor} ${airlineMeta.textColor} ${airlineMeta.borderColor}`;
+                                          target.parentElement.className = `flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full font-black text-xs sm:text-sm tracking-tight shadow-xs border ${airlineMeta.bgColor} ${airlineMeta.textColor} ${airlineMeta.borderColor}`;
                                           target.parentElement.innerText =
                                             airlineMeta.logoText;
                                         }
@@ -1738,7 +1937,7 @@ export default function PublicTripPage({ params }: PageProps) {
                                     />
                                   ) : (
                                     <div
-                                      className={`flex h-full w-full items-center justify-center rounded-2xl font-black text-xs ${airlineMeta.bgColor} ${airlineMeta.textColor}`}
+                                      className={`flex h-full w-full items-center justify-center rounded-full font-black text-xs ${airlineMeta.bgColor} ${airlineMeta.textColor}`}
                                     >
                                       {airlineMeta.logoText}
                                     </div>
@@ -1760,18 +1959,20 @@ export default function PublicTripPage({ params }: PageProps) {
                                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                                   <span>Directo (Non-Stop)</span>
                                 </span>
-                                {trip.showExpenses &&
-                                  act.price &&
-                                  act.price > 0 && (
-                                    <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-black text-[#101828] border border-[#eaecf0]">
-                                      {formatCurrency(act.price)}
-                                    </span>
-                                  )}
+                                {Boolean(
+                                  trip.showExpenses &&
+                                    act.price &&
+                                    act.price > 0,
+                                ) && (
+                                  <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-black text-[#101828] border border-[#eaecf0]">
+                                    {formatCurrency(act.price!)}
+                                  </span>
+                                )}
                               </div>
                             </div>
 
-                            <div className="py-2 flex items-center justify-between gap-3 sm:gap-6">
-                              <div className="flex-1 min-w-0 text-left">
+                            <div className="py-2 flex items-center justify-between gap-2 sm:gap-4">
+                              <div className="shrink-0 min-w-[80px] sm:min-w-[120px] max-w-[140px] sm:max-w-[200px] text-left">
                                 <p className="text-xs font-semibold text-[#667085] truncate">
                                   {(act.origin as string) || "Origen"}
                                 </p>
@@ -1782,7 +1983,7 @@ export default function PublicTripPage({ params }: PageProps) {
                                   {act.time}
                                 </p>
                               </div>
-                              <div className="flex flex-col items-center justify-center px-2 sm:px-4 flex-1 max-w-[180px] sm:max-w-[240px]">
+                              <div className="flex-1 min-w-0 px-2 sm:px-6 md:px-8 flex flex-col items-center justify-center">
                                 <div className="relative w-full flex items-center justify-center">
                                   <div className="w-full border-t-2 border-dashed border-[#cbd5e1]" />
                                   <div className="absolute flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 shadow-xs border border-white">
@@ -1793,7 +1994,7 @@ export default function PublicTripPage({ params }: PageProps) {
                                   Directo
                                 </span>
                               </div>
-                              <div className="flex-1 min-w-0 text-right">
+                              <div className="shrink-0 min-w-[80px] sm:min-w-[120px] max-w-[140px] sm:max-w-[200px] text-right">
                                 <p className="text-xs font-semibold text-[#667085] truncate">
                                   {(act.destination as string) || "Destino"}
                                 </p>
@@ -1880,106 +2081,204 @@ export default function PublicTripPage({ params }: PageProps) {
         )}
 
         {/* ----------------------------------------------------------- */}
-        {/* TAB 2: RESUMEN DE SERVICIOS                                 */}
+        {/* TAB 3: QUÉ INCLUYE Y QUÉ NO INCLUYE                         */}
         {/* ----------------------------------------------------------- */}
-        {activeTab === "resumen" && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF] mb-3">
-                  <Plane className="h-6 w-6" />
-                </div>
-                <p className="text-3xl font-black text-[#101828]">
-                  {trip.activities.filter((a) => a.type === "flight").length}
-                </p>
-                <p className="text-xs font-bold text-[#667085] mt-1">
-                  Vuelos confirmados
-                </p>
-              </div>
+        {activeTab === "condiciones" && (() => {
+          const includesAct = (trip.activities || []).find(
+            (a: any) =>
+              a.type === "conditions" ||
+              a.isIncludesBlock ||
+              (typeof a.title === "string" && a.title.toLowerCase().includes("incluye"))
+          ) as any;
 
-              <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF] mb-3">
-                  <Bed className="h-6 w-6" />
-                </div>
-                <p className="text-3xl font-black text-[#101828]">
-                  {trip.activities.filter((a) => a.type === "hotel").length}
-                </p>
-                <p className="text-xs font-bold text-[#667085] mt-1">
-                  Noches de hotel
-                </p>
-              </div>
+          const title = includesAct?.title || "Qué incluye y qué no incluye";
+          const includesList: string[] =
+            Array.isArray(includesAct?.includes) && includesAct.includes.length > 0
+              ? includesAct.includes
+              : [
+                  "Vuelo internacional de ida y vuelta con tasas incluidas",
+                  "Traslados completos aeropuerto - hotel - aeropuerto",
+                  "Alojamiento en hoteles previstos o similares",
+                  "Visitas y excursiones mencionadas en el itinerario",
+                  "Guía acompañante durante el circuito",
+                  "Seguro de asistencia en viaje",
+                ];
 
-              <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF] mb-3">
-                  <MapPin className="h-6 w-6" />
-                </div>
-                <p className="text-3xl font-black text-[#101828]">
-                  {trip.activities.filter((a) => a.type === "excursion").length}
-                </p>
-                <p className="text-xs font-bold text-[#667085] mt-1">
-                  Excursiones y tours
-                </p>
-              </div>
+          const excludesList: string[] =
+            Array.isArray(includesAct?.excludes) && includesAct.excludes.length > 0
+              ? includesAct.excludes
+              : [];
 
-              <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF] mb-3">
-                  <Car className="h-6 w-6" />
-                </div>
-                <p className="text-3xl font-black text-[#101828]">
-                  {trip.activities.filter((a) => a.type === "transfer").length}
-                </p>
-                <p className="text-xs font-bold text-[#667085] mt-1">
-                  Traslados privados
-                </p>
-              </div>
-            </div>
+          const departureCities: string =
+            includesAct?.departureCities ||
+            "A Coruña / La Coruña, Las Palmas de Gran Canaria, Ibiza, Barcelona, Bilbao, Oporto, Milán, Lisboa, Vigo, Tenerife Norte, Madrid, Roma, Alicante, Málaga, Palma, Mallorca, Valencia";
 
-            {/* List of all Hotels */}
-            <div className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs space-y-4">
-              <h3 className="text-sm font-extrabold text-[#101828] uppercase tracking-wider">
-                Alojamientos confirmados
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {trip.activities
-                  .filter((a) => a.type === "hotel")
-                  .map((hotelAct, i) => (
-                    <div
-                      key={i}
-                      className="rounded-2xl border border-[#eaecf0] p-4 bg-[#f8fafc] space-y-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-extrabold text-[#101828] text-sm">
-                          {(hotelAct.hotelName as string) || "Hotel"}
-                        </span>
-                        <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-[#0066FF]">
-                          {hotelAct.date}
-                        </span>
+          const categories: string[] =
+            Array.isArray(includesAct?.categories) && includesAct.categories.length > 0
+              ? includesAct.categories
+              : ["Cultural", "Naturaleza", "Confirmación inmediata", "Mejor Precio Garantizado"];
+
+          const connectedDestinations: string[] =
+            Array.isArray(includesAct?.connectedDestinations) && includesAct.connectedDestinations.length > 0
+              ? includesAct.connectedDestinations
+              : ((trip as any).destination ? [(trip as any).destination] : (trip.name ? [trip.name] : []));
+
+          const getInclusionIcon = (itemText: string) => {
+            const lower = itemText.toLowerCase();
+            if (lower.includes("vuelo") || lower.includes("aéreo") || lower.includes("aereo") || lower.includes("avion") || lower.includes("avión")) {
+              return <Plane className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 shrink-0 mt-0.5" />;
+            }
+            if (lower.includes("hotel") || lower.includes("alojamiento") || lower.includes("estancia") || lower.includes("noche")) {
+              return <Bed className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 shrink-0 mt-0.5" />;
+            }
+            if (lower.includes("traslado") || lower.includes("bus") || lower.includes("autobús") || lower.includes("vehículo") || lower.includes("coche") || lower.includes("tren")) {
+              return <Bus className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 shrink-0 mt-0.5" />;
+            }
+            if (lower.includes("guía") || lower.includes("guia") || lower.includes("asistencia") || lower.includes("acompañante")) {
+              return <UserCheck className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 shrink-0 mt-0.5" />;
+            }
+            if (lower.includes("seguro") || lower.includes("póliza") || lower.includes("cobertura")) {
+              return <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 shrink-0 mt-0.5" />;
+            }
+            if (lower.includes("visita") || lower.includes("excursión") || lower.includes("excursion") || lower.includes("itinerario") || lower.includes("entrada")) {
+              return <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 shrink-0 mt-0.5" />;
+            }
+            return <Check className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600 shrink-0 mt-0.5 stroke-[2.5]" />;
+          };
+
+          return (
+            <div className="space-y-6 animate-fade-in">
+              <div className="rounded-3xl border border-zinc-200/80 bg-white shadow-xs overflow-hidden">
+                {/* Header Accordion */}
+                <button
+                  type="button"
+                  onClick={() => setIsIncludesAccordionOpen((prev) => !prev)}
+                  className="w-full p-5 sm:p-6 flex items-center justify-between cursor-pointer select-none hover:bg-zinc-50/50 transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Green check circle */}
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-emerald-500 text-emerald-600 bg-emerald-50/40 shrink-0">
+                      <Check className="h-4 w-4 stroke-[2.5]" />
+                    </span>
+                    {/* Red ban circle */}
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-rose-500 text-rose-500 bg-rose-50/40 shrink-0">
+                      <Ban className="h-4 w-4 stroke-[2.5]" />
+                    </span>
+                    {/* Title */}
+                    <h2 className="text-lg sm:text-xl font-bold text-zinc-900 tracking-tight">
+                      {title}
+                    </h2>
+                  </div>
+
+                  <div className="text-teal-700 shrink-0 ml-4">
+                    {isIncludesAccordionOpen ? (
+                      <ChevronUp className="h-5 w-5" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5" />
+                    )}
+                  </div>
+                </button>
+
+                {/* Accordion Body */}
+                {isIncludesAccordionOpen && (
+                  <div className="p-6 sm:p-8 pt-3 sm:pt-4 border-t border-zinc-100">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14">
+                      {/* Left Column: Tu viaje incluye y No incluye */}
+                      <div className="lg:col-span-7 space-y-6">
+                        <div className="space-y-4 sm:space-y-5">
+                          <h3 className="text-base sm:text-lg font-bold text-teal-600 tracking-tight">
+                            Tu viaje incluye:
+                          </h3>
+
+                          <div className="space-y-4 sm:space-y-5 text-xs sm:text-sm text-zinc-700 leading-relaxed">
+                            {includesList.map((item, idx) => (
+                              <div key={idx} className="flex items-start gap-3.5">
+                                {getInclusionIcon(item)}
+                                <span>{item}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {excludesList.length > 0 && (
+                          <div className="space-y-3 pt-4 border-t border-zinc-100">
+                            <h3 className="text-base font-bold text-rose-600 tracking-tight flex items-center gap-2">
+                              <Ban className="h-4 w-4 text-rose-500" />
+                              No incluye:
+                            </h3>
+                            <div className="space-y-2.5 text-xs sm:text-sm text-zinc-600 leading-relaxed">
+                              {excludesList.map((item, idx) => (
+                                <div key={idx} className="flex items-start gap-3">
+                                  <span className="text-rose-500 font-bold shrink-0 mt-0.5">•</span>
+                                  <span>{item}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <p className="text-xs text-[#667085] flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 text-[#0066FF]" />
-                        <span>
-                          {(hotelAct.address as string) || "Dirección"}
-                        </span>
-                      </p>
+
+                      {/* Right Column: Salidas, Categorías, Circuitos */}
+                      <div className="lg:col-span-5 space-y-6 sm:space-y-7">
+                        {departureCities && (
+                          <div className="space-y-2">
+                            <h4 className="text-sm sm:text-base font-bold text-zinc-900 tracking-tight">
+                              Salidas desde:
+                            </h4>
+                            <p className="text-xs sm:text-sm text-teal-700 leading-relaxed font-normal">
+                              {departureCities}
+                            </p>
+                          </div>
+                        )}
+
+                        {categories.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="text-sm sm:text-base font-bold text-zinc-900 tracking-tight">
+                              Categorías.
+                            </h4>
+                            <div className="flex flex-col space-y-1 text-xs sm:text-sm text-teal-700">
+                              {categories.map((cat, idx) => (
+                                <span key={idx}>{cat}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {connectedDestinations.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="text-sm sm:text-base font-bold text-zinc-900 tracking-tight">
+                              Más circuitos que pasan por:
+                            </h4>
+                            <div className="flex flex-col space-y-1 text-xs sm:text-sm text-teal-700">
+                              {connectedDestinations.map((dest, idx) => (
+                                <span key={idx}>{dest}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  ))}
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ----------------------------------------------------------- */}
         {/* TAB: CONFIRMAR Y PAGAR (AIRBNB STYLE 2-COLUMN CHECKOUT)     */}
         {/* ----------------------------------------------------------- */}
         {activeTab === "pagos" && (() => {
-          const baseTripAmount = Number(
+          const unitPrice = Number(
             primaryBooking?.totalAmount ??
               (trip.showExpenses && primaryBooking?.price ? primaryBooking.price : 1250)
           );
+          const baseTripAmount = unitPrice * Math.max(1, travelerCount);
           const depositPercentage = primaryBooking?.depositPercentage || 20;
-          const depositAmount = Number(
-            primaryBooking?.depositAmount ?? Math.round(baseTripAmount * (depositPercentage / 100))
-          );
+          const unitDeposit = primaryBooking?.depositAmount
+            ? Number(primaryBooking.depositAmount)
+            : Math.round(unitPrice * (depositPercentage / 100));
+          const depositAmount = unitDeposit * Math.max(1, travelerCount);
 
           const amountDueToday = paymentPlan === "full" ? baseTripAmount : depositAmount;
           const remainingBalance = Math.max(0, baseTripAmount - amountDueToday);
@@ -2019,25 +2318,62 @@ export default function PublicTripPage({ params }: PageProps) {
                 </div>
               )}
 
+              {/* Main Heading (Always on top for both mobile and desktop) */}
+              <div className="flex items-center gap-3 pb-2 sm:pb-4">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("itinerario")}
+                  className="p-2 -ml-2 rounded-full hover:bg-zinc-100 text-zinc-700 transition-colors cursor-pointer"
+                  title="Volver al itinerario"
+                >
+                  <ChevronRight className="w-6 h-6 rotate-180" />
+                </button>
+                <h1 className="text-2xl sm:text-3xl font-bold text-[#101828] tracking-tight">
+                  Confirmar y pagar
+                </h1>
+              </div>
+
               {/* Main 2-Column Split */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start pt-1">
                 {/* ======================================================== */}
-                {/* LEFT COLUMN: PAYMENT OPTIONS, METHOD & GREEN CTA         */}
+                {/* LEFT COLUMN: PAYMENT OPTIONS, METHOD & CTA (Order 2 in mobile) */}
                 {/* ======================================================== */}
-                <div className="lg:col-span-7 space-y-6">
-                  {/* Main Heading */}
-                  <div className="flex items-center gap-3 pb-1">
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab("itinerario")}
-                      className="p-2 -ml-2 rounded-full hover:bg-zinc-100 text-zinc-700 transition-colors cursor-pointer"
-                      title="Volver al itinerario"
-                    >
-                      <ChevronRight className="w-6 h-6 rotate-180" />
-                    </button>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-[#101828] tracking-tight">
-                      Confirmar y pagar
-                    </h1>
+                <div className="order-2 lg:order-1 lg:col-span-7 space-y-6">
+
+                  {/* Card: Indica cuántos viajeros sois */}
+                  <div
+                    id="travelersSelectorBox"
+                    className="rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-xs flex items-center justify-between gap-4"
+                  >
+                    <div>
+                      <h3 className="text-base font-semibold text-[#101828]">
+                        Indica cuántos viajeros sois
+                      </h3>
+                    </div>
+
+                    {/* Stepper Component */}
+                    <div className="flex items-center border border-[#d0d5dd] rounded-2xl px-4 py-2 gap-4 bg-white select-none shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => setTravelerCount((prev) => Math.max(1, prev - 1))}
+                        disabled={travelerCount <= 1}
+                        className="text-base font-semibold text-[#344054] hover:text-[#101828] disabled:opacity-25 disabled:pointer-events-none transition-colors cursor-pointer w-4 h-4 flex items-center justify-center leading-none"
+                        aria-label="Disminuir viajeros"
+                      >
+                        —
+                      </button>
+                      <span className="text-sm font-bold text-[#101828] min-w-[16px] text-center">
+                        {travelerCount}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setTravelerCount((prev) => prev + 1)}
+                        className="text-base font-semibold text-[#344054] hover:text-[#101828] transition-colors cursor-pointer w-4 h-4 flex items-center justify-center leading-none"
+                        aria-label="Aumentar viajeros"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
 
                   {/* Card 1: Elige cuándo quieres pagar */}
@@ -2290,9 +2626,9 @@ export default function PublicTripPage({ params }: PageProps) {
                 </div>
 
                 {/* ======================================================== */}
-                {/* RIGHT COLUMN: URGENCY BANNER & SUMMARY CARD             */}
+                {/* RIGHT COLUMN: URGENCY BANNER & SUMMARY CARD (Order 1 in mobile) */}
                 {/* ======================================================== */}
-                <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-24">
+                <div className="order-1 lg:order-2 lg:col-span-5 space-y-4 lg:sticky lg:top-24">
                   {/* Pink Urgency Banner */}
                   <div className="rounded-2xl border border-pink-200/80 bg-[#fdf2f8] p-4 text-pink-950 flex items-start gap-3 shadow-2xs">
                     <span className="text-base shrink-0 pt-0.5">💎</span>
@@ -2379,11 +2715,16 @@ export default function PublicTripPage({ params }: PageProps) {
                         <span className="font-semibold text-sm text-[#101828] block">
                           Viajeros
                         </span>
-                        <span className="text-xs font-normal text-[#667085]">2 adultos</span>
+                        <span className="text-xs font-normal text-[#667085]">
+                          {travelerCount} {travelerCount === 1 ? "adulto" : "adultos"}
+                        </span>
                       </div>
                       <button
                         type="button"
-                        onClick={() => setActiveTab("resumen")}
+                        onClick={() => {
+                          const el = document.getElementById("travelersSelectorBox");
+                          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }}
                         className="px-3 py-1 rounded-xl border border-[#d0d5dd] bg-[#f8fafc] hover:bg-[#eaecf0] text-xs font-semibold text-[#344054] transition-colors cursor-pointer"
                       >
                         Cambiar
@@ -2399,7 +2740,10 @@ export default function PublicTripPage({ params }: PageProps) {
                         Detalles del precio
                       </h5>
                       <div className="flex justify-between font-normal">
-                        <span>{tripDuration(trip.startDate, trip.endDate)} días de itinerario</span>
+                        <span>
+                          {tripDuration(trip.startDate, trip.endDate)} días de itinerario
+                          {travelerCount > 1 ? ` (${travelerCount} viajeros)` : ""}
+                        </span>
                         <span className="font-medium text-[#101828]">
                           {formatCurrency(baseTripAmount)}
                         </span>
@@ -3207,7 +3551,11 @@ export default function PublicTripPage({ params }: PageProps) {
                 )}
 
                 {/* Price Tag if applicable */}
-                {selectedActivity.price && selectedActivity.price > 0 && trip.showExpenses && (
+                {Boolean(
+                  trip.showExpenses &&
+                    selectedActivity.price &&
+                    selectedActivity.price > 0,
+                ) && (
                   <div className="flex items-center justify-between rounded-2xl bg-zinc-50 p-3.5 border border-zinc-100">
                     <span className="font-bold text-xs text-zinc-500">Tarifa Incluida:</span>
                     <span className="font-black text-sm text-zinc-900">
@@ -3288,5 +3636,13 @@ export default function PublicTripPage({ params }: PageProps) {
         </div>
       )}
     </div>
+  );
+}
+
+export default function PublicTripPage(props: PageProps) {
+  return (
+    <Suspense fallback={<WanderlustLoader />}>
+      <PublicTripContent {...props} />
+    </Suspense>
   );
 }

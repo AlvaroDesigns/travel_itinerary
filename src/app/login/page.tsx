@@ -83,13 +83,13 @@ export default function Login() {
   };
 
   const getRedirectUrl = () => {
-    if (typeof window === 'undefined') return '/viajes';
+    if (typeof window === 'undefined') return '/dashboard';
     const params = new URLSearchParams(window.location.search);
     const redirect = params.get('redirect');
     if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
       return redirect;
     }
-    return '/viajes';
+    return '/dashboard';
   };
 
   const handleLogin = async (event: React.FormEvent) => {
@@ -290,6 +290,8 @@ export default function Login() {
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                     <input
                       type="email"
+                      name="email"
+                      autoComplete="username email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -308,6 +310,8 @@ export default function Login() {
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                     <input
                       type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      autoComplete="current-password"
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -372,7 +376,7 @@ export default function Login() {
                   type="button"
                   onClick={() => {
                     const redirect = getRedirectUrl();
-                    const url = redirect !== '/viajes' ? `/api/auth/google?redirect=${encodeURIComponent(redirect)}` : '/api/auth/google';
+                    const url = redirect !== '/dashboard' ? `/api/auth/google?redirect=${encodeURIComponent(redirect)}` : '/api/auth/google';
                     window.location.href = url;
                   }}
                   className="w-full py-3.5 rounded-full bg-white hover:bg-zinc-50 border border-zinc-200 text-xs font-bold text-zinc-700 shadow-xs hover:border-zinc-300 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
@@ -482,6 +486,8 @@ export default function Login() {
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                     <input
                       type="password"
+                      name="newPassword"
+                      autoComplete="new-password"
                       minLength={6}
                       required
                       value={newPassword}
@@ -499,6 +505,8 @@ export default function Login() {
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                     <input
                       type="password"
+                      name="confirmPassword"
+                      autoComplete="new-password"
                       minLength={6}
                       required
                       value={confirmation}

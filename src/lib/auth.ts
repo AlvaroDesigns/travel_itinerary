@@ -14,6 +14,7 @@ export interface AuthenticatedUser {
   tenantId?: string;
   agencyName?: string;
   planType?: string;
+  agencyLogo?: string;
 }
 
 function getJwtSecret(): string {
@@ -104,5 +105,6 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
     tenantId: user.tenant_id || undefined,
     agencyName: user.agency_name || undefined,
     planType: user.plan_type || undefined,
+    agencyLogo: (user.preferences?.agencyLogo as string) || undefined,
   };
 }

@@ -10,7 +10,8 @@ export async function GET() {
 
   try {
     const tripsRes = await pool.query(
-      `SELECT t.*, c.name as client_name, c.email as client_email
+      `SELECT t.*, c.name as client_name, c.email as client_email,
+              u.name as owner_name, u.email as owner_email, u.preferences as owner_preferences
        FROM trips t
        JOIN users u ON u.id = t.user_id
        LEFT JOIN clients c ON c.id = t.client_id
@@ -50,6 +51,10 @@ export async function GET() {
         clientId: tripRow.client_id || null,
         clientName: tripRow.client_name || null,
         clientEmail: tripRow.client_email || null,
+        ownerId: tripRow.user_id || null,
+        ownerName: tripRow.owner_name || null,
+        ownerEmail: tripRow.owner_email || null,
+        ownerAvatar: (tripRow.owner_preferences?.avatar as string) || null,
         activities
       });
     }

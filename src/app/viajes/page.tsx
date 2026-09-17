@@ -11,6 +11,8 @@ import { DashboardShell } from '@/components/DashboardShell';
 import { TableSkeleton } from '@/components/TableSkeleton';
 import { CreateTripModal } from '@/components/CreateTripModal';
 import { TravelerMobileHome } from '@/components/TravelerMobileHome';
+import { UserAvatarDisplay } from '@/components/AvatarPickerModal';
+import { ShareTripModal } from '@/components/ShareTripModal';
 import {
   Search,
   Plus,
@@ -236,25 +238,15 @@ export default function MisViajesPage() {
   };
 
   const getUserDisplayName = () => {
-    if (!user?.email) return 'Alvaro Saiz';
-    return user.email.split('@')[0];
-  };
-
-  const getAvatarVibrantBg = (seed?: string) => {
-    const styles = [
-      'bg-[#0066ff] text-white shadow-xs',
-      'bg-[#0066FF] text-white shadow-xs',
-      'bg-[#7c3aed] text-white shadow-xs',
-      'bg-[#e11d48] text-white shadow-xs',
-      'bg-[#d97706] text-white shadow-xs',
-      'bg-[#0284c7] text-white shadow-xs',
-    ];
-    if (!seed) return styles[0];
-    let hash = 0;
-    for (let i = 0; i < seed.length; i++) {
-      hash = (hash << 5) - hash + seed.charCodeAt(i);
+    if (user?.name?.trim()) return user.name.trim();
+    if (user?.email) {
+      const username = user.email.split('@')[0];
+      return username
+        .split(/[._-]/)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
     }
-    return styles[Math.abs(hash) % styles.length];
+    return 'Agente';
   };
 
   if (isLoading) {
@@ -541,15 +533,13 @@ export default function MisViajesPage() {
                           {/* Owner */}
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <span
-                                className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${getAvatarVibrantBg(
-                                  trip.id
-                                )}`}
-                              >
-                                {getUserInitials(user?.email)}
-                              </span>
-                              <span className="font-semibold text-[#344054] text-xs">
-                                {getUserDisplayName()}
+                              <UserAvatarDisplay
+                                avatar={trip.ownerAvatar || user?.avatar || 'traveler-girl-teal'}
+                                name={trip.ownerName || trip.ownerEmail || getUserDisplayName()}
+                                size="xs"
+                              />
+                              <span className="font-semibold text-[#344054] text-xs truncate max-w-[140px]">
+                                {trip.ownerName || (trip.ownerEmail ? trip.ownerEmail.split('@')[0] : getUserDisplayName())}
                               </span>
                             </div>
                           </td>
@@ -913,59 +903,13 @@ export default function MisViajesPage() {
 
       {/* 2. Modal: Compartir Enlace Público */}
       {shareTrip && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-white p-6 shadow-2xl text-left">
-            <div className="flex items-center justify-between border-b border-[#eaecf0] pb-3">
-              <div className="flex items-center gap-2">
-                <ExternalLink className="h-5 w-5 text-[#0066FF]" />
-                <h3 className="text-base font-bold text-[#101828]">Compartir itinerario</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShareTrip(null)}
-                className="rounded-full p-1 text-[#667085] hover:bg-[#f4f5f8] cursor-pointer"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <p className="mt-3 text-xs text-[#475467] leading-relaxed">
-              Copia este enlace para compartir el portal interactivo del viaje con tu cliente.
-            </p>
-
-            <div className="mt-4 flex items-center gap-2 rounded-2xl border border-[#d0d5dd] bg-[#f8fafc] p-2">
-              <input
-                type="text"
-                readOnly
-                value={`${typeof window !== 'undefined' ? window.location.origin : ''}/publico/${getTripCode(shareTrip.id)}`}
-                className="w-full bg-transparent text-xs text-[#101828] font-mono outline-hidden"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    `${window.location.origin}/publico/${getTripCode(shareTrip.id)}`
-                  );
-                  setCopiedShareLink(true);
-                  setTimeout(() => setCopiedShareLink(false), 2000);
-                }}
-                className="rounded-full bg-gradient-to-r from-[#0066FF] to-[#00C6FF] px-4 py-1.5 text-xs font-bold text-white hover:opacity-90 cursor-pointer"
-              >
-                {copiedShareLink ? '¡Copiado!' : 'Copiar'}
-              </button>
-            </div>
-
-            <div className="mt-5 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShareTrip(null)}
-                className="rounded-full border border-[#d0d5dd] px-4 py-2 text-xs font-bold text-[#344054] hover:bg-[#f9fafb] cursor-pointer"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
+        <ShareTripModal
+          isOpen={Boolean(shareTrip)}
+          onClose={() => setShareTrip(null)}
+          tripId={shareTrip.id}
+          tripName={shareTrip.name}
+          tripCode={getTripCode(shareTrip.id)}
+        />
       )}
 
       {/* 3. Modal: Cambiar Propietario */}

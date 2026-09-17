@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useTravel } from '@/context/TravelContext';
 import { DashboardShell } from '@/components/DashboardShell';
 import { WanderlustLoader } from '@/components/WanderlustLoader';
@@ -41,6 +41,7 @@ import {
   CheckCircle2,
   Settings,
   Loader2,
+  Upload,
 } from 'lucide-react';
 
 type TabType =
@@ -61,13 +62,24 @@ interface PaymentProviderStatus {
 }
 
 function MiCuentaConfiguracionContent() {
-  const { user, isLoading: isAuthLoading } = useTravel();
+  const { user, isLoading: isAuthLoading, updateUser, refreshUser } = useTravel();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   const tabQuery = searchParams.get('tab') as TabType | null;
   const stripeParam = searchParams.get('stripe');
   const [activeTab, setActiveTab] = useState<TabType>(tabQuery || 'detalles');
+
+  const handleTabChange = useCallback(
+    (newTab: TabType) => {
+      setActiveTab(newTab);
+      const params = new URLSearchParams(searchParams ? searchParams.toString() : '');
+      params.set('tab', newTab);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, pathname, router]
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isConnectingStripe, setIsConnectingStripe] = useState(false);
@@ -146,6 +158,9 @@ function MiCuentaConfiguracionContent() {
   // Appearance settings
   const [brandColor, setBrandColor] = useState('#0066FF');
   const [defaultTheme, setDefaultTheme] = useState('classic');
+  const [agencyLogo, setAgencyLogo] = useState<string>('');
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const logoFileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   // Booking policies
   const [depositPercent, setDepositPercent] = useState(30);
@@ -167,20 +182,25 @@ function MiCuentaConfiguracionContent() {
   const isAgency = isAgencyUser(user);
 
   useEffect(() => {
-    if (tabQuery && ['detalles', 'apariencia', 'pagos', 'reservas', 'legal', 'viajes'].includes(tabQuery)) {
-      if (!isAgency && ['pagos', 'reservas', 'legal'].includes(tabQuery)) {
-        setActiveTab('detalles');
+    const validTabs: TabType[] = ['detalles', 'apariencia', 'pagos', 'reservas', 'legal', 'viajes'];
+    if (tabQuery && validTabs.includes(tabQuery)) {
+      if (!isAuthLoading && !isAgency && ['pagos', 'reservas', 'legal'].includes(tabQuery)) {
+        handleTabChange('detalles');
       } else {
         setActiveTab(tabQuery);
       }
+    } else if (!tabQuery) {
+      const params = new URLSearchParams(searchParams ? searchParams.toString() : '');
+      params.set('tab', 'detalles');
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     }
-  }, [tabQuery, isAgency]);
+  }, [tabQuery, isAgency, isAuthLoading, pathname, router, searchParams, handleTabChange]);
 
   useEffect(() => {
-    if (!isAgency && ['pagos', 'reservas', 'legal'].includes(activeTab)) {
-      setActiveTab('detalles');
+    if (!isAuthLoading && !isAgency && ['pagos', 'reservas', 'legal'].includes(activeTab)) {
+      handleTabChange('detalles');
     }
-  }, [isAgency, activeTab]);
+  }, [isAgency, isAuthLoading, activeTab, handleTabChange]);
 
   useEffect(() => {
     async function loadProfile() {
@@ -213,6 +233,15 @@ function MiCuentaConfiguracionContent() {
               }
             }
             if (p.defaultTheme) setDefaultTheme(p.defaultTheme);
+            if (p.agencyLogo) {
+              setAgencyLogo(p.agencyLogo);
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('wanderlust_agency_logo', p.agencyLogo);
+              }
+            } else if (typeof window !== 'undefined') {
+              const cached = localStorage.getItem('wanderlust_agency_logo');
+              if (cached) setAgencyLogo(cached);
+            }
             if (p.depositPercent !== undefined) setDepositPercent(p.depositPercent);
             if (p.dueDaysBeforeTrip !== undefined) setDueDaysBeforeTrip(p.dueDaysBeforeTrip);
             if (p.agencyCif) setAgencyCif(p.agencyCif);
@@ -268,10 +297,15 @@ function MiCuentaConfiguracionContent() {
     setTimeout(() => setFeedback(null), 4000);
   };
 
-  const handleSaveProfile = async (overrideAvatar?: string, overridePayments?: PaymentProviderStatus) => {
+  const handleSaveProfile = async (
+    overrideAvatar?: string,
+    overridePayments?: PaymentProviderStatus,
+    overrideLogo?: string
+  ) => {
     setIsSaving(true);
     const activeAvatar = overrideAvatar !== undefined ? overrideAvatar : avatar;
     const activePayments = overridePayments || paymentProviders;
+    const activeLogo = overrideLogo !== undefined ? overrideLogo : agencyLogo;
 
     try {
       const res = await fetch('/api/user/profile', {
@@ -293,6 +327,7 @@ function MiCuentaConfiguracionContent() {
             avatar: activeAvatar,
             brandColor,
             defaultTheme,
+            agencyLogo: activeLogo,
             depositPercent,
             dueDaysBeforeTrip,
             agencyCif,
@@ -314,12 +349,78 @@ function MiCuentaConfiguracionContent() {
         throw new Error(errorData.error || 'Error al guardar');
       }
 
+      // Sync with localStorage, TravelContext and broadcast to other views
+      if (typeof window !== 'undefined') {
+        if (activeLogo) {
+          localStorage.setItem('wanderlust_agency_logo', activeLogo);
+        } else {
+          localStorage.removeItem('wanderlust_agency_logo');
+        }
+        window.dispatchEvent(
+          new CustomEvent('wanderlust:agency-logo-updated', {
+            detail: activeLogo || '',
+          })
+        );
+      }
+
+      updateUser({
+        name,
+        agencyLogo: activeLogo,
+        avatar: activeAvatar,
+      });
+
       showNotification('success', 'Cambios guardados correctamente.');
     } catch (err) {
       showNotification('error', err instanceof Error ? err.message : 'Error al guardar');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLogoError(null);
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setLogoError('El archivo no debe superar los 2 MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = async () => {
+        if (reader.result) {
+          const dataUrl = reader.result as string;
+          setAgencyLogo(dataUrl);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wanderlust_agency_logo', dataUrl);
+            window.dispatchEvent(
+              new CustomEvent('wanderlust:agency-logo-updated', {
+                detail: dataUrl,
+              })
+            );
+          }
+          updateUser({ agencyLogo: dataUrl });
+          await handleSaveProfile(undefined, undefined, dataUrl);
+          showNotification('success', 'Logotipo de la agencia guardado y aplicado al itinerario.');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    setAgencyLogo('');
+    setLogoError(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('wanderlust_agency_logo');
+      window.dispatchEvent(
+        new CustomEvent('wanderlust:agency-logo-updated', {
+          detail: '',
+        })
+      );
+    }
+    updateUser({ agencyLogo: '' });
+    await handleSaveProfile(undefined, undefined, '');
+    showNotification('success', 'Logotipo restablecido a Wanderlust.');
   };
 
   const handleSelectAvatar = (newAvatar: string) => {
@@ -553,7 +654,7 @@ function MiCuentaConfiguracionContent() {
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => handleTabChange(tab.id)}
                   className={`flex items-center gap-2 py-3 text-xs sm:text-sm font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer select-none ${
                     isActive
                       ? 'border-[#0066FF] text-[#0066FF]'
@@ -774,7 +875,117 @@ function MiCuentaConfiguracionContent() {
                 </div>
               </div>
 
-              <div className="max-w-xl space-y-5 pt-2">
+              <div className="max-w-xl space-y-6 pt-2">
+                {/* 1. SECCIÓN LOGOTIPO: EXCLUSIVO AGENCIA */}
+                {isAgency ? (
+                  <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4 text-[#0066FF]" />
+                        <h4 className="text-xs font-bold text-[#101828] uppercase tracking-wider">
+                          Logotipo de la Agencia (Marca Blanca)
+                        </h4>
+                      </div>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-[#0066FF]">
+                        Exclusivo Agencias
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-zinc-600">
+                      Sustituye el logotipo de Wanderlust en la cabecera de las propuestas oficiales y enlaces compartidos con clientes por la marca de tu agencia.
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white p-4 rounded-xl border border-zinc-200">
+                      <div className="relative h-16 w-44 shrink-0 rounded-xl bg-zinc-50 border border-dashed border-zinc-300 flex items-center justify-center p-2 overflow-hidden shadow-2xs">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={agencyLogo || '/wanderlust_horizontal_negro.png'}
+                          alt="Logotipo"
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      </div>
+
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2">
+                          {agencyLogo ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
+                              <CheckCircle2 className="h-3.5 w-3.5" /> Logotipo personalizado activo
+                            </span>
+                          ) : (
+                            <span className="text-xs text-zinc-500 font-medium">
+                              Utilizando logotipo por defecto (Wanderlust)
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          <input
+                            type="file"
+                            ref={logoFileInputRef}
+                            onChange={handleLogoUpload}
+                            accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                            className="hidden"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => logoFileInputRef.current?.click()}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-xs font-bold text-zinc-800 shadow-2xs hover:bg-zinc-50 transition cursor-pointer"
+                          >
+                            <Upload className="h-3.5 w-3.5 text-[#0066FF]" />
+                            <span>{agencyLogo ? 'Cambiar logotipo' : 'Subir logotipo'}</span>
+                          </button>
+
+                          {agencyLogo && (
+                            <button
+                              type="button"
+                              onClick={handleRemoveLogo}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              <span>Restaurar Wanderlust</span>
+                            </button>
+                          )}
+                        </div>
+
+                        {logoError && (
+                          <p className="text-[11px] text-rose-600 font-medium">{logoError}</p>
+                        )}
+                        <p className="text-[11px] text-zinc-400">
+                          Formatos admitidos: PNG, SVG, JPG o WebP. Máximo 2 MB.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-zinc-500">
+                        <Lock className="h-4 w-4" />
+                        <h4 className="text-xs font-bold uppercase tracking-wider">
+                          Logotipo de Marca Blanca
+                        </h4>
+                      </div>
+                      <span className="rounded-full bg-zinc-200 px-2.5 py-0.5 text-[10px] font-bold text-zinc-600">
+                        Solo Cuentas de Agencia
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-4 bg-white p-3.5 rounded-xl border border-zinc-200/80">
+                      <div className="relative h-12 w-28 shrink-0 rounded-lg bg-zinc-100 flex items-center justify-center p-1.5 opacity-60">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/wanderlust_horizontal_negro.png"
+                          alt="Wanderlust"
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      </div>
+                      <p className="text-xs text-zinc-500 leading-relaxed">
+                        Las propuestas de itinerarios generadas con cuentas particulares incluyen la marca oficial Wanderlust. La sustitución por tu propio logotipo corporativo está reservada exclusivamente para Agencias.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-xs font-bold text-[#344054] mb-1.5">
                     Color corporativo principal

@@ -14,6 +14,7 @@ import {
   Sparkles,
   Search,
   ArrowLeft,
+  ArrowRight,
   Upload,
   Check,
   Plane,
@@ -59,6 +60,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
 
   const [step, setStep] = useState<ModalStep>('choose');
   const [templateSearch, setTemplateSearch] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState<TripTemplate | null>(null);
 
   // Form states for manual creation
   const [tripName, setTripName] = useState('');
@@ -85,6 +87,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
     setDescription('');
     setImageUrl(PRESET_IMAGES[0].url);
     setTemplateSearch('');
+    setSelectedTemplate(null);
     setDocFile(null);
     setIsProcessingDoc(false);
     onClose();
@@ -206,6 +209,22 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
             restaurantName: act.details.restaurantName || act.title,
             mealType: 'dinner' as const,
             description: act.details.notes || act.title,
+          };
+        }
+        if (act.type === 'conditions') {
+          return {
+            type: 'conditions' as const,
+            date: dateStr,
+            time: act.time,
+            price: 0,
+            title: act.title,
+            description: (act.details as any)?.description || '',
+            includes: (act.details as any)?.includes || [],
+            excludes: (act.details as any)?.excludes || [],
+            departureCities: (act.details as any)?.departureCities || '',
+            categories: (act.details as any)?.categories || [],
+            connectedDestinations: (act.details as any)?.connectedDestinations || [],
+            isIncludesBlock: true,
           };
         }
         return {
@@ -537,50 +556,78 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredTemplates.map((tpl) => (
-                <div
-                  key={tpl.id}
-                  onClick={() => handleSelectTemplate(tpl)}
-                  className="group relative cursor-pointer rounded-2xl border border-[#eaecf0] bg-white overflow-hidden shadow-xs hover:shadow-xl hover:border-[#0066FF]/60 transition-all"
-                >
-                  {/* Image container */}
-                  <div className="relative h-44 w-full overflow-hidden bg-zinc-100">
-                    <Image
-                      src={tpl.imageUrl}
-                      alt={tpl.title}
-                      fill
-                      unoptimized
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+              {filteredTemplates.map((tpl) => {
+                const isSelected = selectedTemplate?.id === tpl.id;
+                return (
+                  <div
+                    key={tpl.id}
+                    onClick={() => setSelectedTemplate(tpl)}
+                    onDoubleClick={() => handleSelectTemplate(tpl)}
+                    className={`group relative cursor-pointer rounded-2xl overflow-hidden transition-all text-left select-none ${
+                      isSelected
+                        ? 'border-2 border-[#0066FF] ring-4 ring-[#0066FF]/20 shadow-xl bg-blue-50/20 scale-[1.01]'
+                        : 'border border-[#eaecf0] bg-white shadow-xs hover:shadow-xl hover:border-[#0066FF]/60 hover:-translate-y-0.5'
+                    }`}
+                  >
+                    {/* Image container */}
+                    <div className="relative h-44 w-full overflow-hidden bg-zinc-100">
+                      <Image
+                        src={tpl.imageUrl}
+                        alt={tpl.title}
+                        fill
+                        unoptimized
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
-                    {/* Code Pill */}
-                    <div className="absolute top-3 left-3 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold tracking-wider text-white">
-                      {tpl.code}
+                      {/* Code Pill */}
+                      <div className="absolute top-3 left-3 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold tracking-wider text-white">
+                        {tpl.code}
+                      </div>
+
+                      {/* Selection Badge */}
+                      {isSelected && (
+                        <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-full bg-[#0066FF] px-2.5 py-1 text-[11px] font-extrabold text-white shadow-lg animate-scale-in">
+                          <Check className="h-3.5 w-3.5 stroke-[3]" />
+                          <span>Seleccionada</span>
+                        </div>
+                      )}
+
+                      {/* Duration / Budget Pill */}
+                      <div
+                        className={`absolute bottom-3 right-3 rounded-full backdrop-blur-md px-2.5 py-1 text-[11px] font-bold ${
+                          isSelected
+                            ? 'bg-[#0066FF] text-white shadow-md'
+                            : 'bg-white/90 text-[#101828]'
+                        }`}
+                      >
+                        {tpl.durationDays} días · ~{tpl.estimatedBudget} €
+                      </div>
                     </div>
 
-                    {/* Duration / Budget Pill */}
-                    <div className="absolute bottom-3 right-3 rounded-full bg-white/90 backdrop-blur-md px-2.5 py-1 text-[11px] font-bold text-[#101828]">
-                      {tpl.durationDays} días · ~{tpl.estimatedBudget} €
+                    {/* Title & Info */}
+                    <div className="p-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#0066FF]">
+                          {tpl.category}
+                        </span>
+                      </div>
+                      <h4
+                        className={`text-sm font-extrabold transition-colors truncate ${
+                          isSelected
+                            ? 'text-[#0066FF]'
+                            : 'text-[#101828] group-hover:text-[#0066FF]'
+                        }`}
+                      >
+                        {tpl.title}
+                      </h4>
+                      <p className="mt-1 text-xs text-[#667085] line-clamp-2 leading-relaxed">
+                        {tpl.description}
+                      </p>
                     </div>
                   </div>
-
-                  {/* Title & Info */}
-                  <div className="p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#0066FF]">
-                        {tpl.category}
-                      </span>
-                    </div>
-                    <h4 className="text-sm font-extrabold text-[#101828] group-hover:text-[#0066FF] transition-colors truncate">
-                      {tpl.title}
-                    </h4>
-                    <p className="mt-1 text-xs text-[#667085] line-clamp-2 leading-relaxed">
-                      {tpl.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {filteredTemplates.length === 0 && (
@@ -588,6 +635,87 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
                 No se encontraron plantillas con el término "{templateSearch}".
               </div>
             )}
+          </div>
+
+          {/* Footer with Selection & Confirmation CTA */}
+          <div className="border-t border-[#eaecf0] bg-zinc-50/90 backdrop-blur-md p-4 sm:p-5 px-6 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+            <div className="flex items-center gap-3 text-left w-full sm:w-auto">
+              {selectedTemplate ? (
+                <div className="flex items-center gap-3">
+                  <div className="relative h-11 w-11 shrink-0 rounded-xl overflow-hidden border border-zinc-200 shadow-2xs">
+                    <Image
+                      src={selectedTemplate.imageUrl}
+                      alt={selectedTemplate.title}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#0066FF]">
+                        Plantilla seleccionada
+                      </span>
+                      <span className="text-[10px] font-extrabold text-zinc-400">
+                        · {selectedTemplate.code}
+                      </span>
+                    </div>
+                    <h5 className="text-sm font-extrabold text-[#101828] truncate max-w-[260px] sm:max-w-[340px]">
+                      {selectedTemplate.title}
+                    </h5>
+                    <p className="text-xs text-zinc-500 font-medium">
+                      {selectedTemplate.durationDays} días · ~{selectedTemplate.estimatedBudget} € · {selectedTemplate.activities.length} actividades
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2.5 text-zinc-500">
+                  <span className="flex h-2.5 w-2.5 rounded-full bg-zinc-300 animate-pulse" />
+                  <p className="text-xs sm:text-sm font-medium">
+                    Haz clic en una plantilla para seleccionarla y confirmarla
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedTemplate(null);
+                  setStep('choose');
+                }}
+                className="px-4 py-2.5 rounded-xl border border-zinc-200 bg-white text-xs font-bold text-zinc-700 hover:bg-zinc-100 transition-colors cursor-pointer"
+              >
+                Volver
+              </button>
+              <button
+                type="button"
+                disabled={!selectedTemplate || isSubmitting}
+                onClick={() => {
+                  if (selectedTemplate) {
+                    handleSelectTemplate(selectedTemplate);
+                  }
+                }}
+                className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md ${
+                  selectedTemplate && !isSubmitting
+                    ? 'bg-[#0066FF] text-white hover:bg-[#0052CC] hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]'
+                    : 'bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none'
+                }`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-white" />
+                    <span>Creando viaje...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Confirmar y crear viaje</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

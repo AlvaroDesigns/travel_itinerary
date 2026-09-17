@@ -75,7 +75,14 @@ export function DashboardShell({
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
   const getUserDisplayName = () => {
-    if (user?.email) return user.email.split('@')[0];
+    if (user?.name?.trim()) return user.name.trim();
+    if (user?.email) {
+      const username = user.email.split('@')[0];
+      return username
+        .split(/[._-]/)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+    }
     return 'Mi Cuenta';
   };
 

@@ -1,0 +1,46 @@
+[
+  {
+    "code": "EXP-01",
+    "title": "Vietnam Mágico & Templos de Angkor",
+    "days": "14 Días · 2 Viajeros",
+    "price": "4.890 €",
+    "category": "Expedición Privada",
+    "image": "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1200&q=80",
+    "badge": "Bespoke",
+    "stops": ["Hanoi", "Ha Long", "Hoi An", "Siem Reap"],
+    "description": "Crucero privado en bahía de Lan Ha, gastronomía en templos ocultos de Hoi An y amanecer exclusivo en Angkor Wat."
+  },
+  {
+    "code": "EXP-02",
+    "title": "Japón Tradicional & Kioto Secreto",
+    "days": "12 Días · 2 Viajeros",
+    "price": "6.200 €",
+    "category": "Inmersión Cultural",
+    "image": "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80",
+    "badge": "Heritage",
+    "stops": ["Tokio", "Kyoto", "Nara", "Osaka"],
+    "description": "Ryokans centenarios con onsen privados, ceremonia del té con maestros zen y tren bala Shinkansen en Gran Class."
+  },
+  {
+    "code": "EXP-03",
+    "title": "Luna de Miel Bali & Komodo Privado",
+    "days": "10 Días · Pareja",
+    "price": "5.450 €",
+    "category": "Signature Honeymoon",
+    "image": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=80",
+    "badge": "Exclusivo",
+    "stops": ["Ubud", "Nusa Penida", "Komodo", "Seminyak"],
+    "description": "Villas sobre acantilados de Uluwatu, goleta de madera privada por el parque nacional de Komodo y cenas a la luz de las velas."
+  },
+  {
+    "code": "EXP-04",
+    "title": "Safari Kenia & Costas de Zanzíbar",
+    "days": "11 Días · 4 Viajeros",
+    "price": "7.800 €",
+    "category": "Wilderness & Luxury",
+    "image": "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=80",
+    "badge": "Aventura VIP",
+    "stops": ["Masai Mara", "Lago Nakuru", "Nairobi", "Zanzíbar"],
+    "description": "Campamentos de lona de ultra-lujo en la reserva nacional, avionetas privadas entre parques y descanso en villas oceánicas."
+  }
+]

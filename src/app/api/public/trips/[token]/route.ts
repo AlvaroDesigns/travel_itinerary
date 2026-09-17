@@ -10,6 +10,7 @@ type PublicTripRow = {
   name: string;
   start_date: string;
   end_date: string;
+  budget?: number | string | null;
   image_url: string | null;
   description: string | null;
   public_show_expenses: boolean;
@@ -64,6 +65,7 @@ export async function GET(
         t.name,
         t.start_date,
         t.end_date,
+        t.budget,
         t.image_url,
         t.description,
         s.reminder_enabled,
@@ -89,6 +91,7 @@ export async function GET(
           t.name,
           t.start_date,
           t.end_date,
+          t.budget,
           t.image_url,
           t.description,
           s.reminder_enabled,
@@ -153,11 +156,21 @@ export async function GET(
       ...activity.details,
     }));
 
-    const userResult = await pool.query<{ preferences: Record<string, unknown> }>(
-      'SELECT preferences FROM users WHERE id = $1',
+    const userResult = await pool.query<{ role: string; tenant_id: string | null; agency_name: string | null; preferences: Record<string, unknown> }>(
+      'SELECT role, tenant_id, agency_name, preferences FROM users WHERE id = $1',
       [trip.user_id]
     );
-    const userPrefs = (userResult.rows[0]?.preferences as Record<string, any>) || {};
+    const userRow = userResult.rows[0];
+    const userPrefs = (userRow?.preferences as Record<string, any>) || {};
+    const isAgency = Boolean(
+      userRow?.role === 'admin' ||
+      userRow?.role === 'superadmin' ||
+      userRow?.role === 'superuser' ||
+      (userRow?.tenant_id && userRow?.tenant_id !== 'particular')
+    );
+    const agencyLogo = userPrefs.agencyLogo ? userPrefs.agencyLogo : null;
+    const agencyName = userRow?.agency_name || null;
+
     const paymentProviders = {
       redsys: userPrefs.paymentProviders?.redsys?.connected !== false,
       stripe: Boolean(userPrefs.paymentProviders?.stripe?.connected),
@@ -170,11 +183,14 @@ export async function GET(
         name: trip.name,
         startDate: trip.start_date,
         endDate: trip.end_date,
+        budget: trip.budget ? Number(trip.budget) : 0,
         imageUrl: trip.image_url,
         description: trip.description,
         showExpenses: trip.public_show_expenses,
         paymentProviders,
         activities,
+        agencyLogo,
+        agencyName,
       },
     });
   } catch (error) {

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useTravel, Trip } from '@/context/TravelContext';
 import { DashboardShell } from '@/components/DashboardShell';
 import { WanderlustLoader } from '@/components/WanderlustLoader';
+import { ShareTripModal } from '@/components/ShareTripModal';
 import {
   Share2,
   Search,
@@ -463,87 +464,13 @@ export default function EnlacesPublicosPage() {
 
         {/* Share Modal */}
         {selectedShareTrip && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-            <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-2xl animate-scale-in border border-[#eaecf0] space-y-5">
-              <div className="flex items-center justify-between pb-3 border-b border-[#f2f4f7]">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-[#0066FF]">
-                    <Share2 className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-extrabold text-sm text-[#101828]">Compartir Itinerario</h3>
-                    <p className="text-xs text-[#667085] truncate max-w-[200px]">{selectedShareTrip.name}</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedShareTrip(null)}
-                  className="rounded-full p-2 text-[#667085] hover:bg-[#f2f4f7] transition"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* URL Box */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#344054]">Enlace público directo</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    value={getTripPublicUrl(selectedShareTrip.id)}
-                    className="w-full rounded-2xl border border-[#eaecf0] bg-[#f8fafc] px-3 py-2 text-xs font-mono text-[#344054]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleCopyLink(selectedShareTrip.id)}
-                    className="rounded-2xl bg-[#0066FF] px-4 py-2 text-xs font-bold text-white hover:bg-[#0052CC] transition cursor-pointer shrink-0"
-                  >
-                    {copiedId === selectedShareTrip.id ? '¡Copiado!' : 'Copiar'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Quick WhatsApp / Email share buttons */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <a
-                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
-                    `¡Hola! Aquí tienes el itinerario detallado de tu viaje "${selectedShareTrip.name}": ${getTripPublicUrl(
-                      selectedShareTrip.id
-                    )}`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-center text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition flex items-center justify-center gap-1.5"
-                >
-                  <Send className="h-3.5 w-3.5" />
-                  <span>Enviar por WhatsApp</span>
-                </a>
-
-                <a
-                  href={`mailto:?subject=${encodeURIComponent(
-                    `Itinerario de viaje: ${selectedShareTrip.name}`
-                  )}&body=${encodeURIComponent(
-                    `Hola,\n\nPuedes consultar el itinerario completo en el siguiente enlace:\n${getTripPublicUrl(
-                      selectedShareTrip.id
-                    )}\n\n¡Buen viaje!`
-                  )}`}
-                  className="rounded-2xl border border-[#eaecf0] bg-[#f8fafc] p-3 text-center text-xs font-bold text-[#344054] hover:bg-[#f2f4f7] transition flex items-center justify-center gap-1.5"
-                >
-                  <Send className="h-3.5 w-3.5" />
-                  <span>Enviar por Email</span>
-                </a>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setSelectedShareTrip(null)}
-                className="w-full rounded-2xl bg-[#f2f4f7] py-2.5 text-xs font-bold text-[#475467] hover:bg-[#e4e7ec] transition"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
+          <ShareTripModal
+            isOpen={Boolean(selectedShareTrip)}
+            onClose={() => setSelectedShareTrip(null)}
+            tripId={selectedShareTrip.id}
+            tripName={selectedShareTrip.name}
+            tripCode={settingsMap[selectedShareTrip.id]?.publicAccessToken || selectedShareTrip.id}
+          />
         )}
       </div>
     </DashboardShell>

@@ -8,7 +8,6 @@ import {
   Building2,
   Check,
   ChevronDown,
-  CreditCard,
   Globe,
   Plane,
   X,
@@ -16,6 +15,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import destinations from "@/data/destinations.json";
+import comparisonSteps from "@/data/comparisonSteps.json";
 
 const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
@@ -236,148 +237,6 @@ export default function HomePage() {
     agencyName: "",
     phone: "",
   });
-
-  const destinations = [
-    {
-      code: "EXP-01",
-      title: "Vietnam Mágico & Templos de Angkor",
-      days: "14 Días · 2 Viajeros",
-      price: "4.890 €",
-      category: "Expedición Privada",
-      image:
-        "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1200&q=80",
-      badge: "Bespoke",
-      stops: ["Hanoi", "Ha Long", "Hoi An", "Siem Reap"],
-      description:
-        "Crucero privado en bahía de Lan Ha, gastronomía en templos ocultos de Hoi An y amanecer exclusivo en Angkor Wat.",
-    },
-    {
-      code: "EXP-02",
-      title: "Japón Tradicional & Kioto Secreto",
-      days: "12 Días · 2 Viajeros",
-      price: "6.200 €",
-      category: "Inmersión Cultural",
-      image:
-        "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80",
-      badge: "Heritage",
-      stops: ["Tokio", "Kyoto", "Nara", "Osaka"],
-      description:
-        "Ryokans centenarios con onsen privados, ceremonia del té con maestros zen y tren bala Shinkansen en Gran Class.",
-    },
-    {
-      code: "EXP-03",
-      title: "Luna de Miel Bali & Komodo Privado",
-      days: "10 Días · Pareja",
-      price: "5.450 €",
-      category: "Signature Honeymoon",
-      image:
-        "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=80",
-      badge: "Exclusivo",
-      stops: ["Ubud", "Nusa Penida", "Komodo", "Seminyak"],
-      description:
-        "Villas sobre acantilados de Uluwatu, goleta de madera privada por el parque nacional de Komodo y cenas a la luz de las velas.",
-    },
-    {
-      code: "EXP-04",
-      title: "Safari Kenia & Costas de Zanzíbar",
-      days: "11 Días · 4 Viajeros",
-      price: "7.800 €",
-      category: "Wilderness & Luxury",
-      image:
-        "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1200&q=80",
-      badge: "Aventura VIP",
-      stops: ["Masai Mara", "Lago Nakuru", "Nairobi", "Zanzíbar"],
-      description:
-        "Campamentos de lona de ultra-lujo en la reserva nacional, avionetas privadas entre parques y descanso en villas oceánicas.",
-    },
-  ];
-
-  const comparisonSteps = [
-    {
-      index: "01",
-      total: "04",
-      pill: "SINCRONIZACIÓN",
-      title: "Sincronización Total",
-      versus: "vs Documentos Muertos",
-      wanderlustTitle: "WANDERLUST",
-      wanderlustText:
-        "Mapas interactivos en tiempo real, confirmaciones vivas y cobro directo de anticipos con tarjeta o Apple Pay en un solo enlace sincronizado.",
-      wanderlustBullet1:
-        "Actualizaciones automáticas que tus viajeros ven al instante sin reenviar archivos.",
-      wanderlustBullet2:
-        "Pasarela Stripe integrada con liquidación directa en tu cuenta bancaria.",
-      oldWorldTitle: "El Viejo Mundo",
-      oldWorldText:
-        "PDFs estáticos de 40 páginas, cambios que se extravían por correos infinitos y transferencias bancarias manuales que demoran semanas.",
-      oldWorldBullet1:
-        "Versiones confusas (v1, v2_final, definitiva_ok.pdf) que confunden al cliente.",
-      oldWorldBullet2:
-        "Procesos de cobro por ventanilla con alta tasa de abandono.",
-    },
-    {
-      index: "02",
-      total: "04",
-      pill: "LIQUIDACIÓN",
-      title: "Cobro Inmediato",
-      versus: "vs Cobranza Manual",
-      wanderlustTitle: "WANDERLUST",
-      wanderlustText:
-        "Recibe pagos fraccionados o depósitos de señal vía Stripe Connect, Redsys o Bizum directamente integrados en el desglose del viaje.",
-      wanderlustBullet1:
-        "Depósitos directos sin intermediarios reteniendo tu flujo de caja.",
-      wanderlustBullet2:
-        "Notificaciones en tiempo real al registrarse cada abono del cliente.",
-      oldWorldTitle: "El Viejo Mundo",
-      oldWorldText:
-        "Perseguir justificantes de transferencia bancaria por WhatsApp y cotejar extractos contables manualmente al final de mes.",
-      oldWorldBullet1:
-        "Falta de inmediatez en el bloqueo de hoteles y reservas críticas.",
-      oldWorldBullet2:
-        "Inseguridad percibida por el viajero en pagos internacionales.",
-    },
-    {
-      index: "03",
-      total: "04",
-      pill: "MARCA BLANCA",
-      title: "Tu Agencia en el Centro",
-      versus: "vs Softwares Genéricos",
-      wanderlustTitle: "WANDERLUST",
-      wanderlustText:
-        "Todo el dominio, logotipo y tipografía responden a la identidad de tu agencia. Tu cliente nunca percibe una plataforma externa.",
-      wanderlustBullet1:
-        "Dominio propio o enlace privado con los colores institucionales de tu marca.",
-      wanderlustBullet2:
-        "Presentación ejecutiva digna del segmento de lujo internacional.",
-      oldWorldTitle: "El Viejo Mundo",
-      oldWorldText:
-        "Herramientas que muestran marcas de agua de terceros o formatos genéricos que devalúan el valor del diseño del asesor.",
-      oldWorldBullet1:
-        "Pérdida de autoridad y prestigio frente a agencias competidoras.",
-      oldWorldBullet2:
-        "Experiencia fragmentada entre diferentes proveedores sin hilo conductor.",
-    },
-    {
-      index: "04",
-      total: "04",
-      pill: "MÓVIL TOTAL",
-      title: "Web App de Bolsillo",
-      versus: "vs Impresiones Papel",
-      wanderlustTitle: "WANDERLUST",
-      wanderlustText:
-        "Tus clientes consultan horarios de vuelo, direcciones de hoteles y teléfonos de emergencia desde el navegador de su teléfono, sin instalar apps.",
-      wanderlustBullet1:
-        "Acceso offline ligero a números de emergencia y localizadores clave.",
-      wanderlustBullet2:
-        "Exportación a PDF editorial en un solo clic por si desean imprimir.",
-      oldWorldTitle: "El Viejo Mundo",
-      oldWorldText:
-        "Carpetas de papel arrugadas en el equipaje de mano y PDFs pesados que no cargan con mala cobertura en destino.",
-      oldWorldBullet1:
-        "Llamadas de pánico al agente fuera de horario por datos extraviados.",
-      oldWorldBullet2:
-        "Nula capacidad de adaptación ante retrasos de vuelo imprevistos.",
-    },
-  ];
 
   const faqs = [
     {
@@ -1017,9 +876,8 @@ export default function HomePage() {
                       whileHover={{ scale: 1.04 }}
                       whileTap={{ scale: 0.96 }}
                       onClick={() => setRegisterModalOpen(true)}
-                      className="px-4 py-2 rounded-lg bg-[#0066FF] text-white text-xs font-medium tracking-wide flex items-center gap-2 cursor-pointer transition-all shadow-sm"
+                      className="px-4 py-2 rounded-full bg-[#0066FF] text-white text-xs font-medium tracking-wide flex items-center gap-2 cursor-pointer transition-all shadow-sm"
                     >
-                      <CreditCard className="w-4 h-4" />
                       <span>Abonar con Stripe</span>
                     </motion.button>
                   </div>
@@ -1995,7 +1853,9 @@ export default function HomePage() {
                           })
                         }
                         placeholder="Ej. Carlos Menéndez"
-                        style={{ backgroundColor: isLight ? '#ffffff' : undefined }}
+                        style={{
+                          backgroundColor: isLight ? "#ffffff" : undefined,
+                        }}
                         className={`w-full px-4 py-3 rounded-2xl border text-sm transition-colors ${
                           isLight
                             ? "border-zinc-200 bg-white !bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 shadow-xs"
@@ -2024,7 +1884,9 @@ export default function HomePage() {
                             })
                           }
                           placeholder="Ej. Aethelgard Travel"
-                          style={{ backgroundColor: isLight ? '#ffffff' : undefined }}
+                          style={{
+                            backgroundColor: isLight ? "#ffffff" : undefined,
+                          }}
                           className={`w-full px-4 py-3 rounded-2xl border text-sm transition-colors ${
                             isLight
                               ? "border-zinc-200 bg-white !bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 shadow-xs"
@@ -2051,7 +1913,9 @@ export default function HomePage() {
                             })
                           }
                           placeholder="carlos@aethelgard.com"
-                          style={{ backgroundColor: isLight ? '#ffffff' : undefined }}
+                          style={{
+                            backgroundColor: isLight ? "#ffffff" : undefined,
+                          }}
                           className={`w-full px-4 py-3 rounded-2xl border text-sm transition-colors ${
                             isLight
                               ? "border-zinc-200 bg-white !bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 shadow-xs"
@@ -2080,7 +1944,9 @@ export default function HomePage() {
                           })
                         }
                         placeholder="+34 600 000 000"
-                        style={{ backgroundColor: isLight ? '#ffffff' : undefined }}
+                        style={{
+                          backgroundColor: isLight ? "#ffffff" : undefined,
+                        }}
                         className={`w-full px-4 py-3 rounded-2xl border text-sm transition-colors ${
                           isLight
                             ? "border-zinc-200 bg-white !bg-white text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-[#0066FF] focus:ring-4 focus:ring-[#0066FF]/10 shadow-xs"

@@ -96,7 +96,14 @@ export default function DashboardPage() {
   }, []);
 
   const getUserDisplayName = () => {
-    if (user?.email) return user.email.split('@')[0];
+    if (user?.name?.trim()) return user.name.trim();
+    if (user?.email) {
+      const username = user.email.split('@')[0];
+      return username
+        .split(/[._-]/)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+    }
     return 'Agente';
   };
 
@@ -108,20 +115,20 @@ export default function DashboardPage() {
     totalUsers: 1,
     activeUsers: 1,
     adminUsers: 1,
-    newUsersLast30Days: 1,
+    newUsersLast30Days: 0,
     totalTrips: trips.length,
     upcomingTrips: trips.filter((t) => t.startDate > new Date().toISOString().split('T')[0]).length,
     activeTrips: trips.filter((t) => t.startDate <= new Date().toISOString().split('T')[0] && t.endDate >= new Date().toISOString().split('T')[0]).length,
-    totalActivities: 0,
-    totalActivitySpend: 0,
+    totalActivities: trips.reduce((acc, t) => acc + (t.activities?.length || 0), 0),
+    totalActivitySpend: trips.reduce((acc, t) => acc + (t.activities || []).reduce((sum, a) => sum + (a.price || 0), 0), 0),
     remindersEnabled: 0,
-    publicLinksEnabled: trips.length,
+    publicLinksEnabled: 0,
   };
 
   const cards = [
     {
       label: 'Mis viajes',
-      value: trips.length || overview.totalTrips,
+      value: trips.length,
       detail: `${overview.activeTrips} en curso · ${overview.upcomingTrips} próximos`,
       icon: Plane,
       tone: 'bg-blue-50 text-[#0066FF]',
@@ -129,7 +136,7 @@ export default function DashboardPage() {
     },
     {
       label: 'Clientes registrados',
-      value: clients.length || overview.activeUsers,
+      value: clients.length,
       detail: `${clients.length} contactos en CRM`,
       icon: Users,
       tone: 'bg-sky-50 text-sky-700',
@@ -137,7 +144,7 @@ export default function DashboardPage() {
     },
     {
       label: 'Enlaces públicos',
-      value: overview.publicLinksEnabled || trips.length,
+      value: overview.publicLinksEnabled,
       detail: 'Itinerarios compartibles en vivo',
       icon: Share2,
       tone: 'bg-indigo-50 text-indigo-700',
@@ -145,7 +152,7 @@ export default function DashboardPage() {
     },
     {
       label: 'Actividades programadas',
-      value: overview.totalActivities || trips.reduce((acc, t) => acc + (t.activities?.length || 0), 0),
+      value: overview.totalActivities,
       detail: overview.totalActivitySpend > 0 ? `Presupuesto: ${formatCurrency(overview.totalActivitySpend)}` : 'Servicios en rutas',
       icon: Activity,
       tone: 'bg-cyan-50 text-cyan-700',

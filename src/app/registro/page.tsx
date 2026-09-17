@@ -63,7 +63,7 @@ export default function RegisterPage() {
 
       setSuccess(true);
       setTimeout(() => {
-        window.location.href = '/viajes';
+        window.location.href = '/dashboard';
       }, 1200);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ocurrió un error al registrarse');

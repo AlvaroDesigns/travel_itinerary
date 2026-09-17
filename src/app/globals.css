@@ -45,6 +45,7 @@
 }
 
 :root {
+  color-scheme: light;
   --font-outfit: 'Outfit', sans-serif;
   --font-geist-sans: var(--font-outfit), 'Outfit', sans-serif;
   --primary: #0066ff;
@@ -53,6 +54,26 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html,
+body {
+  color-scheme: light;
+}
+
+/* Evitar controles oscuros nativos cuando el navegador/SO está en modo oscuro */
+input,
+select,
+textarea,
+button {
+  color-scheme: light;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  color-scheme: light;
+  accent-color: #0066ff;
+  cursor: pointer;
 }
 
 /* Emil Kowalski tactile press feedback */

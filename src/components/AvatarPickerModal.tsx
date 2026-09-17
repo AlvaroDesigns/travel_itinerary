@@ -244,10 +244,11 @@ export function UserAvatarDisplay({
 }: {
   avatar?: string;
   name?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }) {
   const sizeClasses = {
+    xs: 'h-6 w-6 text-[10px]',
     sm: 'h-8 w-8 text-xs',
     md: 'h-10 w-10 text-sm',
     lg: 'h-16 w-16 text-xl',

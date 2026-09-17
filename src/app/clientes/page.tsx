@@ -437,7 +437,7 @@ export default function ClientesPage() {
                           filteredClients.length > 0
                         }
                         onChange={handleSelectAll}
-                        className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
+                        className="rounded border-[#d0d5dd] accent-[#0066FF] cursor-pointer"
                       />
                     </th>
                     <th className="px-4 py-3.5 font-semibold">Cliente</th>
@@ -508,7 +508,7 @@ export default function ClientesPage() {
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => {}}
-                              className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
+                              className="rounded border-[#d0d5dd] accent-[#0066FF] cursor-pointer"
                             />
                           </td>
 
@@ -1023,7 +1023,7 @@ export default function ClientesPage() {
                                   : [...prev, trip.id],
                               );
                             }}
-                            className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
+                            className="rounded border-[#d0d5dd] accent-[#0066FF] cursor-pointer"
                           />
                           <span className="font-semibold text-[#101828] truncate flex-1">
                             {trip.name}
@@ -1141,7 +1141,7 @@ export default function ClientesPage() {
                                 : [...prev, trip.id],
                             );
                           }}
-                          className="rounded border-[#d0d5dd] text-[#0066FF] focus:ring-[#0066FF]"
+                          className="h-4 w-4 rounded border-[#d0d5dd] accent-[#0066FF] cursor-pointer"
                         />
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-[#101828] truncate">

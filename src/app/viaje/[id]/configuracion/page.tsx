@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useTravel } from '@/context/TravelContext';
 import { DashboardShell } from '@/components/DashboardShell';
 import { TripNotificationSettings } from '@/components/TripNotificationSettings';
+import { TripNotFound } from '@/components/TripNotFound';
 import { WanderlustLoader } from '@/components/WanderlustLoader';
 import { ArrowLeft, Settings, ChevronRight, Eye, Edit } from 'lucide-react';
 
@@ -19,6 +20,10 @@ export default function TripConfigPage({ params }: { params: Promise<{ id: strin
 
   if (isLoading) {
     return <WanderlustLoader />;
+  }
+
+  if (!trip) {
+    return <TripNotFound />;
   }
 
   return (

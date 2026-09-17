@@ -151,7 +151,7 @@ export async function GET(request: Request) {
       maxAge: 7 * 24 * 60 * 60, // 7 days
     });
 
-    const destination = stateData.redirect && stateData.redirect.startsWith('/') ? stateData.redirect : '/viajes';
+    const destination = stateData.redirect && stateData.redirect.startsWith('/') ? stateData.redirect : '/dashboard';
     return NextResponse.redirect(new URL(destination, request.url));
   } catch (err) {
     console.error('Google OAuth callback error:', err);

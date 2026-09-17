@@ -33,9 +33,14 @@ import {
   ChevronUp,
   Check,
   ShieldCheck,
+  ListChecks,
   Sun,
   Globe,
+  Lock,
+  Upload,
 } from 'lucide-react';
+import { useTravel } from '@/context/TravelContext';
+import { isAgencyUser } from '@/lib/user-utils';
 import { TRIP_TEMPLATES, TripTemplate } from '@/lib/templates-data';
 
 export type BlockCategoryType = 'esenciales' | 'servicios' | 'multimedia' | 'otros';
@@ -136,6 +141,24 @@ export function TripEditorSidebar({
   onUpdateLanguageSettings,
   onSelectTemplate,
 }: TripEditorSidebarProps) {
+  const { user } = useTravel();
+  const isAgency = isAgencyUser(user);
+  const sidebarLogoInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const handleSidebarLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result) {
+          onUpdateThemeSettings({ logoUrl: reader.result as string });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Accordion state for blocks drawer
   const [categoriesOpen, setCategoriesOpen] = useState<{ [key in BlockCategoryType]: boolean }>({
     esenciales: true,
@@ -269,9 +292,16 @@ export function TripEditorSidebar({
                         onDragStart={onDragStartBlock}
                       />
                       <BlockGridItem
-                        label="Resumen de servicios"
-                        icon={ListOrdered}
+                        label="Documentos"
+                        icon={Paperclip}
                         type="services_summary"
+                        onAdd={onAddBlock}
+                        onDragStart={onDragStartBlock}
+                      />
+                      <BlockGridItem
+                        label="Qué incluye"
+                        icon={ListChecks}
+                        type="conditions"
                         onAdd={onAddBlock}
                         onDragStart={onDragStartBlock}
                       />
@@ -647,35 +677,100 @@ export function TripEditorSidebar({
                 </div>
 
                 {/* 2. SECCIÓN LOGOTIPO */}
-                <div className="space-y-3 pt-4 border-t border-[#eaecf0]">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-[#344054]">Logotipo</h4>
-                    <span className="text-[10px] text-zinc-500 font-medium">PNG, SVG o JPG</span>
-                  </div>
+                {isAgency ? (
+                  <div className="space-y-3 pt-4 border-t border-[#eaecf0]">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="text-xs font-black uppercase tracking-wider text-[#344054]">Logotipo</h4>
+                        <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[9px] font-bold text-[#0066FF]">
+                          Agencia
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-zinc-500 font-medium">PNG / SVG</span>
+                    </div>
 
-                  <div className="flex items-center gap-3 rounded-2xl border border-[#eaecf0] bg-[#fafafa] p-3">
-                    <div className="relative h-12 w-24 shrink-0 rounded-xl bg-white border border-zinc-200 flex items-center justify-center overflow-hidden p-1">
-                      <Image
-                        src="/wanderlust_horizontal_negro.png"
-                        alt="Logo"
-                        width={90}
-                        height={32}
-                        className="object-contain"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="flex items-center gap-2 text-xs font-bold text-[#101828] cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={themeSettings.showLogoInPublic}
-                          onChange={(e) => onUpdateThemeSettings({ showLogoInPublic: e.target.checked })}
-                          className="rounded border-zinc-300 text-[#0066FF] focus:ring-[#0066FF]"
+                    <div className="flex items-center gap-3 rounded-2xl border border-[#eaecf0] bg-[#fafafa] p-3">
+                      <div className="relative h-12 w-28 shrink-0 rounded-xl bg-white border border-zinc-200 flex items-center justify-center overflow-hidden p-1 shadow-2xs">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={
+                            (themeSettings.logoUrl && themeSettings.logoUrl !== "/wanderlust_horizontal_negro.png" ? themeSettings.logoUrl : null) ||
+                            user?.agencyLogo ||
+                            (typeof window !== "undefined" ? localStorage.getItem("wanderlust_agency_logo") : null) ||
+                            "/wanderlust_horizontal_negro.png"
+                          }
+                          alt="Logo"
+                          className="max-h-full max-w-full object-contain"
                         />
-                        <span>Mostrar en vista cliente</span>
-                      </label>
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <label className="flex items-center gap-2 text-xs font-bold text-[#101828] cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={themeSettings.showLogoInPublic}
+                            onChange={(e) => onUpdateThemeSettings({ showLogoInPublic: e.target.checked })}
+                            className="rounded border-zinc-300 text-[#0066FF] focus:ring-[#0066FF]"
+                          />
+                          <span>Mostrar en propuesta</span>
+                        </label>
+
+                        <input
+                          type="file"
+                          ref={sidebarLogoInputRef}
+                          onChange={handleSidebarLogoUpload}
+                          accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                          className="hidden"
+                        />
+
+                        <div className="flex items-center gap-2 pt-0.5">
+                          <button
+                            type="button"
+                            onClick={() => sidebarLogoInputRef.current?.click()}
+                            className="text-[10px] font-bold text-[#0066FF] hover:underline cursor-pointer flex items-center gap-1"
+                          >
+                            <Upload className="h-3 w-3" />
+                            <span>Cambiar logo</span>
+                          </button>
+
+                          {themeSettings.logoUrl && themeSettings.logoUrl !== "/wanderlust_horizontal_negro.png" && (
+                            <button
+                              type="button"
+                              onClick={() => onUpdateThemeSettings({ logoUrl: "/wanderlust_horizontal_negro.png" })}
+                              className="text-[10px] font-semibold text-zinc-500 hover:text-zinc-800 hover:underline cursor-pointer"
+                            >
+                              Restaurar
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-3 pt-4 border-t border-[#eaecf0]">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-[#344054]">Logotipo</h4>
+                      <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-[9px] font-bold text-zinc-600 flex items-center gap-1">
+                        <Lock className="h-2.5 w-2.5" /> Exclusivo Agencias
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-[#f9fafb] p-3 opacity-90">
+                      <div className="relative h-12 w-24 shrink-0 rounded-xl bg-white border border-zinc-200 flex items-center justify-center overflow-hidden p-1">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/wanderlust_horizontal_negro.png"
+                          alt="Logo"
+                          className="max-h-full max-w-full object-contain"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[11px] text-zinc-500 leading-snug">
+                          La marca personalizada está reservada para <strong>cuentas de Agencia</strong>.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* 3. SECCIÓN COLORES DE MARCA */}
                 <div className="space-y-3 pt-4 border-t border-[#eaecf0]">

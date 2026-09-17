@@ -29,40 +29,69 @@ type RecentUserRow = {
   created_at: string;
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   const user = await getAuthenticatedUser();
   if (!user) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
+  const url = new URL(request.url);
+  const tenantFilter = url.searchParams.get('tenantId')?.trim() ?? '';
+  const isSuper = user.role === 'superuser' || user.role === 'superadmin';
+  const userTenant = user.tenantId || 'particular';
+
   try {
+    let params: unknown[] = [];
+    let tripWhere = '';
+    let userWhere = '';
+
+    if (!isSuper) {
+      params = [user.userId, userTenant];
+      tripWhere = 'WHERE (t.user_id = $1 OR ($2 <> \'particular\' AND u.tenant_id = $2))';
+      userWhere = 'WHERE (id = $1 OR ($2 <> \'particular\' AND tenant_id = $2))';
+    } else if (tenantFilter && tenantFilter !== 'all') {
+      params = [tenantFilter];
+      tripWhere = 'WHERE u.tenant_id = $1';
+      userWhere = 'WHERE tenant_id = $1';
+    }
+
+    const overviewSql = `
+      SELECT
+        (SELECT COUNT(*) FROM users ${userWhere})::text AS total_users,
+        (SELECT COUNT(*) FROM users ${userWhere ? userWhere + ' AND is_active' : 'WHERE is_active'})::text AS active_users,
+        (SELECT COUNT(*) FROM users ${userWhere ? userWhere + " AND role = 'admin'" : "WHERE role = 'admin'"})::text AS admin_users,
+        (SELECT COUNT(*) FROM users ${userWhere ? userWhere + " AND created_at >= CURRENT_TIMESTAMP - INTERVAL '30 days'" : "WHERE created_at >= CURRENT_TIMESTAMP - INTERVAL '30 days'"})::text AS new_users_last_30_days,
+        (SELECT COUNT(*) FROM trips t JOIN users u ON u.id = t.user_id ${tripWhere})::text AS total_trips,
+        (SELECT COUNT(*) FROM trips t JOIN users u ON u.id = t.user_id ${tripWhere ? tripWhere + " AND t.start_date > CURRENT_DATE::text" : "WHERE t.start_date > CURRENT_DATE::text"})::text AS upcoming_trips,
+        (SELECT COUNT(*) FROM trips t JOIN users u ON u.id = t.user_id ${tripWhere ? tripWhere + " AND t.start_date <= CURRENT_DATE::text AND t.end_date >= CURRENT_DATE::text" : "WHERE t.start_date <= CURRENT_DATE::text AND t.end_date >= CURRENT_DATE::text"})::text AS active_trips,
+        (SELECT COUNT(*) FROM activities a JOIN trips t ON t.id = a.trip_id JOIN users u ON u.id = t.user_id ${tripWhere})::text AS total_activities,
+        (SELECT COALESCE(SUM(a.price), 0) FROM activities a JOIN trips t ON t.id = a.trip_id JOIN users u ON u.id = t.user_id ${tripWhere})::text AS total_activity_spend,
+        (SELECT COUNT(*) FROM trip_notification_settings s JOIN trips t ON t.id = s.trip_id JOIN users u ON u.id = t.user_id ${tripWhere ? tripWhere + ' AND s.reminder_enabled' : 'WHERE s.reminder_enabled'})::text AS reminders_enabled,
+        (SELECT COUNT(*) FROM trip_notification_settings s JOIN trips t ON t.id = s.trip_id JOIN users u ON u.id = t.user_id ${tripWhere ? tripWhere + ' AND s.public_access_enabled' : 'WHERE s.public_access_enabled'})::text AS public_links_enabled
+    `;
+
+    const breakdownSql = `
+      SELECT a.type, COUNT(*)::text AS count, COALESCE(SUM(a.price), 0)::text AS spend
+      FROM activities a
+      JOIN trips t ON t.id = a.trip_id
+      JOIN users u ON u.id = t.user_id
+      ${tripWhere}
+      GROUP BY a.type
+      ORDER BY COUNT(*) DESC, a.type ASC
+    `;
+
+    const recentUsersSql = `
+      SELECT id, email, role, created_at
+      FROM users
+      ${userWhere}
+      ORDER BY created_at DESC
+      LIMIT 5
+    `;
+
     const [overviewResult, breakdownResult, recentUsersResult] = await Promise.all([
-      pool.query<OverviewRow>(`
-        SELECT
-          (SELECT COUNT(*) FROM users)::text AS total_users,
-          (SELECT COUNT(*) FROM users WHERE is_active)::text AS active_users,
-          (SELECT COUNT(*) FROM users WHERE role = 'admin')::text AS admin_users,
-          (SELECT COUNT(*) FROM users WHERE created_at >= CURRENT_TIMESTAMP - INTERVAL '30 days')::text AS new_users_last_30_days,
-          (SELECT COUNT(*) FROM trips)::text AS total_trips,
-          (SELECT COUNT(*) FROM trips WHERE start_date > CURRENT_DATE::text)::text AS upcoming_trips,
-          (SELECT COUNT(*) FROM trips WHERE start_date <= CURRENT_DATE::text AND end_date >= CURRENT_DATE::text)::text AS active_trips,
-          (SELECT COUNT(*) FROM activities)::text AS total_activities,
-          (SELECT COALESCE(SUM(price), 0) FROM activities)::text AS total_activity_spend,
-          (SELECT COUNT(*) FROM trip_notification_settings WHERE reminder_enabled)::text AS reminders_enabled,
-          (SELECT COUNT(*) FROM trip_notification_settings WHERE public_access_enabled)::text AS public_links_enabled
-      `),
-      pool.query<ActivityBreakdownRow>(`
-        SELECT type, COUNT(*)::text AS count, COALESCE(SUM(price), 0)::text AS spend
-        FROM activities
-        GROUP BY type
-        ORDER BY COUNT(*) DESC, type ASC
-      `),
-      pool.query<RecentUserRow>(`
-        SELECT id, email, role, created_at
-        FROM users
-        ORDER BY created_at DESC
-        LIMIT 5
-      `),
+      pool.query<OverviewRow>(overviewSql, params),
+      pool.query<ActivityBreakdownRow>(breakdownSql, params),
+      pool.query<RecentUserRow>(recentUsersSql, params),
     ]);
 
     const overview = overviewResult.rows[0];

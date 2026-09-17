@@ -20,7 +20,7 @@ function getBaseUrl(request: Request, reqUrl: URL) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const userType = searchParams.get('type') || 'particular';
-  const redirectParam = searchParams.get('redirect') || '/viajes';
+  const redirectParam = searchParams.get('redirect') || '/dashboard';
   const reqUrl = new URL(request.url);
   const baseUrl = getBaseUrl(request, reqUrl);
 

@@ -1,0 +1,62 @@
+[
+  {
+    "index": "01",
+    "total": "04",
+    "pill": "SINCRONIZACIÓN",
+    "title": "Sincronización Total",
+    "versus": "vs Documentos Muertos",
+    "wanderlustTitle": "WANDERLUST",
+    "wanderlustText": "Mapas interactivos en tiempo real, confirmaciones vivas y cobro directo de anticipos con tarjeta o Apple Pay en un solo enlace sincronizado.",
+    "wanderlustBullet1": "Actualizaciones automáticas que tus viajeros ven al instante sin reenviar archivos.",
+    "wanderlustBullet2": "Pasarela Stripe integrada con liquidación directa en tu cuenta bancaria.",
+    "oldWorldTitle": "El Viejo Mundo",
+    "oldWorldText": "PDFs estáticos de 40 páginas, cambios que se extravían por correos infinitos y transferencias bancarias manuales que demoran semanas.",
+    "oldWorldBullet1": "Versiones confusas (v1, v2_final, definitiva_ok.pdf) que confunden al cliente.",
+    "oldWorldBullet2": "Procesos de cobro por ventanilla con alta tasa de abandono."
+  },
+  {
+    "index": "02",
+    "total": "04",
+    "pill": "LIQUIDACIÓN",
+    "title": "Cobro Inmediato",
+    "versus": "vs Cobranza Manual",
+    "wanderlustTitle": "WANDERLUST",
+    "wanderlustText": "Recibe pagos fraccionados o depósitos de señal vía Stripe Connect, Redsys o Bizum directamente integrados en el desglose del viaje.",
+    "wanderlustBullet1": "Depósitos directos sin intermediarios reteniendo tu flujo de caja.",
+    "wanderlustBullet2": "Notificaciones en tiempo real al registrarse cada abono del cliente.",
+    "oldWorldTitle": "El Viejo Mundo",
+    "oldWorldText": "Perseguir justificantes de transferencia bancaria por WhatsApp y cotejar extractos contables manualmente al final de mes.",
+    "oldWorldBullet1": "Falta de inmediatez en el bloqueo de hoteles y reservas críticas.",
+    "oldWorldBullet2": "Inseguridad percibida por el viajero en pagos internacionales."
+  },
+  {
+    "index": "03",
+    "total": "04",
+    "pill": "MARCA BLANCA",
+    "title": "Tu Agencia en el Centro",
+    "versus": "vs Softwares Genéricos",
+    "wanderlustTitle": "WANDERLUST",
+    "wanderlustText": "Todo el dominio, logotipo y tipografía responden a la identidad de tu agencia. Tu cliente nunca percibe una plataforma externa.",
+    "wanderlustBullet1": "Dominio propio o enlace privado con los colores institucionales de tu marca.",
+    "wanderlustBullet2": "Presentación ejecutiva digna del segmento de lujo internacional.",
+    "oldWorldTitle": "El Viejo Mundo",
+    "oldWorldText": "Herramientas que muestran marcas de agua de terceros o formatos genéricos que devalúan el valor del diseño del asesor.",
+    "oldWorldBullet1": "Pérdida de autoridad y prestigio frente a agencias competidoras.",
+    "oldWorldBullet2": "Experiencia fragmentada entre diferentes proveedores sin hilo conductor."
+  },
+  {
+    "index": "04",
+    "total": "04",
+    "pill": "MÓVIL TOTAL",
+    "title": "Web App de Bolsillo",
+    "versus": "vs Impresiones Papel",
+    "wanderlustTitle": "WANDERLUST",
+    "wanderlustText": "Tus clientes consultan horarios de vuelo, direcciones de hoteles y teléfonos de emergencia desde el navegador de su teléfono, sin instalar apps.",
+    "wanderlustBullet1": "Acceso offline ligero a números de emergencia y localizadores clave.",
+    "wanderlustBullet2": "Exportación a PDF editorial en un solo clic por si desean imprimir.",
+    "oldWorldTitle": "El Viejo Mundo",
+    "oldWorldText": "Carpetas de papel arrugadas en el equipaje de mano y PDFs pesados que no cargan con mala cobertura en destino.",
+    "oldWorldBullet1": "Llamadas de pánico al agente fuera de horario por datos extraviados.",
+    "oldWorldBullet2": "Nula capacidad de adaptación ante retrasos de vuelo imprevistos."
+  }
+]

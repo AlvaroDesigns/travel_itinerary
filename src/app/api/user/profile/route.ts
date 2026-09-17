@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth';
 import { pool, initDb } from '@/lib/db';
 
-export async function GET() {
+export const dynamic = 'force-dynamic';
+
+export async function GET(_request: Request) {
   const session = await getAuthenticatedUser();
   if (!session) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -44,6 +46,7 @@ export async function GET() {
         dueDaysBeforeTrip: prefs.dueDaysBeforeTrip !== undefined ? prefs.dueDaysBeforeTrip : 15,
         agencyCif: prefs.agencyCif || '',
         termsText: prefs.termsText || '',
+        agencyLogo: prefs.agencyLogo || '',
         paymentProviders: prefs.paymentProviders || {
           stripe: { status: 'in_progress', connected: false, email: '' },
           redsys: { status: 'not_connected', connected: false },
