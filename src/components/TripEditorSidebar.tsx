@@ -696,7 +696,6 @@ export function TripEditorSidebar({
                           src={
                             (themeSettings.logoUrl && themeSettings.logoUrl !== "/wanderlust_horizontal_negro.png" ? themeSettings.logoUrl : null) ||
                             user?.agencyLogo ||
-                            (typeof window !== "undefined" ? localStorage.getItem("wanderlust_agency_logo") : null) ||
                             "/wanderlust_horizontal_negro.png"
                           }
                           alt="Logo"

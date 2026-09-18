@@ -156,8 +156,19 @@ export async function GET(
       ...activity.details,
     }));
 
-    const userResult = await pool.query<{ role: string; tenant_id: string | null; agency_name: string | null; preferences: Record<string, unknown> }>(
-      'SELECT role, tenant_id, agency_name, preferences FROM users WHERE id = $1',
+    const userResult = await pool.query<{
+      role: string;
+      tenant_id: string | null;
+      agency_name: string | null;
+      preferences: Record<string, unknown>;
+      tenant_logo: string | null;
+      tenant_agency_name: string | null;
+    }>(
+      `SELECT u.role, u.tenant_id, u.agency_name, u.preferences,
+              ts.agency_logo AS tenant_logo, ts.agency_name AS tenant_agency_name
+       FROM users u
+       LEFT JOIN tenant_settings ts ON ts.tenant_id = u.tenant_id
+       WHERE u.id = $1`,
       [trip.user_id]
     );
     const userRow = userResult.rows[0];
@@ -168,8 +179,11 @@ export async function GET(
       userRow?.role === 'superuser' ||
       (userRow?.tenant_id && userRow?.tenant_id !== 'particular')
     );
-    const agencyLogo = userPrefs.agencyLogo ? userPrefs.agencyLogo : null;
-    const agencyName = userRow?.agency_name || null;
+    const isParticular = !userRow?.tenant_id || userRow?.tenant_id === 'particular';
+    const agencyLogo = !isParticular && userRow?.tenant_logo !== null && userRow?.tenant_logo !== undefined
+      ? (userRow.tenant_logo || null)
+      : (userPrefs.agencyLogo ? userPrefs.agencyLogo : null);
+    const agencyName = userRow?.tenant_agency_name || userRow?.agency_name || null;
 
     const paymentProviders = {
       redsys: userPrefs.paymentProviders?.redsys?.connected !== false,

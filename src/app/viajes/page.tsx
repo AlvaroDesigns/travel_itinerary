@@ -515,10 +515,16 @@ export default function MisViajesPage() {
                           </td>
 
                           {/* Views Pill */}
-                          <td className="px-4 py-3">
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[#e0f2fe] px-2 py-0.5 text-[11px] font-bold text-[#0369a1]">
+                          <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                            <a
+                              href={`/publico/${encodeURIComponent(tripCode)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Previsualizar enlace público"
+                              className="inline-flex items-center gap-1 rounded-full bg-[#e0f2fe] px-2 py-0.5 text-[11px] font-bold text-[#0369a1] hover:bg-[#bae6fd] transition-colors cursor-pointer"
+                            >
                               <Eye className="h-3 w-3" /> 0
-                            </span>
+                            </a>
                           </td>
 
                           {/* Start Date */}
@@ -643,6 +649,17 @@ export default function MisViajesPage() {
                                       <span>Editar viaje</span>
                                     </button>
 
+                                    <a
+                                      href={`/publico/${encodeURIComponent(tripCode)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={() => setOpenDropdownId(null)}
+                                      className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-xs font-bold text-[#344054] hover:bg-[#f4f5f8] cursor-pointer"
+                                    >
+                                      <Eye className="h-4 w-4 text-[#667085]" />
+                                      <span>Previsualizar</span>
+                                    </a>
+
                                     <button
                                       type="button"
                                       onClick={() => {
@@ -733,6 +750,17 @@ export default function MisViajesPage() {
                                       <Edit className="h-3.5 w-3.5 text-[#667085]" />
                                       <span>Editar viaje</span>
                                     </button>
+
+                                    <a
+                                      href={`/publico/${encodeURIComponent(tripCode)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={() => setOpenDropdownId(null)}
+                                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-[#344054] hover:bg-[#f4f5f8] cursor-pointer"
+                                    >
+                                      <Eye className="h-3.5 w-3.5 text-[#667085]" />
+                                      <span>Previsualizar</span>
+                                    </a>
 
                                     <button
                                       type="button"
@@ -861,6 +889,19 @@ export default function MisViajesPage() {
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <a
+                      href={`/publico/${encodeURIComponent(getTripCode(trip.id))}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-md px-3 py-1.5 text-xs font-bold text-[#101828] hover:bg-white shadow-md transition-all hover:scale-105"
+                      title="Previsualizar enlace público"
+                    >
+                      <Eye className="h-3.5 w-3.5 text-[#0066FF]" />
+                      <span>Previsualizar</span>
+                    </a>
+                  </div>
                   <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-blue-300">

@@ -285,8 +285,8 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           if (isMounted) {
             setUser(authData.user);
             setIsAuthenticated(true);
-            if (typeof window !== 'undefined' && authData.user.agencyLogo) {
-              localStorage.setItem('wanderlust_agency_logo', authData.user.agencyLogo);
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('wanderlust_agency_logo');
             }
           }
           try {
@@ -725,6 +725,7 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setOpportunities([]);
       setActiveTrip(null);
       localStorage.removeItem('last_active_trip_id');
+      localStorage.removeItem('wanderlust_agency_logo');
       window.location.href = '/login';
     }
   };
@@ -739,11 +740,7 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (authData.isAuthenticated && authData.user) {
         setUser(authData.user);
         if (typeof window !== 'undefined') {
-          if (authData.user.agencyLogo) {
-            localStorage.setItem('wanderlust_agency_logo', authData.user.agencyLogo);
-          } else {
-            localStorage.removeItem('wanderlust_agency_logo');
-          }
+          localStorage.removeItem('wanderlust_agency_logo');
         }
       }
     } catch (e) {
@@ -755,12 +752,8 @@ export const TravelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setUser((prev) => {
       if (!prev) return null;
       const updated = { ...prev, ...partialUser };
-      if (typeof window !== 'undefined' && partialUser.agencyLogo !== undefined) {
-        if (partialUser.agencyLogo) {
-          localStorage.setItem('wanderlust_agency_logo', partialUser.agencyLogo);
-        } else {
-          localStorage.removeItem('wanderlust_agency_logo');
-        }
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('wanderlust_agency_logo');
       }
       return updated;
     });

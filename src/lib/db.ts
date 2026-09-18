@@ -200,6 +200,60 @@ export async function initDb() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS tenant_settings (
+        tenant_id VARCHAR(100) PRIMARY KEY,
+        agency_name VARCHAR(255) NOT NULL DEFAULT '',
+        agency_logo TEXT DEFAULT '',
+        brand_color VARCHAR(50) DEFAULT '#0066FF',
+        agency_cif VARCHAR(50) DEFAULT '',
+        terms_text TEXT DEFAULT '',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Ensure known agency tenants exist in tenant_settings
+    await client.query(`
+      INSERT INTO tenant_settings (tenant_id, agency_name, agency_logo, brand_color)
+      VALUES ('alvarodesigns', 'Alvaro Designs Agency', '', '#0066FF')
+      ON CONFLICT (tenant_id) DO NOTHING;
+
+      INSERT INTO tenant_settings (tenant_id, agency_name, agency_logo, brand_color)
+      VALUES ('smy-travel', 'Smy Travel', '', '#0066FF')
+      ON CONFLICT (tenant_id) DO NOTHING;
+    `);
+
+    // Multi-tenant logo fix: if user 1 (hello@alvarodesigns.com) has a logo that belongs to smy-travel (or was leaked),
+    // assign it to smy-travel tenant settings and users, and clear it from user 1 / alvarodesigns
+    await client.query(`
+      DO $$
+      DECLARE
+        user1_logo TEXT;
+      BEGIN
+        SELECT preferences->>'agencyLogo' INTO user1_logo FROM users WHERE id = 1;
+        IF user1_logo IS NOT NULL AND length(user1_logo) > 0 THEN
+          -- Save the logo to smy-travel tenant settings and users
+          UPDATE tenant_settings
+          SET agency_logo = user1_logo, updated_at = CURRENT_TIMESTAMP
+          WHERE tenant_id = 'smy-travel';
+
+          UPDATE users
+          SET preferences = jsonb_set(COALESCE(preferences, '{}'::jsonb), '{agencyLogo}', to_jsonb(user1_logo))
+          WHERE tenant_id = 'smy-travel';
+
+          -- Clear from hello@alvarodesigns.com and alvarodesigns tenant
+          UPDATE users
+          SET preferences = preferences - 'agencyLogo'
+          WHERE id = 1;
+
+          UPDATE tenant_settings
+          SET agency_logo = '', updated_at = CURRENT_TIMESTAMP
+          WHERE tenant_id = 'alvarodesigns';
+        END IF;
+      END $$;
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS site_content (
         content_key VARCHAR(100) PRIMARY KEY,
         content JSONB NOT NULL,

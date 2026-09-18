@@ -92,10 +92,25 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
     agency_name: string | null;
     plan_type: string | null;
     preferences: Record<string, unknown> | null;
-  }>('SELECT id, email, role, name, is_active, tenant_id, agency_name, plan_type, preferences FROM users WHERE id = $1', [session.userId]);
+    tenant_logo: string | null;
+    tenant_agency_name: string | null;
+  }>(
+    `SELECT u.id, u.email, u.role, u.name, u.is_active, u.tenant_id, u.agency_name, u.plan_type, u.preferences,
+            ts.agency_logo AS tenant_logo, ts.agency_name AS tenant_agency_name
+     FROM users u
+     LEFT JOIN tenant_settings ts ON ts.tenant_id = u.tenant_id
+     WHERE u.id = $1`,
+    [session.userId]
+  );
   const user = result.rows[0];
 
   if (!user || !user.is_active || (user.role !== 'superuser' && user.role !== 'superadmin' && user.role !== 'admin' && user.role !== 'user')) return null;
+
+  const isParticular = !user.tenant_id || user.tenant_id === 'particular';
+  const effectiveAgencyLogo = !isParticular && user.tenant_logo !== null && user.tenant_logo !== undefined
+    ? (user.tenant_logo || undefined)
+    : ((user.preferences?.agencyLogo as string) || undefined);
+
   return {
     userId: user.id,
     email: user.email,
@@ -103,8 +118,8 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
     name: user.name || undefined,
     avatar: (user.preferences?.avatar as string) || 'traveler-girl-teal',
     tenantId: user.tenant_id || undefined,
-    agencyName: user.agency_name || undefined,
+    agencyName: user.tenant_agency_name || user.agency_name || undefined,
     planType: user.plan_type || undefined,
-    agencyLogo: (user.preferences?.agencyLogo as string) || undefined,
+    agencyLogo: effectiveAgencyLogo,
   };
 }

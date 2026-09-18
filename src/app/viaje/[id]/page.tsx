@@ -585,10 +585,6 @@ export default function ViajeDetalle({ params }: PageProps) {
     if (user?.agencyLogo) {
       return user.agencyLogo;
     }
-    if (typeof window !== "undefined") {
-      const localAgencyLogo = localStorage.getItem("wanderlust_agency_logo");
-      if (localAgencyLogo) return localAgencyLogo;
-    }
     return "/wanderlust_horizontal_negro.png";
   }, [themeSettings.logoUrl, user?.agencyLogo]);
 
@@ -598,8 +594,7 @@ export default function ViajeDetalle({ params }: PageProps) {
       const tripSpecificLogo = id
         ? localStorage.getItem(`wanderlust_trip_logo_${id}`)
         : null;
-      const agencyLogo =
-        localStorage.getItem("wanderlust_agency_logo") || user?.agencyLogo;
+      const agencyLogo = user?.agencyLogo;
 
       if (tripSpecificLogo) {
         setThemeSettings((prev) => ({ ...prev, logoUrl: tripSpecificLogo }));
@@ -611,11 +606,7 @@ export default function ViajeDetalle({ params }: PageProps) {
 
   // Sync themeSettings whenever user.agencyLogo updates
   useEffect(() => {
-    const globalLogo =
-      user?.agencyLogo ||
-      (typeof window !== "undefined"
-        ? localStorage.getItem("wanderlust_agency_logo")
-        : null);
+    const globalLogo = user?.agencyLogo;
 
     if (globalLogo) {
       setThemeSettings((prev) => {

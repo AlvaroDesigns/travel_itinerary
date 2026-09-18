@@ -235,12 +235,11 @@ function MiCuentaConfiguracionContent() {
             if (p.defaultTheme) setDefaultTheme(p.defaultTheme);
             if (p.agencyLogo) {
               setAgencyLogo(p.agencyLogo);
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('wanderlust_agency_logo', p.agencyLogo);
-              }
-            } else if (typeof window !== 'undefined') {
-              const cached = localStorage.getItem('wanderlust_agency_logo');
-              if (cached) setAgencyLogo(cached);
+            } else {
+              setAgencyLogo('');
+            }
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('wanderlust_agency_logo');
             }
             if (p.depositPercent !== undefined) setDepositPercent(p.depositPercent);
             if (p.dueDaysBeforeTrip !== undefined) setDueDaysBeforeTrip(p.dueDaysBeforeTrip);
@@ -349,13 +348,9 @@ function MiCuentaConfiguracionContent() {
         throw new Error(errorData.error || 'Error al guardar');
       }
 
-      // Sync with localStorage, TravelContext and broadcast to other views
+      // Sync with TravelContext and broadcast to other views
       if (typeof window !== 'undefined') {
-        if (activeLogo) {
-          localStorage.setItem('wanderlust_agency_logo', activeLogo);
-        } else {
-          localStorage.removeItem('wanderlust_agency_logo');
-        }
+        localStorage.removeItem('wanderlust_agency_logo');
         window.dispatchEvent(
           new CustomEvent('wanderlust:agency-logo-updated', {
             detail: activeLogo || '',
@@ -391,7 +386,7 @@ function MiCuentaConfiguracionContent() {
           const dataUrl = reader.result as string;
           setAgencyLogo(dataUrl);
           if (typeof window !== 'undefined') {
-            localStorage.setItem('wanderlust_agency_logo', dataUrl);
+            localStorage.removeItem('wanderlust_agency_logo');
             window.dispatchEvent(
               new CustomEvent('wanderlust:agency-logo-updated', {
                 detail: dataUrl,
