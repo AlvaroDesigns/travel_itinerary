@@ -46,6 +46,7 @@ export function TripIncludesModal({
   const [excludesText, setExcludesText] = useState('');
   const [departureCities, setDepartureCities] = useState('');
   const [categoriesText, setCategoriesText] = useState('');
+  const [destinationsTitle, setDestinationsTitle] = useState('Más circuitos que pasan por:');
   const [destinationsText, setDestinationsText] = useState('');
 
   const isVietnam =
@@ -133,7 +134,12 @@ export function TripIncludesModal({
         );
       }
 
-      // Destinations
+      // Destinations Title & List
+      setDestinationsTitle(
+        activity.destinationsTitle ||
+          (activity.details?.destinationsTitle as string) ||
+          'Más circuitos que pasan por:'
+      );
       if (Array.isArray(activity.connectedDestinations)) {
         setDestinationsText(activity.connectedDestinations.join(', '));
       } else {
@@ -152,6 +158,7 @@ export function TripIncludesModal({
       );
       setDepartureCities(isVietnam ? defaultVietnamDepartures : defaultGeneralDepartures);
       setCategoriesText(isVietnam ? defaultVietnamCategories : defaultGeneralCategories);
+      setDestinationsTitle('Más circuitos que pasan por:');
       setDestinationsText(isVietnam ? defaultVietnamDestinations : defaultGeneralDestinations);
     }
   }, [activity, defaultDate, isVietnam]);
@@ -162,6 +169,7 @@ export function TripIncludesModal({
     setIncludesText(isVietnam ? defaultVietnamIncludes : defaultGeneralIncludes);
     setDepartureCities(isVietnam ? defaultVietnamDepartures : defaultGeneralDepartures);
     setCategoriesText(isVietnam ? defaultVietnamCategories : defaultGeneralCategories);
+    setDestinationsTitle('Más circuitos que pasan por:');
     setDestinationsText(isVietnam ? defaultVietnamDestinations : defaultGeneralDestinations);
   };
 
@@ -199,6 +207,7 @@ export function TripIncludesModal({
       excludes: excludesArray,
       departureCities: departureCities.trim(),
       categories: categoriesArray,
+      destinationsTitle: destinationsTitle.trim() || 'Más circuitos que pasan por:',
       connectedDestinations: destinationsArray,
       isIncludesBlock: true,
     });
@@ -342,24 +351,40 @@ export function TripIncludesModal({
             />
           </div>
 
-          {/* Section 3: Categorías y Circuitos que pasan por */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-zinc-800">
-                Categorías (separadas por comas):
-              </label>
-              <input
-                type="text"
-                value={categoriesText}
-                onChange={(e) => setCategoriesText(e.target.value)}
-                placeholder="Cultural, Naturaleza, Confirmación inmediata..."
-                className="w-full rounded-xl border border-zinc-300 p-2.5 text-xs text-zinc-900 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none"
-              />
+          {/* Section 3: Categorías y Circuitos / Destinos */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-800">
+                  Categorías (separadas por comas):
+                </label>
+                <input
+                  type="text"
+                  value={categoriesText}
+                  onChange={(e) => setCategoriesText(e.target.value)}
+                  placeholder="Cultural, Naturaleza, Confirmación inmediata..."
+                  className="w-full rounded-xl border border-zinc-300 p-2.5 text-xs text-zinc-900 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-800 flex items-center justify-between">
+                  <span>Título de la sección de destinos:</span>
+                  <span className="text-[10px] font-normal text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded-md">Editable</span>
+                </label>
+                <input
+                  type="text"
+                  value={destinationsTitle}
+                  onChange={(e) => setDestinationsTitle(e.target.value)}
+                  placeholder="Más circuitos que pasan por:, Finde de semana en:, etc."
+                  className="w-full rounded-xl border border-zinc-300 p-2.5 text-xs font-bold text-zinc-900 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none"
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold text-zinc-800">
-                Más circuitos que pasan por (ciudades):
+                Ciudades, paradas o destinos (separadas por comas):
               </label>
               <input
                 type="text"

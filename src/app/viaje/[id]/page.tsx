@@ -2086,7 +2086,7 @@ export default function ViajeDetalle({ params }: PageProps) {
                 {connectedDestinations.length > 0 && (
                   <div className="space-y-2">
                     <h5 className="text-sm sm:text-base font-bold text-zinc-900 tracking-tight">
-                      Más circuitos que pasan por:
+                      {(act as any).destinationsTitle || (act as any).details?.destinationsTitle || "Más circuitos que pasan por:"}
                     </h5>
                     <div className="flex flex-col space-y-1 text-xs sm:text-sm text-teal-700">
                       {connectedDestinations.map((dest, idx) => (
@@ -4697,20 +4697,11 @@ export default function ViajeDetalle({ params }: PageProps) {
             {/* ========================================================= */}
             {/* SECCIÓN GLOBAL: QUÉ INCLUYE Y QUÉ NO INCLUYE (ABAJO)       */}
             {/* ========================================================= */}
-            <div className="pt-6 sm:pt-8 border-t border-zinc-200/80">
-              {renderIncludesActivityCard(
-                tripIncludesActivity ||
-                  ({
-                    id: `includes-${activeTrip.id}`,
-                    type: "conditions",
-                    date: activeTrip.startDate,
-                    time: "18:00",
-                    price: 0,
-                    title: "Qué incluye y qué no incluye",
-                    isIncludesBlock: true,
-                  } as any),
-              )}
-            </div>
+            {tripIncludesActivity && (
+              <div className="pt-6 sm:pt-8 border-t border-zinc-200/80">
+                {renderIncludesActivityCard(tripIncludesActivity)}
+              </div>
+            )}
           </div>
         </div>
 
@@ -5839,18 +5830,17 @@ export default function ViajeDetalle({ params }: PageProps) {
       {/* DELETE ACTIVITY CONFIRMATION MODAL                            */}
       {/* ============================================================= */}
       {activityToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fade-in">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fade-in">
           <div className="w-full max-w-sm rounded-3xl border border-[#eaecf0] bg-white p-6 shadow-2xl animate-scale-in text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 mb-4 border border-rose-100">
               <Trash2 className="h-7 w-7" />
             </div>
 
             <h3 className="text-base font-bold text-[#101828]">
-              ¿Eliminar esta actividad?
+              ¿Eliminar este bloque?
             </h3>
             <p className="text-xs text-[#667085] mt-1.5 mb-6 leading-relaxed">
-              Esta acción eliminará el bloque del itinerario para el{" "}
-              <strong>Día ({activeDate})</strong>. No se puede deshacer.
+              Esta acción eliminará el bloque seleccionado del itinerario. No se puede deshacer.
             </p>
 
             <div className="flex items-center justify-center gap-3">
@@ -6390,6 +6380,7 @@ export default function ViajeDetalle({ params }: PageProps) {
               excludes: data.excludes || [],
               departureCities: data.departureCities || "",
               categories: data.categories || [],
+              destinationsTitle: data.destinationsTitle || "Más circuitos que pasan por:",
               connectedDestinations: data.connectedDestinations || [],
               isIncludesBlock: true,
             };
@@ -6400,6 +6391,8 @@ export default function ViajeDetalle({ params }: PageProps) {
           setEditingIncludesActivity(null);
         }}
         onDelete={(actId) => {
+          setIsIncludesModalOpen(false);
+          setEditingIncludesActivity(null);
           handleRequestDeleteActivity(actId);
         }}
       />

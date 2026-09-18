@@ -1204,12 +1204,21 @@ function PublicTripContent({ params }: PageProps) {
       (totalExpenses > 0 ? totalExpenses : (trip.budget || 0))
   );
 
+  const hasConditionsModule = (trip.activities || []).some(
+    (a: any) =>
+      a.type === "conditions" ||
+      a.isIncludesBlock ||
+      (typeof a.title === "string" && a.title.toLowerCase().includes("incluye")),
+  );
+
   const navTabs: {
     id: "itinerario" | "condiciones" | "pagos" | "notas";
     label: string;
   }[] = [
     { id: "itinerario", label: "Itinerario" },
-    { id: "condiciones", label: "Qué incluye" },
+    ...(hasConditionsModule
+      ? [{ id: "condiciones" as const, label: "Qué incluye" }]
+      : []),
     ...(hasPaymentModule
       ? [{ id: "pagos" as const, label: "Pagos & Depósito" }]
       : []),
@@ -2247,7 +2256,7 @@ function PublicTripContent({ params }: PageProps) {
                         {connectedDestinations.length > 0 && (
                           <div className="space-y-2">
                             <h4 className="text-sm sm:text-base font-bold text-zinc-900 tracking-tight">
-                              Más circuitos que pasan por:
+                              {includesAct?.destinationsTitle || includesAct?.details?.destinationsTitle || "Más circuitos que pasan por:"}
                             </h4>
                             <div className="flex flex-col space-y-1 text-xs sm:text-sm text-teal-700">
                               {connectedDestinations.map((dest, idx) => (
