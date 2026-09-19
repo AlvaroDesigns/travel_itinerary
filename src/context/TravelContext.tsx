@@ -176,6 +176,7 @@ export interface AuthUser {
   agencyName?: string;
   planType?: string;
   agencyLogo?: string;
+  agencyUrl?: string;
 }
 
 interface TravelContextType {

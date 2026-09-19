@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Copy, ExternalLink, Eye, Link2, Wallet } from 'lucide-react';
 import { SettingsSwitch } from '@/components/SettingsSwitch';
 import type { NotificationSettings } from '@/lib/notification-settings';
+import { useTravel } from '@/context/TravelContext';
+import { isAgencyUser, normalizeAgencyUrl, buildPublicTripUrl } from '@/lib/user-utils';
 
 interface PublicAccessSettingsProps {
   settings: NotificationSettings;
@@ -11,16 +13,21 @@ interface PublicAccessSettingsProps {
 }
 
 export function PublicAccessSettings({ settings, onChange }: PublicAccessSettingsProps) {
+  const { user } = useTravel();
+  const isAgency = isAgencyUser(user);
   const [copied, setCopied] = useState(false);
 
+  const baseOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+  const effectiveBase = (isAgency && user?.agencyUrl) ? normalizeAgencyUrl(user.agencyUrl) : baseOrigin;
+
   const publicUrl = settings.publicAccessToken
-    ? `/publico/${settings.publicAccessToken}`
+    ? buildPublicTripUrl(effectiveBase, settings.publicAccessToken)
     : '';
 
   const copyUrl = async () => {
     if (!publicUrl) return;
     try {
-      await navigator.clipboard.writeText(new URL(publicUrl, window.location.origin).toString());
+      await navigator.clipboard.writeText(publicUrl);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {

@@ -23,7 +23,7 @@ import {
   searchPhotonAddresses,
 } from "@/lib/api-client";
 import { TRIP_TEMPLATES, TripTemplate } from "@/lib/templates-data";
-import { isAgencyUser } from "@/lib/user-utils";
+import { isAgencyUser, normalizeAgencyUrl, buildPublicTripUrl } from "@/lib/user-utils";
 import {
   formatDayDate as formatDayDateUtil,
   formatDayFullLabel as formatDayFullLabelUtil,
@@ -1610,7 +1610,8 @@ export default function ViajeDetalle({ params }: PageProps) {
   };
 
   const handleCopyClientLink = () => {
-    const url = `${window.location.origin}/publico/${encodeURIComponent(tripCode)}`;
+    const base = isAgency && user?.agencyUrl ? normalizeAgencyUrl(user.agencyUrl) : window.location.origin;
+    const url = buildPublicTripUrl(base, tripCode);
     navigator.clipboard.writeText(url);
     setCopiedLink(true);
     showToast("🔗 ¡Enlace de cliente copiado al portapapeles!");

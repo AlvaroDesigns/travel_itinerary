@@ -1,8 +1,10 @@
 "use client";
 
-import { Check, Code2, Link2, Sparkles, X } from "lucide-react";
+import { Check, Code2, Globe, Link2, Loader2, Pencil, Sparkles, X } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { useTravel } from "@/context/TravelContext";
+import { isAgencyUser, normalizeAgencyUrl, buildPublicTripUrl } from "@/lib/user-utils";
 
 interface ShareTripModalProps {
   isOpen: boolean;
@@ -10,6 +12,7 @@ interface ShareTripModalProps {
   tripId: string;
   tripName: string;
   tripCode?: string;
+  defaultAgencyUrl?: string;
 }
 
 export function ShareTripModal({
@@ -18,11 +21,25 @@ export function ShareTripModal({
   tripId,
   tripName,
   tripCode,
+  defaultAgencyUrl,
 }: ShareTripModalProps) {
+  const { user, updateUser } = useTravel();
+  const isAgency = isAgencyUser(user);
+
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [hideLogo, setHideLogo] = useState(false);
   const [hideHeader, setHideHeader] = useState(false);
+
+  // Estado para la URL de la agencia
+  const fallbackUrl = user?.agencyUrl || defaultAgencyUrl || "";
+  const [customAgencyUrlOverride, setCustomAgencyUrlOverride] = useState<string | null>(null);
+  const agencyUrl = customAgencyUrlOverride !== null ? customAgencyUrlOverride : fallbackUrl;
+
+  const [urlInput, setUrlInput] = useState(fallbackUrl);
+  const [isEditingUrl, setIsEditingUrl] = useState(false);
+  const [isSavingUrl, setIsSavingUrl] = useState(false);
+  const [useCustomUrl, setUseCustomUrl] = useState(Boolean(fallbackUrl));
 
   // Determinar el token público
   const effectiveCode = tripCode || tripId;
@@ -30,8 +47,18 @@ export function ShareTripModal({
   // Base origin
   const origin = typeof window !== "undefined" ? window.location.origin : "";
 
+  // Base URL a utilizar: si es agencia y tiene URL personalizada activada, usarla
+  const activeBaseUrl = useMemo(() => {
+    if (isAgency && useCustomUrl && agencyUrl.trim()) {
+      return normalizeAgencyUrl(agencyUrl);
+    }
+    return origin;
+  }, [isAgency, useCustomUrl, agencyUrl, origin]);
+
   // URL pública pura
-  const publicUrl = `${origin}/publico/${encodeURIComponent(effectiveCode)}`;
+  const publicUrl = useMemo(() => {
+    return buildPublicTripUrl(activeBaseUrl, effectiveCode);
+  }, [activeBaseUrl, effectiveCode]);
 
   // URL para el iframe con parámetros query
   const embedUrl = useMemo(() => {
@@ -61,6 +88,60 @@ export function ShareTripModal({
     navigator.clipboard.writeText(iframeCode);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
+  };
+
+  const handleSaveAgencyUrl = async () => {
+    setIsSavingUrl(true);
+    try {
+      const cleanUrl = normalizeAgencyUrl(urlInput);
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          preferences: {
+            agencyUrl: cleanUrl,
+          },
+        }),
+      });
+
+      if (res.ok) {
+        setCustomAgencyUrlOverride(cleanUrl);
+        updateUser({ agencyUrl: cleanUrl });
+        setIsEditingUrl(false);
+        setUseCustomUrl(Boolean(cleanUrl));
+      }
+    } catch (err) {
+      console.error("Error saving agency URL:", err);
+    } finally {
+      setIsSavingUrl(false);
+    }
+  };
+
+  const handleRemoveAgencyUrl = async () => {
+    setIsSavingUrl(true);
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          preferences: {
+            agencyUrl: "",
+          },
+        }),
+      });
+
+      if (res.ok) {
+        setCustomAgencyUrlOverride("");
+        setUrlInput("");
+        updateUser({ agencyUrl: "" });
+        setIsEditingUrl(false);
+        setUseCustomUrl(false);
+      }
+    } catch (err) {
+      console.error("Error removing agency URL:", err);
+    } finally {
+      setIsSavingUrl(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -162,6 +243,110 @@ export function ShareTripModal({
               </div>
 
               <div className="mt-5 space-y-5">
+                {/* Personalización de URL de la Agencia (Solo Agencias) */}
+                {isAgency && (
+                  <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/70 via-white to-sky-50/30 p-4 transition-all shadow-xs">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#0066FF] text-white shadow-2xs mt-0.5">
+                          <Globe className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="text-xs font-bold text-[#101828]">URL de la agencia</h4>
+                            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-extrabold text-[#0066FF] uppercase tracking-wide">
+                              {useCustomUrl && agencyUrl ? "Personalizada" : "Por defecto"}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-zinc-500 mt-0.5 leading-relaxed">
+                            Personaliza el dominio o enlace para que tus clientes vean la marca y web de tu agencia.
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditingUrl(!isEditingUrl);
+                          setUrlInput(agencyUrl || "");
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-xs font-bold text-[#0066FF] hover:bg-blue-50/70 transition cursor-pointer shadow-2xs shrink-0"
+                      >
+                        <Pencil className="h-3 w-3" />
+                        <span>{isEditingUrl ? "Cancelar" : agencyUrl ? "Cambiar URL" : "Configurar URL"}</span>
+                      </button>
+                    </div>
+
+                    {isEditingUrl ? (
+                      <div className="mt-3 pt-3 border-t border-blue-100 space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <div className="relative flex-1">
+                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
+                              <Globe className="h-3.5 w-3.5" />
+                            </div>
+                            <input
+                              type="text"
+                              value={urlInput}
+                              onChange={(e) => setUrlInput(e.target.value)}
+                              placeholder="https://viajes.tuagencia.com o tuagencia.com"
+                              className="w-full rounded-xl border border-blue-300 bg-white pl-9 pr-3 py-2 text-xs text-[#101828] placeholder:text-zinc-400 focus:border-[#0066FF] focus:outline-hidden font-mono"
+                            />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={isSavingUrl}
+                              onClick={handleSaveAgencyUrl}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0066FF] px-4 py-2 text-xs font-bold text-white hover:bg-[#0052CC] disabled:opacity-50 cursor-pointer shadow-xs transition shrink-0"
+                            >
+                              {isSavingUrl ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Check className="h-3.5 w-3.5" />
+                              )}
+                              <span>Guardar</span>
+                            </button>
+                            {agencyUrl && (
+                              <button
+                                type="button"
+                                onClick={handleRemoveAgencyUrl}
+                                disabled={isSavingUrl}
+                                className="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-100 transition cursor-pointer"
+                                title="Restablecer a URL por defecto"
+                              >
+                                Restablecer
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-zinc-500">
+                          Ejemplo: <span className="font-semibold text-zinc-700 font-mono">https://viajes.tuagencia.com</span>. Se guardará en la cuenta de tu agencia para todos tus viajes.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mt-3 pt-2.5 border-t border-blue-100/80 flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <div className="flex items-center gap-2 text-zinc-600 truncate max-w-sm sm:max-w-md">
+                          <span className="text-zinc-400 font-medium">Dominio activo:</span>
+                          <span className="font-semibold text-zinc-800 font-mono text-[11px] truncate bg-white px-2 py-0.5 rounded-md border border-zinc-200">
+                            {useCustomUrl && agencyUrl ? normalizeAgencyUrl(agencyUrl) : origin}
+                          </span>
+                        </div>
+                        {agencyUrl && (
+                          <label className="inline-flex items-center gap-2 text-xs font-semibold text-[#0066FF] cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={useCustomUrl}
+                              onChange={(e) => setUseCustomUrl(e.target.checked)}
+                              className="h-4 w-4 rounded-md border-blue-300 accent-[#0066FF] cursor-pointer"
+                            />
+                            <span>Usar URL de agencia</span>
+                          </label>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Bloque 1: Compartir por WhatsApp */}
                 <div className="space-y-2.5">
                   <h3 className="text-sm font-bold text-[#101828]">
@@ -195,9 +380,16 @@ export function ShareTripModal({
 
                 {/* Bloque 2: Compartir por enlace */}
                 <div className="space-y-2">
-                  <h3 className="text-sm font-bold text-[#101828]">
-                    Compartir por enlace
-                  </h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-[#101828]">
+                      Compartir por enlace
+                    </h3>
+                    {isAgency && useCustomUrl && agencyUrl && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+                        <Check className="h-3 w-3" /> Dominio de agencia
+                      </span>
+                    )}
+                  </div>
 
                   <div className="flex items-center gap-2">
                     <div className="relative flex-1">

@@ -159,6 +159,7 @@ function MiCuentaConfiguracionContent() {
   const [brandColor, setBrandColor] = useState('#0066FF');
   const [defaultTheme, setDefaultTheme] = useState('classic');
   const [agencyLogo, setAgencyLogo] = useState<string>('');
+  const [agencyUrl, setAgencyUrl] = useState<string>('');
   const [logoError, setLogoError] = useState<string | null>(null);
   const logoFileInputRef = React.useRef<HTMLInputElement | null>(null);
 
@@ -237,6 +238,13 @@ function MiCuentaConfiguracionContent() {
               setAgencyLogo(p.agencyLogo);
             } else {
               setAgencyLogo('');
+            }
+            if (p.agencyUrl) {
+              setAgencyUrl(p.agencyUrl);
+            } else if (data.agencyUrl) {
+              setAgencyUrl(data.agencyUrl);
+            } else {
+              setAgencyUrl('');
             }
             if (typeof window !== 'undefined') {
               localStorage.removeItem('wanderlust_agency_logo');
@@ -327,6 +335,7 @@ function MiCuentaConfiguracionContent() {
             brandColor,
             defaultTheme,
             agencyLogo: activeLogo,
+            agencyUrl: agencyUrl.trim(),
             depositPercent,
             dueDaysBeforeTrip,
             agencyCif,
@@ -362,6 +371,7 @@ function MiCuentaConfiguracionContent() {
         name,
         agencyLogo: activeLogo,
         avatar: activeAvatar,
+        agencyUrl: agencyUrl.trim(),
       });
 
       showNotification('success', 'Cambios guardados correctamente.');
@@ -978,6 +988,62 @@ function MiCuentaConfiguracionContent() {
                         Las propuestas de itinerarios generadas con cuentas particulares incluyen la marca oficial Wanderlust. La sustitución por tu propio logotipo corporativo está reservada exclusivamente para Agencias.
                       </p>
                     </div>
+                  </div>
+                )}
+
+                {/* Personalización de URL / Dominio de la Agencia */}
+                {isAgency ? (
+                  <div className="rounded-2xl border border-zinc-200 bg-white p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-[#0066FF]" />
+                        <h4 className="text-xs font-bold text-[#101828] uppercase tracking-wider">
+                          URL / Dominio de la Agencia (Marca Blanca)
+                        </h4>
+                      </div>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-bold text-[#0066FF]">
+                        Exclusivo Agencias
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-zinc-600 leading-relaxed">
+                      Personaliza el enlace público con la URL o dominio de tu agencia (ej. <code className="text-[#0066FF] font-semibold">https://viajes.tuagencia.com</code> o <code className="text-[#0066FF] font-semibold">https://tuagencia.com</code>). Todos tus enlaces compartidos con clientes y mensajes de WhatsApp utilizarán esta dirección para reforzar la identidad de tu agencia.
+                    </p>
+
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
+                          <Globe className="h-4 w-4" />
+                        </div>
+                        <input
+                          type="text"
+                          value={agencyUrl}
+                          onChange={(e) => setAgencyUrl(e.target.value)}
+                          placeholder="https://viajes.tuagencia.com"
+                          className="w-full rounded-xl border border-zinc-300 bg-white pl-9 pr-3 py-2 text-xs text-[#101828] placeholder:text-zinc-400 focus:border-[#0066FF] focus:outline-hidden font-mono"
+                        />
+                      </div>
+                      <p className="text-[11px] text-zinc-400">
+                        Introduce el protocolo (https://) y el dominio o subdominio donde esté disponible tu portal de viajes.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-zinc-500">
+                        <Lock className="h-4 w-4" />
+                        <h4 className="text-xs font-bold uppercase tracking-wider">
+                          Dominio Personalizado de Agencia
+                        </h4>
+                      </div>
+                      <span className="rounded-full bg-zinc-200 px-2.5 py-0.5 text-[10px] font-bold text-zinc-600">
+                        Solo Cuentas de Agencia
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-500 leading-relaxed">
+                      Compartir propuestas y enlaces públicos con tu propio dominio corporativo o sitio web está reservado exclusivamente para cuentas de Agencia.
+                    </p>
                   </div>
                 )}
 

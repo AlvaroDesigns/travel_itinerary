@@ -207,9 +207,14 @@ export async function initDb() {
         brand_color VARCHAR(50) DEFAULT '#0066FF',
         agency_cif VARCHAR(50) DEFAULT '',
         terms_text TEXT DEFAULT '',
+        agency_url VARCHAR(255) DEFAULT '',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+    await client.query(`
+      ALTER TABLE tenant_settings
+        ADD COLUMN IF NOT EXISTS agency_url VARCHAR(255) DEFAULT '';
     `);
 
     // Ensure known agency tenants exist in tenant_settings

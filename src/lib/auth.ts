@@ -15,6 +15,7 @@ export interface AuthenticatedUser {
   agencyName?: string;
   planType?: string;
   agencyLogo?: string;
+  agencyUrl?: string;
 }
 
 function getJwtSecret(): string {
@@ -94,9 +95,10 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
     preferences: Record<string, unknown> | null;
     tenant_logo: string | null;
     tenant_agency_name: string | null;
+    tenant_agency_url: string | null;
   }>(
     `SELECT u.id, u.email, u.role, u.name, u.is_active, u.tenant_id, u.agency_name, u.plan_type, u.preferences,
-            ts.agency_logo AS tenant_logo, ts.agency_name AS tenant_agency_name
+            ts.agency_logo AS tenant_logo, ts.agency_name AS tenant_agency_name, ts.agency_url AS tenant_agency_url
      FROM users u
      LEFT JOIN tenant_settings ts ON ts.tenant_id = u.tenant_id
      WHERE u.id = $1`,
@@ -110,6 +112,9 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
   const effectiveAgencyLogo = !isParticular && user.tenant_logo !== null && user.tenant_logo !== undefined
     ? (user.tenant_logo || undefined)
     : ((user.preferences?.agencyLogo as string) || undefined);
+  const effectiveAgencyUrl = !isParticular && user.tenant_agency_url !== null && user.tenant_agency_url !== undefined
+    ? (user.tenant_agency_url || undefined)
+    : ((user.preferences?.agencyUrl as string) || undefined);
 
   return {
     userId: user.id,
@@ -121,5 +126,6 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
     agencyName: user.tenant_agency_name || user.agency_name || undefined,
     planType: user.plan_type || undefined,
     agencyLogo: effectiveAgencyLogo,
+    agencyUrl: effectiveAgencyUrl,
   };
 }

@@ -163,9 +163,10 @@ export async function GET(
       preferences: Record<string, unknown>;
       tenant_logo: string | null;
       tenant_agency_name: string | null;
+      tenant_agency_url: string | null;
     }>(
       `SELECT u.role, u.tenant_id, u.agency_name, u.preferences,
-              ts.agency_logo AS tenant_logo, ts.agency_name AS tenant_agency_name
+              ts.agency_logo AS tenant_logo, ts.agency_name AS tenant_agency_name, ts.agency_url AS tenant_agency_url
        FROM users u
        LEFT JOIN tenant_settings ts ON ts.tenant_id = u.tenant_id
        WHERE u.id = $1`,
@@ -184,6 +185,9 @@ export async function GET(
       ? (userRow.tenant_logo || null)
       : (userPrefs.agencyLogo ? userPrefs.agencyLogo : null);
     const agencyName = userRow?.tenant_agency_name || userRow?.agency_name || null;
+    const agencyUrl = !isParticular && userRow?.tenant_agency_url !== null && userRow?.tenant_agency_url !== undefined
+      ? (userRow.tenant_agency_url || null)
+      : (userPrefs.agencyUrl || null);
 
     const paymentProviders = {
       redsys: userPrefs.paymentProviders?.redsys?.connected !== false,
@@ -205,6 +209,7 @@ export async function GET(
         activities,
         agencyLogo,
         agencyName,
+        agencyUrl,
       },
     });
   } catch (error) {
