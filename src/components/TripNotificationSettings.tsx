@@ -282,7 +282,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
               type="button"
               disabled={isBusy || !settings.recipientEmail}
               onClick={() => sendRealEmail('countdown')}
-              className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#0066FF] px-4 text-xs font-bold text-white shadow-xs transition hover:bg-[#0052cc] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+              className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#0066FF] px-4 text-xs font-bold text-white shadow-none transition hover:bg-[#0052cc] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
             >
               {sendingReal === 'countdown' ? (
                 <>
@@ -446,7 +446,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
               type="button"
               disabled={isBusy || !settings.recipientEmail}
               onClick={() => sendRealEmail('instructions')}
-              className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#0066FF] px-4 text-xs font-bold text-white shadow-xs transition hover:bg-[#0052cc] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+              className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#0066FF] px-4 text-xs font-bold text-white shadow-none transition hover:bg-[#0052cc] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
             >
               {sendingReal === 'instructions' ? (
                 <>
@@ -536,7 +536,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
               type="button"
               disabled={isBusy || !settings.recipientEmail}
               onClick={() => sendRealEmail('itinerary')}
-              className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#0066FF] px-4 text-xs font-bold text-white shadow-xs transition hover:bg-[#0052cc] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+              className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#0066FF] px-4 text-xs font-bold text-white shadow-none transition hover:bg-[#0052cc] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
             >
               {sendingReal === 'itinerary' ? (
                 <>

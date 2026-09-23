@@ -288,24 +288,30 @@ body {
   transform: scale(0.98);
 }
 
+.shadow-none,
+[class*="shadow-none"],
+[class*="shadow-none"]:hover {
+  box-shadow: none !important;
+}
+
 /* All blue buttons and interactive blue CTA elements use Wanderlust signature blue gradient */
-button:not([class*="bg-[#0066FF]/"]):is([class*="bg-[#0066FF]"], [class*="bg-[#0052CC]"]),
-a:not([class*="bg-[#0066FF]/"]):is([class*="bg-[#0066FF]"], [class*="bg-[#0052CC]"]),
-button.bg-\[\#0066FF\],
-a.bg-\[\#0066FF\],
-button.bg-\[\#0052CC\],
-a.bg-\[\#0052CC\] {
+button:not([class*="shadow-none"]):not(.shadow-none):not([class*="bg-[#0066FF]/"]):is([class*="bg-[#0066FF]"], [class*="bg-[#0052CC]"]),
+a:not([class*="shadow-none"]):not(.shadow-none):not([class*="bg-[#0066FF]/"]):is([class*="bg-[#0066FF]"], [class*="bg-[#0052CC]"]),
+button.bg-\[\#0066FF\]:not([class*="shadow-none"]):not(.shadow-none),
+a.bg-\[\#0066FF\]:not([class*="shadow-none"]):not(.shadow-none),
+button.bg-\[\#0052CC\]:not([class*="shadow-none"]):not(.shadow-none),
+a.bg-\[\#0052CC\]:not([class*="shadow-none"]):not(.shadow-none) {
   background: linear-gradient(135deg, #0066FF 0%, #00C6FF 100%) !important;
   color: #ffffff !important;
   box-shadow: 0 4px 16px -2px rgba(0, 102, 255, 0.35);
 }
 
-button:not([class*="bg-[#0066FF]/"]):is([class*="bg-[#0066FF]"], [class*="bg-[#0052CC]"]):hover,
-a:not([class*="bg-[#0066FF]/"]):is([class*="bg-[#0066FF]"], [class*="bg-[#0052CC]"]):hover,
-button.bg-\[\#0066FF\]:hover,
-a.bg-\[\#0066FF\]:hover,
-button.bg-\[\#0052CC\]:hover,
-a.bg-\[\#0052CC\]:hover {
+button:not([class*="shadow-none"]):not(.shadow-none):not([class*="bg-[#0066FF]/"]):is([class*="bg-[#0066FF]"], [class*="bg-[#0052CC]"]):hover,
+a:not([class*="shadow-none"]):not(.shadow-none):not([class*="bg-[#0066FF]/"]):is([class*="bg-[#0066FF]"], [class*="bg-[#0052CC]"]):hover,
+button.bg-\[\#0066FF\]:not([class*="shadow-none"]):not(.shadow-none):hover,
+a.bg-\[\#0066FF\]:not([class*="shadow-none"]):not(.shadow-none):hover,
+button.bg-\[\#0052CC\]:not([class*="shadow-none"]):not(.shadow-none):hover,
+a.bg-\[\#0052CC\]:not([class*="shadow-none"]):not(.shadow-none):hover {
   background: linear-gradient(135deg, #0052D9 0%, #00A6EA 100%) !important;
   box-shadow: 0 6px 22px -2px rgba(0, 102, 255, 0.45);
 }
