@@ -12,6 +12,7 @@ export interface NotificationSettings {
   reminderTime: string; // HH:MM
   countdownMode: CountdownMode;
   instructionsEnabled: boolean;
+  instructionsHours: number;
   instructionsText: string;
   itineraryAccessEnabled: boolean;
   itineraryAccessHours: number;
@@ -45,6 +46,7 @@ export const createDefaultNotificationSettings = (recipientEmail: string): Notif
   reminderTime: '09:00',
   countdownMode: 'exact',
   instructionsEnabled: true,
+  instructionsHours: 24,
   instructionsText: '',
   itineraryAccessEnabled: true,
   itineraryAccessHours: 6,

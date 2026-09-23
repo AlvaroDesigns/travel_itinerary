@@ -17,6 +17,7 @@ type ScheduledNotification = {
   countdown_mode: 'exact' | 'surprise';
   last_reminder_sent_at: string | null;
   instructions_enabled: boolean;
+  instructions_hours: number;
   instructions_text: string;
   instructions_sent_at: string | null;
   itinerary_access_enabled: boolean;
@@ -48,6 +49,7 @@ async function runNotifications() {
       s.countdown_mode,
       s.last_reminder_sent_at,
       s.instructions_enabled,
+      COALESCE(s.instructions_hours, 24) AS instructions_hours,
       s.instructions_text,
       s.instructions_sent_at,
       s.itinerary_access_enabled,
@@ -112,16 +114,18 @@ async function runNotifications() {
       );
     }
 
-    if (setting.instructions_enabled && !setting.instructions_sent_at && millisecondsUntilTrip <= DAY_MS) {
+    const instructionsLeadTime = (setting.instructions_hours ?? 24) * HOUR_MS;
+    if (setting.instructions_enabled && !setting.instructions_sent_at && millisecondsUntilTrip <= instructionsLeadTime) {
       const instructions = setting.instructions_text.trim() || 'Revisa los detalles importantes y prepara todo lo necesario para tu salida.';
+      const hours = setting.instructions_hours ?? 24;
       await send(
         'instrucciones',
         `Instrucciones para ${setting.trip_name}`,
         createTravelEmail({
           preheader: 'Instrucciones para tu salida próxima.',
-          eyebrow: '24 horas antes',
+          eyebrow: `${hours} horas antes`,
           title: 'Todo listo para salir',
-          intro: 'Quedan menos de 24 horas para tu salida.',
+          intro: `Quedan menos de ${hours} horas para tu salida.`,
           highlight: { label: 'Instrucciones', value: instructions },
           highlightStyle: 'minimal',
         }),

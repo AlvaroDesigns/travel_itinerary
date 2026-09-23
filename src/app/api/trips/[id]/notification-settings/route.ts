@@ -22,6 +22,7 @@ function toSettings(row: Record<string, unknown>): NotificationSettings {
     reminderTime: String(row.reminder_time || '09:00'),
     countdownMode: row.countdown_mode as CountdownMode,
     instructionsEnabled: Boolean(row.instructions_enabled),
+    instructionsHours: Number(row.instructions_hours ?? 24),
     instructionsText: String(row.instructions_text ?? ''),
     itineraryAccessEnabled: Boolean(row.itinerary_access_enabled),
     itineraryAccessHours: Number(row.itinerary_access_hours),
@@ -76,6 +77,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const bccEmails = normalizeBccEmails(body.bccEmails ?? []);
     const reminderIntervalDays = Number(body.reminderIntervalDays);
     const reminderTime = typeof body.reminderTime === 'string' && /^([01]\d|2[0-3]):([0-5]\d)$/.test(body.reminderTime) ? body.reminderTime : '09:00';
+    const instructionsHours = Number(body.instructionsHours ?? 24);
     const itineraryAccessHours = Number(body.itineraryAccessHours);
     const countdownMode = body.countdownMode;
     const instructionsText = body.instructionsText?.trim() ?? '';
@@ -89,6 +91,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
     if (!Number.isInteger(reminderIntervalDays) || reminderIntervalDays < 1 || reminderIntervalDays > 365) {
       return NextResponse.json({ error: 'La frecuencia debe estar entre 1 y 365 días' }, { status: 400 });
+    }
+    if (!Number.isInteger(instructionsHours) || instructionsHours < 1 || instructionsHours > 720) {
+      return NextResponse.json({ error: 'Las horas de instrucciones deben estar entre 1 y 720' }, { status: 400 });
     }
     if (!Number.isInteger(itineraryAccessHours) || itineraryAccessHours < 1 || itineraryAccessHours > 720) {
       return NextResponse.json({ error: 'Las horas de acceso deben estar entre 1 y 720' }, { status: 400 });
@@ -118,6 +123,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       reminderTime,
       countdownMode,
       instructionsEnabled: Boolean(body.instructionsEnabled),
+      instructionsHours,
       instructionsText,
       itineraryAccessEnabled: Boolean(body.itineraryAccessEnabled),
       itineraryAccessHours,
@@ -130,9 +136,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const result = await pool.query(
       `INSERT INTO trip_notification_settings (
         trip_id, recipient_email, bcc_emails, reminder_enabled, reminder_interval_days, reminder_time, countdown_mode,
-        instructions_enabled, instructions_text, itinerary_access_enabled, itinerary_access_hours,
+        instructions_enabled, instructions_hours, instructions_text, itinerary_access_enabled, itinerary_access_hours,
         public_access_enabled, public_access_token, public_show_expenses, public_itinerary_visibility
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
       ON CONFLICT (trip_id) DO UPDATE SET
         recipient_email = EXCLUDED.recipient_email,
         bcc_emails = EXCLUDED.bcc_emails,
@@ -141,6 +147,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         reminder_time = EXCLUDED.reminder_time,
         countdown_mode = EXCLUDED.countdown_mode,
         instructions_enabled = EXCLUDED.instructions_enabled,
+        instructions_hours = EXCLUDED.instructions_hours,
         instructions_text = EXCLUDED.instructions_text,
         itinerary_access_enabled = EXCLUDED.itinerary_access_enabled,
         itinerary_access_hours = EXCLUDED.itinerary_access_hours,
@@ -160,6 +167,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         settings.reminderTime,
         settings.countdownMode,
         settings.instructionsEnabled,
+        settings.instructionsHours,
         settings.instructionsText,
         settings.itineraryAccessEnabled,
         settings.itineraryAccessHours,

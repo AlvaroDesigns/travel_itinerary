@@ -147,6 +147,7 @@ export async function initDb() {
         countdown_mode VARCHAR(20) NOT NULL DEFAULT 'exact' CHECK (countdown_mode IN ('exact', 'surprise')),
         last_reminder_sent_at TIMESTAMP WITH TIME ZONE,
         instructions_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+        instructions_hours INTEGER NOT NULL DEFAULT 24 CHECK (instructions_hours BETWEEN 1 AND 720),
         instructions_text TEXT NOT NULL DEFAULT '',
         instructions_sent_at TIMESTAMP WITH TIME ZONE,
         itinerary_access_enabled BOOLEAN NOT NULL DEFAULT TRUE,
@@ -167,7 +168,8 @@ export async function initDb() {
         ADD COLUMN IF NOT EXISTS public_access_token VARCHAR(255),
         ADD COLUMN IF NOT EXISTS public_show_expenses BOOLEAN NOT NULL DEFAULT FALSE,
         ADD COLUMN IF NOT EXISTS public_itinerary_visibility VARCHAR(20) NOT NULL DEFAULT 'all',
-        ADD COLUMN IF NOT EXISTS bcc_emails TEXT[] NOT NULL DEFAULT '{}'::text[];
+        ADD COLUMN IF NOT EXISTS bcc_emails TEXT[] NOT NULL DEFAULT '{}'::text[],
+        ADD COLUMN IF NOT EXISTS instructions_hours INTEGER NOT NULL DEFAULT 24;
     `);
     await client.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS trip_notification_settings_public_access_token_key

@@ -7,9 +7,9 @@ import { normalizeBccEmails } from '@/lib/notification-settings';
 export const runtime = 'nodejs';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-type TestEmailType = 'countdown' | 'instructions' | 'itinerary';
+type SendEmailType = 'countdown' | 'instructions' | 'itinerary';
 
-function isTestEmailType(value: unknown): value is TestEmailType {
+function isSendEmailType(value: unknown): value is SendEmailType {
   return value === 'countdown' || value === 'instructions' || value === 'itinerary';
 }
 
@@ -38,34 +38,31 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const body = await request.json() as {
       recipientEmail?: string;
       bccEmails?: unknown;
-      testType?: unknown;
+      sendType?: unknown;
       instructionsText?: string;
       instructionsHours?: number;
       reminderIntervalDays?: number;
       countdownMode?: unknown;
     };
+
     const recipientEmail = body.recipientEmail?.trim().toLowerCase() ?? '';
     const bccEmails = normalizeBccEmails(body.bccEmails ?? []);
     if (!EMAIL_PATTERN.test(recipientEmail)) {
-      return NextResponse.json({ error: 'Introduce un email destinatario válido antes de enviar la prueba' }, { status: 400 });
+      return NextResponse.json({ error: 'Introduce un email destinatario válido antes de enviar' }, { status: 400 });
     }
     if (!bccEmails) {
       return NextResponse.json({ error: 'Las direcciones CCO deben ser emails válidos separados por comas' }, { status: 400 });
     }
-    if (!isTestEmailType(body.testType)) {
-      return NextResponse.json({ error: 'Selecciona un tipo de email de prueba válido' }, { status: 400 });
+    if (!isSendEmailType(body.sendType)) {
+      return NextResponse.json({ error: 'Selecciona un tipo de email válido' }, { status: 400 });
     }
     if (!isEmailServiceConfigured()) {
       return NextResponse.json({ error: 'Faltan RESEND_API_KEY o EMAIL_FROM en el entorno' }, { status: 503 });
     }
 
     const appUrl = (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
-    const instructions = body.instructionsText?.trim() || 'Prepara el equipaje, lleva tu documentación y revisa los detalles importantes antes de salir.';
+    const instructions = body.instructionsText?.trim() || 'Revisa los detalles importantes y prepara todo lo necesario para tu salida.';
     const instructionsHours = Number(body.instructionsHours ?? 24);
-    const reminderIntervalDays = body.reminderIntervalDays ?? 7;
-    if (!Number.isInteger(reminderIntervalDays) || reminderIntervalDays < 1 || reminderIntervalDays > 365) {
-      return NextResponse.json({ error: 'La frecuencia debe estar entre 1 y 365 días' }, { status: 400 });
-    }
     const isSurprise = body.countdownMode === 'surprise';
     const startsAt = new Date(`${trip.start_date}T00:00:00.000Z`);
     const millisecondsUntilTrip = startsAt.getTime() - Date.now();
@@ -74,55 +71,84 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const itineraryUrl = trip.public_access_enabled && trip.public_access_token
       ? `${appUrl}/publico/${encodeURIComponent(trip.public_access_token)}`
       : `${appUrl}/viaje/${encodeURIComponent(id)}`;
-    const templates = {
+
+    const templates: Record<SendEmailType, { subject: string; html: string; timestampCol: string }> = {
       countdown: {
-        subject: 'Prueba · Tu aventura se acerca',
+        subject: 'Tu próxima aventura se acerca',
         html: createTravelEmail({
-          preheader: 'Así se verá el recordatorio de cuenta atrás.',
-          eyebrow: 'Prueba · Cuenta atrás',
+          preheader: 'Tu próxima aventura se acerca.',
+          eyebrow: 'Cuenta atrás',
           title: 'Tu aventura se acerca',
-          intro: isSurprise ? surpriseCountdownMessage() : 'Esta vista previa no revela el destino.',
-          highlight: { label: 'Cuenta atrás', value: isSurprise ? decoyCountdownValue() : countdownValue },
+          intro: isSurprise ? surpriseCountdownMessage() : 'Cada día queda menos para una experiencia especial.',
+          highlight: {
+            label: 'Cuenta atrás',
+            value: isSurprise ? decoyCountdownValue() : countdownValue,
+          },
           highlightStyle: 'minimal',
         }),
+        timestampCol: 'last_reminder_sent_at',
       },
       instructions: {
-        subject: 'Prueba · Instrucciones para tu salida',
+        subject: `Instrucciones para ${trip.name}`,
         html: createTravelEmail({
-          preheader: 'Así se verán las instrucciones previas al viaje.',
-          eyebrow: `Prueba · ${instructionsHours} horas antes`,
+          preheader: 'Instrucciones para tu salida próxima.',
+          eyebrow: `${instructionsHours} horas antes`,
           title: 'Todo listo para salir',
-          intro: `Esta es una vista previa del email de instrucciones que se enviará ${instructionsHours} horas antes del viaje.`,
+          intro: `Quedan menos de ${instructionsHours} horas para tu salida.`,
           highlight: { label: 'Instrucciones', value: instructions },
           highlightStyle: 'minimal',
         }),
+        timestampCol: 'instructions_sent_at',
       },
       itinerary: {
-        subject: 'Prueba · ¿Quieres descubrir el plan?',
+        subject: '¿Quieres descubrir el plan?',
         html: createTravelEmail({
-          preheader: 'Así se verá la invitación al itinerario.',
-          eyebrow: 'Prueba · Acceso al itinerario',
+          preheader: 'Tu itinerario ya está disponible.',
+          eyebrow: 'Acceso al itinerario',
           title: 'Ya puedes descubrir el plan',
-          intro: 'Esta es una vista previa del email que invita a consultar todos los detalles del viaje.',
+          intro: 'La salida se acerca. Ya puedes consultar todos los detalles del viaje.',
           highlight: { label: 'Acceso disponible', value: 'Tu itinerario está listo' },
           cta: { label: 'Ver el itinerario', url: itineraryUrl },
         }),
+        timestampCol: 'itinerary_access_sent_at',
       },
-    } satisfies Record<TestEmailType, { subject: string; html: string }>;
+    };
 
-    const template = templates[body.testType];
-    await sendEmail({ to: recipientEmail, bcc: bccEmails, subject: template.subject, html: template.html });
+    const targetTemplate = templates[body.sendType];
 
-    return NextResponse.json({ success: true, recipientCount: 1 + bccEmails.length, testType: body.testType });
+    await sendEmail({
+      to: recipientEmail,
+      bcc: bccEmails,
+      subject: targetTemplate.subject,
+      html: targetTemplate.html,
+    });
+
+    // Update sent timestamp in DB if notification settings exist or insert default row
+    await pool.query(
+      `INSERT INTO trip_notification_settings (trip_id, recipient_email, bcc_emails, ${targetTemplate.timestampCol}, updated_at)
+       VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+       ON CONFLICT (trip_id) DO UPDATE SET
+         recipient_email = EXCLUDED.recipient_email,
+         bcc_emails = EXCLUDED.bcc_emails,
+         ${targetTemplate.timestampCol} = CURRENT_TIMESTAMP,
+         updated_at = CURRENT_TIMESTAMP`,
+      [id, recipientEmail, bccEmails]
+    );
+
+    return NextResponse.json({
+      success: true,
+      recipientCount: 1 + bccEmails.length,
+      sendType: body.sendType,
+    });
   } catch (error) {
-    console.error('Send test email error:', error);
+    console.error('Send real email notification error:', error);
     const message = error instanceof Error ? error.message : 'Error desconocido';
     if (message.startsWith('Resend respondió con')) {
-      return NextResponse.json({ error: 'Resend rechazó el envío de prueba' }, { status: 502 });
+      return NextResponse.json({ error: 'Resend rechazó el envío del email' }, { status: 502 });
     }
     if (message === 'El servicio de email no está configurado') {
       return NextResponse.json({ error: message }, { status: 503 });
     }
-    return NextResponse.json({ error: 'No se pudo enviar el email de prueba' }, { status: 500 });
+    return NextResponse.json({ error: 'No se pudo enviar el email' }, { status: 500 });
   }
 }

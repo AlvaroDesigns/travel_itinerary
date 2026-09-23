@@ -16,9 +16,12 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
   const [settings, setSettings] = useState<NotificationSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [sendingType, setSendingType] = useState<'countdown' | 'instructions' | 'itinerary' | null>(null);
+  const [sendingTest, setSendingTest] = useState<'countdown' | 'instructions' | 'itinerary' | null>(null);
+  const [sendingReal, setSendingReal] = useState<'countdown' | 'instructions' | 'itinerary' | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string; testType?: string } | null>(null);
   const [isSaved, setIsSaved] = useState(false);
+
+  const isBusy = sendingTest !== null || sendingReal !== null;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -78,7 +81,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
   const sendTestEmail = async (testType: 'countdown' | 'instructions' | 'itinerary') => {
     if (!settings) return;
 
-    setSendingType(testType);
+    setSendingTest(testType);
     setFeedback(null);
     try {
       const response = await fetch(`/api/trips/${tripId}/notification-settings/test`, {
@@ -89,6 +92,7 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
           bccEmails: settings.bccEmails,
           testType,
           instructionsText: settings.instructionsText,
+          instructionsHours: settings.instructionsHours,
           reminderIntervalDays: settings.reminderIntervalDays,
           countdownMode: settings.countdownMode,
         }),
@@ -109,7 +113,46 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
         text: error instanceof Error ? error.message : 'No se pudo enviar el email de prueba',
       });
     } finally {
-      setSendingType(null);
+      setSendingTest(null);
+    }
+  };
+
+  const sendRealEmail = async (sendType: 'countdown' | 'instructions' | 'itinerary') => {
+    if (!settings) return;
+
+    setSendingReal(sendType);
+    setFeedback(null);
+    try {
+      const response = await fetch(`/api/trips/${tripId}/notification-settings/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipientEmail: settings.recipientEmail,
+          bccEmails: settings.bccEmails,
+          sendType,
+          instructionsText: settings.instructionsText,
+          instructionsHours: settings.instructionsHours,
+          reminderIntervalDays: settings.reminderIntervalDays,
+          countdownMode: settings.countdownMode,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'No se pudo enviar el email');
+      const labels = { countdown: 'cuenta atrás', instructions: 'instrucciones', itinerary: 'acceso al itinerario' };
+      const hiddenCopies = Math.max(0, Number(data.recipientCount ?? 1) - 1);
+      setFeedback({
+        type: 'success',
+        testType: sendType,
+        text: `Email de ${labels[sendType]} enviado correctamente a ${settings.recipientEmail}${hiddenCopies > 0 ? ` (+${hiddenCopies} CCO)` : ''}.`,
+      });
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        testType: sendType,
+        text: error instanceof Error ? error.message : 'No se pudo enviar el email',
+      });
+    } finally {
+      setSendingReal(null);
     }
   };
 
@@ -234,24 +277,44 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
               <p className="mt-1 text-sm text-zinc-500">Envía un email cada cierto número de días mientras se acerca la salida.</p>
             </div>
           </div>
-          <button
-            type="button"
-            disabled={sendingType !== null || !settings.recipientEmail}
-            onClick={() => sendTestEmail('countdown')}
-            className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-4 text-xs font-bold text-[#0066FF] transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
-          >
-            {sendingType === 'countdown' ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>Enviando…</span>
-              </>
-            ) : (
-              <>
-                <Send className="h-3.5 w-3.5" />
-                <span>Enviar prueba</span>
-              </>
-            )}
-          </button>
+          <div className="flex shrink-0 items-center gap-2.5">
+            <button
+              type="button"
+              disabled={isBusy || !settings.recipientEmail}
+              onClick={() => sendRealEmail('countdown')}
+              className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#0066FF] px-4 text-xs font-bold text-white shadow-xs transition hover:bg-[#0052cc] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+            >
+              {sendingReal === 'countdown' ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Enviando…</span>
+                </>
+              ) : (
+                <>
+                  <Send className="h-3.5 w-3.5" />
+                  <span>Enviar</span>
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              disabled={isBusy || !settings.recipientEmail}
+              onClick={() => sendTestEmail('countdown')}
+              className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-4 text-xs font-bold text-[#0066FF] transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+            >
+              {sendingTest === 'countdown' ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Enviando…</span>
+                </>
+              ) : (
+                <>
+                  <Send className="h-3.5 w-3.5" />
+                  <span>Enviar prueba</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
         <div className="mt-5 flex flex-col sm:flex-row sm:items-end justify-between gap-5">
           <div className="flex flex-wrap items-end gap-4 sm:gap-5">
@@ -370,18 +433,40 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
           <div className="flex gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#0066FF]"><Clock3 className="h-5 w-5" /></div>
             <div>
-              <h3 className="font-bold text-zinc-900">Instrucciones 24 horas antes</h3>
-              <p className="mt-1 text-sm text-zinc-500">Manda un recordatorio con las indicaciones que escribas durante las 24 horas previas.</p>
+              <h3 className="font-bold text-zinc-900">
+                Instrucciones {settings.instructionsHours ?? 24} {(settings.instructionsHours ?? 24) === 1 ? 'hora' : 'horas'} antes
+              </h3>
+              <p className="mt-1 text-sm text-zinc-500">
+                Manda un recordatorio con las indicaciones que escribas durante las {settings.instructionsHours ?? 24} {(settings.instructionsHours ?? 24) === 1 ? 'hora previa' : 'horas previas'}.
+              </p>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex shrink-0 flex-wrap items-center gap-2.5">
             <button
               type="button"
-              disabled={sendingType !== null || !settings.recipientEmail}
-              onClick={() => sendTestEmail('instructions')}
-              className="flex h-9 items-center justify-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-4 text-xs font-bold text-[#0066FF] transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+              disabled={isBusy || !settings.recipientEmail}
+              onClick={() => sendRealEmail('instructions')}
+              className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#0066FF] px-4 text-xs font-bold text-white shadow-xs transition hover:bg-[#0052cc] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
             >
-              {sendingType === 'instructions' ? (
+              {sendingReal === 'instructions' ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Enviando…</span>
+                </>
+              ) : (
+                <>
+                  <Send className="h-3.5 w-3.5" />
+                  <span>Enviar</span>
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              disabled={isBusy || !settings.recipientEmail}
+              onClick={() => sendTestEmail('instructions')}
+              className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-4 text-xs font-bold text-[#0066FF] transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+            >
+              {sendingTest === 'instructions' ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   <span>Enviando…</span>
@@ -401,7 +486,40 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
             />
           </div>
         </div>
-        <textarea disabled={!settings.reminderEnabled || !settings.instructionsEnabled} className="mt-5 min-h-28 w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-sm leading-relaxed text-zinc-700 outline-none transition focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 disabled:cursor-not-allowed" value={settings.instructionsText} onChange={(event) => updateSettings({ instructionsText: event.target.value })} maxLength={5000} placeholder="Ej.: prepara el equipaje, lleva tu documentación y acude al punto de encuentro a las 08:30." />
+
+        <div className="mt-5 max-w-xs">
+          <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="instructions-hours">
+            Horas antes de la salida
+          </label>
+          <input
+            id="instructions-hours"
+            type="number"
+            min="1"
+            max="720"
+            disabled={!settings.reminderEnabled || !settings.instructionsEnabled}
+            className={inputClassName}
+            value={settings.instructionsHours ?? 24}
+            onChange={(event) => {
+              const val = Math.max(1, Math.min(720, Number(event.target.value) || 1));
+              updateSettings({ instructionsHours: val });
+            }}
+          />
+        </div>
+
+        <div className="mt-4">
+          <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500" htmlFor="instructions-text">
+            Indicaciones
+          </label>
+          <textarea
+            id="instructions-text"
+            disabled={!settings.reminderEnabled || !settings.instructionsEnabled}
+            className="mt-1.5 min-h-28 w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-sm leading-relaxed text-zinc-700 outline-none transition focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/15 disabled:cursor-not-allowed"
+            value={settings.instructionsText}
+            onChange={(event) => updateSettings({ instructionsText: event.target.value })}
+            maxLength={5000}
+            placeholder="Ej.: prepara el equipaje, lleva tu documentación y acude al punto de encuentro a las 08:30."
+          />
+        </div>
       </div>
 
       <div className={`rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-xs ${dependentClassName}`}>
@@ -413,14 +531,32 @@ export function TripNotificationSettings({ tripId }: TripNotificationSettingsPro
               <p className="mt-1 text-sm text-zinc-500">Envía un email final con una invitación y el enlace directo al itinerario.</p>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex shrink-0 flex-wrap items-center gap-2.5">
             <button
               type="button"
-              disabled={sendingType !== null || !settings.recipientEmail}
-              onClick={() => sendTestEmail('itinerary')}
-              className="flex h-9 items-center justify-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-4 text-xs font-bold text-[#0066FF] transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+              disabled={isBusy || !settings.recipientEmail}
+              onClick={() => sendRealEmail('itinerary')}
+              className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#0066FF] px-4 text-xs font-bold text-white shadow-xs transition hover:bg-[#0052cc] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
             >
-              {sendingType === 'itinerary' ? (
+              {sendingReal === 'itinerary' ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Enviando…</span>
+                </>
+              ) : (
+                <>
+                  <Send className="h-3.5 w-3.5" />
+                  <span>Enviar</span>
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              disabled={isBusy || !settings.recipientEmail}
+              onClick={() => sendTestEmail('itinerary')}
+              className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-4 text-xs font-bold text-[#0066FF] transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+            >
+              {sendingTest === 'itinerary' ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   <span>Enviando…</span>
