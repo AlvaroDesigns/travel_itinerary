@@ -1,9 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { initDb, pool } from '@/lib/db';
-import { createTravelEmail, decoyCountdownValue, sendEmail, surpriseCountdownMessage } from '@/lib/email';
+import { initDb, pool } from "@/lib/db";
+import {
+  createCountdownEmailContent,
+  createTravelEmail,
+  sendEmail,
+} from "@/lib/email";
+import { NextRequest, NextResponse } from "next/server";
 
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 type ScheduledNotification = {
   trip_id: string;
@@ -14,7 +18,7 @@ type ScheduledNotification = {
   reminder_enabled: boolean;
   reminder_interval_days: number;
   reminder_time: string;
-  countdown_mode: 'exact' | 'surprise';
+  countdown_mode: "exact" | "surprise";
   last_reminder_sent_at: string | null;
   instructions_enabled: boolean;
   instructions_hours: number;
@@ -59,11 +63,15 @@ async function runNotifications() {
       s.public_access_token
     FROM trip_notification_settings s
     INNER JOIN trips t ON t.id = s.trip_id
-    WHERE s.reminder_enabled = TRUE`
+    WHERE s.reminder_enabled = TRUE`,
   );
 
   const now = new Date();
-  const appUrl = (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const appUrl = (
+    process.env.APP_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "http://localhost:3000"
+  ).replace(/\/$/, "");
   const sent: string[] = [];
   const failed: { tripId: string; kind: string; error: string }[] = [];
 
@@ -72,7 +80,12 @@ async function runNotifications() {
     const millisecondsUntilTrip = startsAt.getTime() - now.getTime();
     if (millisecondsUntilTrip <= 0) continue;
 
-    const send = async (kind: string, subject: string, html: string, sentAtColumn: string) => {
+    const send = async (
+      kind: string,
+      subject: string,
+      html: string,
+      sentAtColumn: string,
+    ) => {
       try {
         await sendEmail({
           to: setting.recipient_email,
@@ -80,76 +93,116 @@ async function runNotifications() {
           subject,
           html,
         });
-        await pool.query(`UPDATE trip_notification_settings SET ${sentAtColumn} = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE trip_id = $1`, [setting.trip_id]);
+        await pool.query(
+          `UPDATE trip_notification_settings SET ${sentAtColumn} = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE trip_id = $1`,
+          [setting.trip_id],
+        );
         sent.push(`${setting.trip_id}:${kind}`);
       } catch (error) {
-        console.error(`Unable to send ${kind} for trip ${setting.trip_id}:`, error);
-        failed.push({ tripId: setting.trip_id, kind, error: error instanceof Error ? error.message : 'Error desconocido' });
+        console.error(
+          `Unable to send ${kind} for trip ${setting.trip_id}:`,
+          error,
+        );
+        failed.push({
+          tripId: setting.trip_id,
+          kind,
+          error: error instanceof Error ? error.message : "Error desconocido",
+        });
       }
     };
 
-    // Calculate if reminder is due considering interval since last reminder
-    const lastReminderAt = setting.last_reminder_sent_at ? new Date(setting.last_reminder_sent_at).getTime() : 0;
-    const daysSinceLastReminder = lastReminderAt ? (now.getTime() - lastReminderAt) / DAY_MS : 999;
-    const intervalThreshold = Math.max(0.8, setting.reminder_interval_days * 0.85);
-    const reminderIsDue = !lastReminderAt || daysSinceLastReminder >= intervalThreshold;
+    // The final ten calendar days are always daily, regardless of the chosen
+    // long-range frequency. This keeps the anticipation building right up to departure.
+    const lastReminderAt = setting.last_reminder_sent_at
+      ? new Date(setting.last_reminder_sent_at).getTime()
+      : 0;
+    const daysSinceLastReminder = lastReminderAt
+      ? (now.getTime() - lastReminderAt) / DAY_MS
+      : 999;
+    const daysUntilDeparture = Math.max(
+      1,
+      Math.ceil(millisecondsUntilTrip / DAY_MS),
+    );
+    const intervalDays =
+      daysUntilDeparture <= 10 ? 1 : setting.reminder_interval_days;
+    const intervalThreshold = Math.max(0.8, intervalDays * 0.85);
+    const reminderIsDue =
+      !lastReminderAt || daysSinceLastReminder >= intervalThreshold;
     if (reminderIsDue) {
-      const isExact = setting.countdown_mode === 'exact';
-      const daysUntilDeparture = Math.max(1, Math.ceil(millisecondsUntilTrip / DAY_MS));
+      const isExact = setting.countdown_mode === "exact";
+      const countdown = createCountdownEmailContent(
+        daysUntilDeparture,
+        !isExact,
+      );
       await send(
-        'recordatorio',
-        'Tu próxima aventura se acerca',
+        "recordatorio",
+        countdown.subject,
         createTravelEmail({
-          preheader: 'Tu próxima aventura se acerca.',
-          eyebrow: 'Cuenta atrás',
-          title: 'Tu aventura se acerca',
-          intro: isExact ? 'Cada día queda menos para una experiencia especial.' : surpriseCountdownMessage(),
+          preheader: countdown.preheader,
+          eyebrow: "Cuenta atrás",
+          title: countdown.title,
+          intro: countdown.intro,
           highlight: {
-            label: 'Cuenta atrás',
-            value: isExact ? `Faltan ${daysUntilDeparture} ${daysUntilDeparture === 1 ? 'día' : 'días'}` : decoyCountdownValue(),
+            label: countdown.countdownLabel,
+            value: countdown.countdownValue,
           },
-          highlightStyle: 'minimal',
+          highlightStyle: "minimal",
         }),
-        'last_reminder_sent_at'
+        "last_reminder_sent_at",
       );
     }
 
     const instructionsLeadTime = (setting.instructions_hours ?? 24) * HOUR_MS;
-    if (setting.instructions_enabled && !setting.instructions_sent_at && millisecondsUntilTrip <= instructionsLeadTime) {
-      const instructions = setting.instructions_text.trim() || 'Revisa los detalles importantes y prepara todo lo necesario para tu salida.';
+    if (
+      setting.instructions_enabled &&
+      !setting.instructions_sent_at &&
+      millisecondsUntilTrip <= instructionsLeadTime
+    ) {
+      const instructions =
+        setting.instructions_text.trim() ||
+        "Revisa los detalles importantes y prepara todo lo necesario para tu salida.";
       const hours = setting.instructions_hours ?? 24;
       await send(
-        'instrucciones',
+        "instrucciones",
         `Instrucciones para ${setting.trip_name}`,
         createTravelEmail({
-          preheader: 'Instrucciones para tu salida próxima.',
+          preheader: "Instrucciones para tu salida próxima.",
           eyebrow: `${hours} horas antes`,
-          title: 'Todo listo para salir',
+          title: "Todo listo para salir",
           intro: `Quedan menos de ${hours} horas para tu salida.`,
-          highlight: { label: 'Instrucciones', value: instructions },
-          highlightStyle: 'minimal',
+          highlight: { label: "Instrucciones", value: instructions },
+          highlightStyle: "minimal",
         }),
-        'instructions_sent_at'
+        "instructions_sent_at",
       );
     }
 
     const itineraryLeadTime = setting.itinerary_access_hours * HOUR_MS;
-    if (setting.itinerary_access_enabled && !setting.itinerary_access_sent_at && millisecondsUntilTrip <= itineraryLeadTime) {
-      const itineraryUrl = setting.public_access_enabled && setting.public_access_token
-        ? `${appUrl}/publico/${encodeURIComponent(setting.public_access_token)}`
-        : `${appUrl}/viaje/${encodeURIComponent(setting.trip_id)}`;
+    if (
+      setting.itinerary_access_enabled &&
+      !setting.itinerary_access_sent_at &&
+      millisecondsUntilTrip <= itineraryLeadTime
+    ) {
+      const itineraryUrl =
+        setting.public_access_enabled && setting.public_access_token
+          ? `${appUrl}/publico/${encodeURIComponent(setting.public_access_token)}`
+          : `${appUrl}/viaje/${encodeURIComponent(setting.trip_id)}`;
       await send(
-        'acceso-itinerario',
-        '¿Quieres descubrir el plan?',
+        "acceso-itinerario",
+        "¿Quieres descubrir el plan?",
         createTravelEmail({
-          preheader: 'Tu itinerario ya está disponible.',
-          eyebrow: 'Acceso al itinerario',
-          title: 'Ya puedes descubrir el plan',
-          intro: 'La salida se acerca. Ya puedes consultar todos los detalles del viaje.',
-          highlight: { label: 'Acceso disponible', value: 'Tu itinerario está listo' },
-          cta: { label: 'Ver el itinerario', url: itineraryUrl },
+          preheader: "Tu itinerario ya está disponible.",
+          eyebrow: "Acceso al itinerario",
+          title: "Ya puedes descubrir el plan",
+          intro:
+            "La salida se acerca. Ya puedes consultar todos los detalles del viaje.",
+          highlight: {
+            label: "Acceso disponible",
+            value: "Tu itinerario está listo",
+          },
+          cta: { label: "Ver el itinerario", url: itineraryUrl },
         }),
-        'itinerary_access_sent_at'
+        "itinerary_access_sent_at",
       );
     }
   }
@@ -159,25 +212,32 @@ async function runNotifications() {
 
 function isAuthorized(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
-  const isVercelCron = request.headers.get('x-vercel-cron') === '1';
-  const authHeader = request.headers.get('authorization');
+  const isVercelCron = request.headers.get("x-vercel-cron") === "1";
+  const authHeader = request.headers.get("authorization");
   if (secret && authHeader === `Bearer ${secret}`) return true;
   if (isVercelCron) return true;
-  if (process.env.NODE_ENV === 'development') return true;
+  if (process.env.NODE_ENV === "development") return true;
   return false;
 }
 
 async function handleCron(request: NextRequest) {
-  if (!isAuthorized(request)) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  if (!isAuthorized(request))
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM) {
-    return NextResponse.json({ error: 'El servicio de email no está configurado' }, { status: 503 });
+    return NextResponse.json(
+      { error: "El servicio de email no está configurado" },
+      { status: 503 },
+    );
   }
 
   try {
     return NextResponse.json(await runNotifications());
   } catch (error) {
-    console.error('Notification cron error:', error);
-    return NextResponse.json({ error: 'Error al procesar las notificaciones' }, { status: 500 });
+    console.error("Notification cron error:", error);
+    return NextResponse.json(
+      { error: "Error al procesar las notificaciones" },
+      { status: 500 },
+    );
   }
 }
 

@@ -42,6 +42,105 @@ export function decoyCountdownValue() {
   return decoys[Math.floor(Math.random() * decoys.length)];
 }
 
+export interface CountdownEmailContent {
+  subject: string;
+  preheader: string;
+  title: string;
+  intro: string;
+  countdownLabel: string;
+  countdownValue: string;
+}
+
+/**
+ * Makes the last days before departure feel progressively more personal while
+ * keeping surprise-mode departures intentionally vague.
+ */
+export function createCountdownEmailContent(daysUntilDeparture: number, isSurprise: boolean): CountdownEmailContent {
+  if (isSurprise) {
+    return {
+      subject: 'Tu próxima aventura se acerca',
+      preheader: 'Hay una aventura esperándote.',
+      title: 'Tu aventura se acerca',
+      intro: surpriseCountdownMessage(),
+      countdownLabel: 'Cuenta atrás',
+      countdownValue: decoyCountdownValue(),
+    };
+  }
+
+  const days = Math.max(1, Math.ceil(daysUntilDeparture));
+  const countdownValue = `Faltan ${days} ${days === 1 ? 'día' : 'días'}`;
+  const finalCountdownMessages: Record<number, Omit<CountdownEmailContent, 'countdownLabel' | 'countdownValue'>> = {
+    10: {
+      subject: '¡Solo quedan 10 días para tu aventura!',
+      preheader: 'La cuenta atrás de verdad acaba de empezar.',
+      title: '¡Solo quedan 10 días!',
+      intro: 'Tu aventura ya está a la vuelta de la esquina. ¿Estás preparad@ para todo lo que viene?',
+    },
+    9: {
+      subject: '9 días para empezar a vivirlo',
+      preheader: 'La emoción sigue subiendo.',
+      title: 'Ya son solo 9 días',
+      intro: 'Empieza a imaginar el primer momento del viaje: cada día te acerca un poco más.',
+    },
+    8: {
+      subject: '8 días: la aventura casi está aquí',
+      preheader: 'Cada día cuenta.',
+      title: 'La cuenta atrás se acelera',
+      intro: 'Faltan 8 días para cambiar la rutina por recuerdos que todavía no existen.',
+    },
+    7: {
+      subject: 'Una semana para tu próxima aventura',
+      preheader: 'En una semana estarás en marcha.',
+      title: '¡Solo queda una semana!',
+      intro: 'Dentro de 7 días empieza algo muy especial. Ya puedes ir haciendo sitio a la ilusión.',
+    },
+    6: {
+      subject: '6 días y la emoción no para de crecer',
+      preheader: 'El viaje ya se siente cerca.',
+      title: 'Ya casi puedes tocarlo',
+      intro: 'La aventura está cada vez más cerca. Es el momento perfecto para empezar a saborearla.',
+    },
+    5: {
+      subject: '¡Solo 5 días para despegar!',
+      preheader: 'La cuenta atrás entra en su mejor momento.',
+      title: '¡Quedan 5 días!',
+      intro: 'Cinco días para dejar atrás lo cotidiano y dar paso a una experiencia inolvidable.',
+    },
+    4: {
+      subject: '4 días para una aventura inolvidable',
+      preheader: 'Esto ya está pasando.',
+      title: 'La aventura está llamando',
+      intro: 'Quedan solo 4 días. Prepara la maleta, la curiosidad y muchas ganas de descubrir.',
+    },
+    3: {
+      subject: '¡Solo 3 días!',
+      preheader: 'La espera está a punto de terminar.',
+      title: '¡Esto se pone muy real!',
+      intro: 'En 3 días empieza tu aventura. La emoción ya tiene permiso para desbordarse.',
+    },
+    2: {
+      subject: '2 días: casi es hora de partir',
+      preheader: 'Estás a un suspiro de viajar.',
+      title: '¡Ya no queda nada!',
+      intro: 'Solo 2 días. Todo está a punto de comenzar y los mejores recuerdos están esperándote.',
+    },
+    1: {
+      subject: '¡Mañana empieza tu aventura!',
+      preheader: 'La espera termina mañana.',
+      title: '¡Mañana es el gran día!',
+      intro: 'Ya está aquí. Descansa, revisa lo esencial y prepárate para vivir algo increíble.',
+    },
+  };
+  const message = finalCountdownMessages[days] || {
+    subject: 'Tu próxima aventura se acerca',
+    preheader: 'Tu próxima aventura se acerca.',
+    title: 'Tu aventura se acerca',
+    intro: 'Cada día queda menos para una experiencia especial.',
+  };
+
+  return { ...message, countdownLabel: 'Cuenta atrás', countdownValue };
+}
+
 export function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, (character) => ({
     '&': '&amp;',

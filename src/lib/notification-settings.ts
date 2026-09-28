@@ -1,5 +1,5 @@
-export type CountdownMode = 'exact' | 'surprise';
-export type PublicItineraryVisibility = 'all' | 'day_before';
+export type CountdownMode = "exact" | "surprise";
+export type PublicItineraryVisibility = "all" | "day_before";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const MAX_BCC_RECIPIENTS = 25;
@@ -26,31 +26,42 @@ export interface NotificationSettings {
 export function normalizeBccEmails(value: unknown): string[] | null {
   const entries = Array.isArray(value)
     ? value
-    : typeof value === 'string'
+    : typeof value === "string"
       ? value.split(/[,;\n]/)
       : null;
 
-  if (!entries || entries.some((entry) => typeof entry !== 'string')) return null;
+  if (!entries || entries.some((entry) => typeof entry !== "string"))
+    return null;
 
-  const emails = [...new Set(entries.map((entry) => entry.trim().toLowerCase()).filter(Boolean))];
-  if (emails.length > MAX_BCC_RECIPIENTS || emails.some((email) => !EMAIL_PATTERN.test(email))) return null;
+  const emails = [
+    ...new Set(
+      entries.map((entry) => entry.trim().toLowerCase()).filter(Boolean),
+    ),
+  ];
+  if (
+    emails.length > MAX_BCC_RECIPIENTS ||
+    emails.some((email) => !EMAIL_PATTERN.test(email))
+  )
+    return null;
 
   return emails;
 }
 
-export const createDefaultNotificationSettings = (recipientEmail: string): NotificationSettings => ({
+export const createDefaultNotificationSettings = (
+  recipientEmail: string,
+): NotificationSettings => ({
   recipientEmail,
   bccEmails: [],
   reminderEnabled: false,
-  reminderIntervalDays: 7,
-  reminderTime: '09:00',
-  countdownMode: 'exact',
+  reminderIntervalDays: 1,
+  reminderTime: "09:00",
+  countdownMode: "exact",
   instructionsEnabled: true,
   instructionsHours: 24,
-  instructionsText: '',
+  instructionsText: "",
   itineraryAccessEnabled: true,
   itineraryAccessHours: 6,
   publicAccessEnabled: false,
   publicShowExpenses: false,
-  publicItineraryVisibility: 'all',
+  publicItineraryVisibility: "all",
 });
