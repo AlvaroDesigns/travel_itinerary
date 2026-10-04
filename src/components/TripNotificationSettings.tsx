@@ -505,15 +505,23 @@ export function TripNotificationSettings({
               </div>
             )}
 
-            <div className="w-full sm:w-52">
+            <div className="w-full sm:w-36">
               <label
                 className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+                htmlFor="reminder-time"
               >
-                Programación automática
+                Hora de envío
               </label>
-              <p className="mt-1.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3 text-sm font-medium text-zinc-600">
-                Una vez al día (Vercel Hobby)
-              </p>
+              <input
+                id="reminder-time"
+                type="time"
+                disabled={!settings.reminderEnabled}
+                className={inputClassName}
+                value={settings.reminderTime || "09:00"}
+                onChange={(event) =>
+                  updateSettings({ reminderTime: event.target.value })
+                }
+              />
             </div>
           </div>
 
@@ -552,7 +560,7 @@ export function TripNotificationSettings({
         <div className="mt-4 flex gap-2 rounded-xl bg-blue-50/80 p-3 text-xs leading-relaxed text-[#003eb3]">
           <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[#0066FF]" />
           {settings.countdownMode === "exact"
-            ? `El email indicará cuántos días faltan para empezar el viaje (se enviará cada ${settings.reminderIntervalDays === 1 ? "día" : `${settings.reminderIntervalDays} días`} y cada día durante los últimos 10 días, con un mensaje más emocionante). En el plan Hobby, Vercel revisa los avisos una vez al día; las instrucciones y el acceso pueden enviarse en esa revisión posterior a su hora prevista.`
+            ? `El email indicará cuántos días faltan para empezar el viaje (se enviará cada ${settings.reminderIntervalDays === 1 ? "día" : `${settings.reminderIntervalDays} días`} y cada día durante los últimos 10 días, con un mensaje más emocionante). En el plan Hobby, Vercel revisa los avisos una vez al día, después de la hora elegida.`
             : "El email no revelará la fecha exacta y mostrará un mensaje genérico para mantener la sorpresa."}
         </div>
       </div>
