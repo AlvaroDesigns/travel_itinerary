@@ -71,12 +71,12 @@ function startOfTrip(date: string) {
   return new Date(utcMidnight.getTime() + (desiredMinutes - actualMinutes + dayOffset) * 60_000);
 }
 
-function isReminderDue(setting: ScheduledNotification, now: Date, millisecondsUntilTrip: number) {
+function isReminderDue(
+  setting: ScheduledNotification,
+  now: Date,
+  millisecondsUntilTrip: number,
+) {
   const nowLocal = zonedParts(now);
-  const [hour, minute] = setting.reminder_time.split(":").map(Number);
-  const scheduledMinutes = hour * 60 + minute;
-  if (nowLocal.minutes < scheduledMinutes) return false;
-
   const daysUntilDeparture = Math.max(1, Math.ceil(millisecondsUntilTrip / DAY_MS));
   const intervalDays = daysUntilDeparture <= 10 ? 1 : setting.reminder_interval_days;
   if (!setting.last_reminder_sent_at) return true;
