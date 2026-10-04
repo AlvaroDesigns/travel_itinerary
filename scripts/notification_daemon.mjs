@@ -16,15 +16,22 @@ for (const line of env.split('\n')) {
   }
 }
 
-console.log('[NotificationDaemon] Iniciando vigilancia de notificaciones...');
+const port = process.env.PORT || '3001';
+const cronSecret = process.env.CRON_SECRET;
+const cronUrl = `http://localhost:${port}/api/cron/notifications`;
+
+console.log(`[NotificationDaemon] Iniciando vigilancia de notificaciones en ${cronUrl}...`);
 
 async function check() {
   try {
-    const res = await fetch('http://localhost:3000/api/cron/notifications');
+    const res = await fetch(cronUrl, {
+      headers: cronSecret ? { Authorization: `Bearer ${cronSecret}` } : {},
+    });
     const data = await res.json();
     if (data.sent && data.sent.length > 0) {
       console.log(`[${new Date().toLocaleTimeString('es-ES')}] ¡Notificación enviada con éxito!`, data.sent);
     }
+    if (!res.ok) console.error('[NotificationDaemon] El cron respondió:', data);
   } catch (err) {
     // server might be busy or restarting
   }

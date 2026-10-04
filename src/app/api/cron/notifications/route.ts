@@ -33,9 +33,61 @@ type ScheduledNotification = {
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
+const NOTIFICATION_TIME_ZONE = process.env.NOTIFICATION_TIME_ZONE || "Europe/Madrid";
 
+function zonedParts(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: NOTIFICATION_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts
+      .filter(({ type }) => type !== "literal")
+      .map(({ type, value }) => [type, Number(value)]),
+  );
+  return {
+    date: `${values.year}-${String(values.month).padStart(2, "0")}-${String(values.day).padStart(2, "0")}`,
+    minutes: values.hour * 60 + values.minute,
+  };
+}
+
+/** Converts a date-only trip start into midnight in the configured agency timezone. */
 function startOfTrip(date: string) {
-  return new Date(`${date}T00:00:00.000Z`);
+  const utcMidnight = new Date(`${date}T00:00:00.000Z`);
+  const local = zonedParts(utcMidnight);
+  const desiredMinutes = 0;
+  const actualMinutes = local.minutes;
+  const dayOffset =
+    Math.round(
+      (Date.parse(`${date}T00:00:00.000Z`) -
+        Date.parse(`${local.date}T00:00:00.000Z`)) /
+        DAY_MS,
+    ) * 1440;
+  return new Date(utcMidnight.getTime() + (desiredMinutes - actualMinutes + dayOffset) * 60_000);
+}
+
+function isReminderDue(setting: ScheduledNotification, now: Date, millisecondsUntilTrip: number) {
+  const nowLocal = zonedParts(now);
+  const [hour, minute] = setting.reminder_time.split(":").map(Number);
+  const scheduledMinutes = hour * 60 + minute;
+  if (nowLocal.minutes < scheduledMinutes) return false;
+
+  const daysUntilDeparture = Math.max(1, Math.ceil(millisecondsUntilTrip / DAY_MS));
+  const intervalDays = daysUntilDeparture <= 10 ? 1 : setting.reminder_interval_days;
+  if (!setting.last_reminder_sent_at) return true;
+
+  const lastSentLocal = zonedParts(new Date(setting.last_reminder_sent_at));
+  const calendarDaysSinceLastSend = Math.round(
+    (Date.parse(`${nowLocal.date}T00:00:00.000Z`) -
+      Date.parse(`${lastSentLocal.date}T00:00:00.000Z`)) /
+      DAY_MS,
+  );
+  return calendarDaysSinceLastSend >= intervalDays;
 }
 
 async function runNotifications() {
@@ -63,7 +115,9 @@ async function runNotifications() {
       s.public_access_token
     FROM trip_notification_settings s
     INNER JOIN trips t ON t.id = s.trip_id
-    WHERE s.reminder_enabled = TRUE`,
+    WHERE s.reminder_enabled = TRUE
+      OR s.instructions_enabled = TRUE
+      OR s.itinerary_access_enabled = TRUE`,
   );
 
   const now = new Date();
@@ -113,22 +167,11 @@ async function runNotifications() {
 
     // The final ten calendar days are always daily, regardless of the chosen
     // long-range frequency. This keeps the anticipation building right up to departure.
-    const lastReminderAt = setting.last_reminder_sent_at
-      ? new Date(setting.last_reminder_sent_at).getTime()
-      : 0;
-    const daysSinceLastReminder = lastReminderAt
-      ? (now.getTime() - lastReminderAt) / DAY_MS
-      : 999;
     const daysUntilDeparture = Math.max(
       1,
       Math.ceil(millisecondsUntilTrip / DAY_MS),
     );
-    const intervalDays =
-      daysUntilDeparture <= 10 ? 1 : setting.reminder_interval_days;
-    const intervalThreshold = Math.max(0.8, intervalDays * 0.85);
-    const reminderIsDue =
-      !lastReminderAt || daysSinceLastReminder >= intervalThreshold;
-    if (reminderIsDue) {
+    if (setting.reminder_enabled && isReminderDue(setting, now, millisecondsUntilTrip)) {
       const isExact = setting.countdown_mode === "exact";
       const countdown = createCountdownEmailContent(
         daysUntilDeparture,
@@ -212,12 +255,9 @@ async function runNotifications() {
 
 function isAuthorized(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
-  const isVercelCron = request.headers.get("x-vercel-cron") === "1";
   const authHeader = request.headers.get("authorization");
-  if (secret && authHeader === `Bearer ${secret}`) return true;
-  if (isVercelCron) return true;
   if (process.env.NODE_ENV === "development") return true;
-  return false;
+  return Boolean(secret && authHeader === `Bearer ${secret}`);
 }
 
 async function handleCron(request: NextRequest) {
