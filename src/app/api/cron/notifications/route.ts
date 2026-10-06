@@ -211,7 +211,7 @@ async function runNotifications() {
       const hours = setting.instructions_hours ?? 24;
       await send(
         "instrucciones",
-        `Instrucciones para ${setting.trip_name}`,
+        "Instrucciones para tu salida",
         createTravelEmail({
           preheader: "Instrucciones para tu salida próxima.",
           eyebrow: `${hours} horas antes`,

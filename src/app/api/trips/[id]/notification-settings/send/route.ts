@@ -135,7 +135,7 @@ export async function POST(
         timestampCol: "last_reminder_sent_at",
       },
       instructions: {
-        subject: `Instrucciones para ${trip.name}`,
+        subject: "Instrucciones para tu salida",
         html: createTravelEmail({
           preheader: "Instrucciones para tu salida próxima.",
           eyebrow: `${instructionsHours} horas antes`,
